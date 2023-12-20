@@ -52,7 +52,7 @@ class AuthenticationBloc
     AuthenticationLogoutRequested event,
     Emitter<AuthenticationState> emit,
   ) async {
-    // _authenticationRepository.logOut();
+    _authenticationRepository.logOut();
   }
 
   Future<User?> _tryGetUser() async {

@@ -99,7 +99,7 @@ class _LoginWebViewState extends State<LoginWebView> {
       builder: (context, state) {
         return InAppWebView(
           initialUrlRequest: URLRequest(
-              url: Uri.parse("http://192.168.0.178:8080/index.php/login/flow"),
+              url: Uri.parse("$localhost/index.php/login/flow"),
               headers: {
                 "OCS-APIREQUEST": "true",
                 // "Accept-Language": "en-US",

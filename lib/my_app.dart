@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nextcloud_chat_app/authentication/bloc/authentication_bloc.dart';
 import 'package:nextcloud_chat_app/repositories/authentication_repository.dart';
 import 'package:nextcloud_chat_app/repositories/user_repository.dart';
+import 'package:nextcloud_chat_app/screen/home/bloc/home_bloc.dart';
 import 'package:nextcloud_chat_app/screen/home/view/home.dart';
 import 'package:nextcloud_chat_app/screen/login/view/login.dart';
 import 'package:nextcloud_chat_app/screen/splash/view/splash.dart';
@@ -26,6 +27,9 @@ class MyApp extends StatelessWidget {
             create: (_) => AuthenticationBloc(
                 authenticationRepository: authenticationRepository,
                 userRepository: userRepository),
+          ),
+          BlocProvider(
+            create: (context) => HomeBloc()..add(LoadConversationEvent()),
           ),
         ],
         child: MainApp(),

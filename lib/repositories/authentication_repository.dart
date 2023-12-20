@@ -46,7 +46,9 @@ class AuthenticationRepository {
 
   Future<void> logOut() async {
     SharedPreferences shared_User = await SharedPreferences.getInstance();
-    await shared_User.remove("user");
+    shared_User.remove('server');
+    shared_User.remove('username');
+    shared_User.remove('password');
     _controller.add(AuthenticationStatus.unauthenticated);
   }
 
