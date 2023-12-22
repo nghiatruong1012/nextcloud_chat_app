@@ -14,4 +14,5 @@ Map<String, String> parseInputString(String inputString) {
 }
 
 // const String localhost = "http://192.168.0.178:8080";
-const String localhost = "http://192.168.1.86:8080";
+const String localhost = "http://192.168.1.45:8080";
+const String host = "192.168.1.45";

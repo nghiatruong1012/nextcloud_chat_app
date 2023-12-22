@@ -14,7 +14,7 @@ class ConversationService {
       print(
         Uri(
             scheme: 'http',
-            host: '192.168.1.86',
+            host: host,
             port: 8080,
             path: '/ocs/v2.php/apps/spreed/api/v4/room',
             query: 'includeStatus=true'),
@@ -23,7 +23,7 @@ class ConversationService {
       final response = await http.get(
         Uri(
             scheme: 'http',
-            host: '192.168.1.86',
+            host: host,
             port: 8080,
             path: '/ocs/v2.php/apps/spreed/api/v4/room',
             query: 'includeStatus=true'),
@@ -48,49 +48,90 @@ class ConversationService {
     }
   }
 
-  Future<Image> getConversationAvatar(String token) async {
+  Future<Image> getConversationAvatar(
+      String token, String name, String actorType) async {
     Map<String, String> requestHeaders = await HTTPService().authImgHeader();
-    try {
-      print(
-        Uri(
-          scheme: 'http',
-          host: '192.168.1.86',
-          port: 8080,
-          path: '/ocs/v2.php/apps/spreed/api/v1/room/$token/avatar',
-        ),
-      );
-
-      final response = await http.get(
-        Uri(
-          scheme: 'http',
-          host: '192.168.1.86',
-          port: 8080,
-          path: '/ocs/v2.php/apps/spreed/api/v1/room/$token/avatar',
-        ),
-
-        headers: requestHeaders,
-        // body: jsonEncode(params ?? {}),
-      );
-      if (response.statusCode == 200) {
-        print('Success');
-        print(response.bodyBytes);
-        // Create an Image widget from the bytes
-        return Image.memory(
-          response.bodyBytes,
-          frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-            return Image.memory(response.bodyBytes);
-          },
-          errorBuilder: (context, error, stackTrace) {
-            return SvgPicture.memory(response.bodyBytes);
-          },
+    print(actorType);
+    if (actorType == 'bots') {
+      try {
+        print(
+          Uri(
+            scheme: 'http',
+            host: host,
+            port: 8080,
+            path: '/ocs/v2.php/apps/spreed/api/v1/room/$token/avatar',
+          ),
         );
-        // return Conversations.fromJson(jsonDecode(response.body));
-      } else {
-        return Image.memory(response.bodyBytes);
+
+        final response = await http.get(
+          Uri(
+            scheme: 'http',
+            host: host,
+            port: 8080,
+            path: '/ocs/v2.php/apps/spreed/api/v1/room/$token/avatar',
+          ),
+
+          headers: requestHeaders,
+          // body: jsonEncode(params ?? {}),
+        );
+        if (response.statusCode == 200) {
+          print('Success');
+          print(response.bodyBytes);
+          // Create an Image widget from the bytes
+          return Image.memory(
+            response.bodyBytes,
+            errorBuilder: (context, error, stackTrace) {
+              return SvgPicture.memory(response.bodyBytes);
+            },
+          );
+          // return Conversations.fromJson(jsonDecode(response.body));
+        } else {
+          return Image.memory(response.bodyBytes);
+        }
+      } catch (e) {
+        print(e);
+        throw Exception();
       }
-    } catch (e) {
-      print(e);
-      throw Exception();
+    } else {
+      try {
+        print(
+          Uri(
+            scheme: 'http',
+            host: host,
+            port: 8080,
+            path: '/avatar/$name/64?v=0',
+          ),
+        );
+
+        final response = await http.get(
+          Uri(
+            scheme: 'http',
+            host: host,
+            port: 8080,
+            path: '/avatar/$name/64?v=0',
+          ),
+
+          headers: requestHeaders,
+          // body: jsonEncode(params ?? {}),
+        );
+        if (response.statusCode == 200) {
+          print('Success');
+          print(response.bodyBytes);
+          // Create an Image widget from the bytes
+          return Image.memory(
+            response.bodyBytes,
+            errorBuilder: (context, error, stackTrace) {
+              return SvgPicture.memory(response.bodyBytes);
+            },
+          );
+          // return Conversations.fromJson(jsonDecode(response.body));
+        } else {
+          return Image.memory(response.bodyBytes);
+        }
+      } catch (e) {
+        print(e);
+        throw Exception();
+      }
     }
   }
 }
