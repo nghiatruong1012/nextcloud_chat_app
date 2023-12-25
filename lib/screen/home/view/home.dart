@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nextcloud_chat_app/authentication/bloc/authentication_bloc.dart';
+import 'package:nextcloud_chat_app/screen/chat/view/chat.dart';
 import 'package:nextcloud_chat_app/screen/home/bloc/home_bloc.dart';
 import 'package:nextcloud_chat_app/service/conversation_service.dart';
 import 'package:nextcloud_chat_app/service/request.dart';
@@ -80,6 +81,14 @@ class _HomePageState extends State<HomePage> {
                     child: ListView.builder(
                       itemCount: state.listConversations!.length,
                       itemBuilder: (context, index) => ListTile(
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              ChatProvider.route(
+                                  state.listConversations![index].token!,
+                                  state.listConversations![index].lastMessage!
+                                      .id!));
+                        },
                         leading: Container(
                           width: 40,
                           height: 40,
