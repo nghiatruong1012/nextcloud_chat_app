@@ -125,40 +125,91 @@ class _ChatPageState extends State<ChatPage> {
                 ),
               ],
             ),
-            body: Container(
-              child: ListView.builder(
-                  itemCount: state.listChat!.length,
-                  itemBuilder: (context, index) => (state
-                              .listChat![index].systemMessage ==
-                          "conversation_created")
-                      ? Container(
-                          alignment: Alignment.center,
-                          padding: EdgeInsets.symmetric(vertical: 20),
-                          child: Text(
-                              '${state.listChat![index].actorId} đã tạo đàm thoại'),
-                        )
-                      : Container(
-                          alignment:
-                              (state.listChat![index].actorId == user.username)
-                                  ? Alignment.centerRight
-                                  : Alignment.centerLeft,
-                          child: Container(
-                            margin: EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 2),
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 10),
-                            decoration: BoxDecoration(
-                                color: (state.listChat![index].actorId ==
-                                        user.username)
-                                    ? Colors.grey.withOpacity(0.3)
-                                    : Colors.grey.withOpacity(0.6),
-                                borderRadius: BorderRadius.circular(100)),
-                            child: Text(
-                              state.listChat![index].message.toString(),
-                              style: TextStyle(fontSize: 18),
-                            ),
+            body: Column(
+              children: [
+                Flexible(
+                  child: ListView.builder(
+                      reverse: true,
+                      itemCount: state.listChat!.length,
+                      itemBuilder: (context, index) {
+                        int itemCount = state?.listChat?.length ?? 0;
+                        int reversedIndex = itemCount - 1 - index;
+                        return (state.listChat![reversedIndex].systemMessage ==
+                                "conversation_created")
+                            ? Container(
+                                alignment: Alignment.center,
+                                padding: EdgeInsets.symmetric(vertical: 20),
+                                child: Text(
+                                    '${state.listChat![reversedIndex].actorId} đã tạo đàm thoại'),
+                              )
+                            : Container(
+                                alignment:
+                                    (state.listChat![reversedIndex].actorId ==
+                                            user.username)
+                                        ? Alignment.centerRight
+                                        : Alignment.centerLeft,
+                                child: Container(
+                                  constraints: BoxConstraints(maxWidth: 300),
+                                  margin: EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 2),
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 20, vertical: 10),
+                                  decoration: BoxDecoration(
+                                      color: (state.listChat![reversedIndex]
+                                                  .actorId ==
+                                              user.username)
+                                          ? Colors.grey.withOpacity(0.2)
+                                          : Colors.grey.withOpacity(0.4),
+                                      borderRadius: BorderRadius.circular(20)),
+                                  child: Text(
+                                    state.listChat![reversedIndex].message
+                                        .toString(),
+                                    style: TextStyle(fontSize: 18),
+                                  ),
+                                ),
+                              );
+                      }),
+                ),
+                SizedBox(
+                  height: 20,
+                ),
+                Container(
+                  // height: 50,
+                  padding: EdgeInsets.symmetric(vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    // border: Border(
+                    //     top: BorderSide(
+                    //         color: Colors.black.withOpacity(0.2), width: 0.5)),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      IconButton(
+                          onPressed: () {}, icon: Icon(Icons.attach_file)),
+                      IconButton(
+                          onPressed: () {},
+                          icon: Icon(Icons.emoji_emotions_outlined)),
+                      Flexible(
+                        child: Container(
+                          child: TextFormField(
+                            maxLines: 5,
+                            minLines: 1,
+                            keyboardType: TextInputType.multiline,
+                            decoration: InputDecoration(
+                                contentPadding: EdgeInsets.symmetric(
+                                    vertical: 5, horizontal: 15),
+                                hintText: "Enter a message ...",
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(20))),
                           ),
-                        )),
+                        ),
+                      ),
+                      IconButton(onPressed: () {}, icon: Icon(Icons.send)),
+                    ],
+                  ),
+                )
+              ],
             ),
           );
         } else {
