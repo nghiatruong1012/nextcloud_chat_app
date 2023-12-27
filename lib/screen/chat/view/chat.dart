@@ -31,7 +31,7 @@ class ChatProvider extends StatelessWidget {
 }
 
 class ChatPage extends StatefulWidget {
-  const ChatPage({super.key, required this.token, required this.messageId});
+  ChatPage({super.key, required this.token, required this.messageId});
 
   final String token;
   final int messageId;
@@ -46,6 +46,7 @@ class _ChatPageState extends State<ChatPage> {
   final int messageId;
 
   _ChatPageState({required this.token, required this.messageId});
+  TextEditingController messController = TextEditingController();
 
   @override
   void initState() {
@@ -154,13 +155,24 @@ class _ChatPageState extends State<ChatPage> {
                                       horizontal: 10, vertical: 2),
                                   padding: EdgeInsets.symmetric(
                                       horizontal: 20, vertical: 10),
-                                  decoration: BoxDecoration(
-                                      color: (state.listChat![reversedIndex]
-                                                  .actorId ==
-                                              user.username)
-                                          ? Colors.grey.withOpacity(0.2)
-                                          : Colors.grey.withOpacity(0.4),
-                                      borderRadius: BorderRadius.circular(20)),
+                                  decoration: (state.listChat![reversedIndex]
+                                              .actorId ==
+                                          user.username)
+                                      ? BoxDecoration(
+                                          color: Colors.green.withOpacity(0.2),
+                                          borderRadius: BorderRadius.only(
+                                            bottomLeft: Radius.circular(15),
+                                            bottomRight: Radius.circular(15),
+                                            topLeft: Radius.circular(15),
+                                          ),
+                                        )
+                                      : BoxDecoration(
+                                          color: Colors.grey.withOpacity(0.2),
+                                          borderRadius: BorderRadius.only(
+                                            bottomLeft: Radius.circular(15),
+                                            bottomRight: Radius.circular(15),
+                                            topRight: Radius.circular(15),
+                                          )),
                                   child: Text(
                                     state.listChat![reversedIndex].message
                                         .toString(),
@@ -169,9 +181,6 @@ class _ChatPageState extends State<ChatPage> {
                                 ),
                               );
                       }),
-                ),
-                SizedBox(
-                  height: 20,
                 ),
                 Container(
                   // height: 50,
@@ -193,6 +202,10 @@ class _ChatPageState extends State<ChatPage> {
                       Flexible(
                         child: Container(
                           child: TextFormField(
+                            enabled:
+                                (state.conversations!.lastMessage!.actorType !=
+                                    "bots"),
+                            controller: messController,
                             maxLines: 5,
                             minLines: 1,
                             keyboardType: TextInputType.multiline,
@@ -205,7 +218,20 @@ class _ChatPageState extends State<ChatPage> {
                           ),
                         ),
                       ),
-                      IconButton(onPressed: () {}, icon: Icon(Icons.send)),
+                      IconButton(
+                          onPressed: () {
+                            print('object');
+                            if (messController.text.isNotEmpty) {
+                              context.read<ChatBloc>().add(SendMessage(
+                                  messController.text,
+                                  user.username.toString()));
+                            }
+                            messController.clear();
+
+                            // Unfocus the current focus node to close the keyboard
+                            FocusScope.of(context).unfocus();
+                          },
+                          icon: Icon(Icons.send)),
                     ],
                   ),
                 )

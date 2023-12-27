@@ -76,7 +76,7 @@ class ConversationService {
         );
         if (response.statusCode == 200) {
           print('Success');
-          print(response.bodyBytes);
+
           // Create an Image widget from the bytes
           return Image.memory(
             response.bodyBytes,
@@ -116,7 +116,7 @@ class ConversationService {
         );
         if (response.statusCode == 200) {
           print('Success');
-          print(response.bodyBytes);
+
           // Create an Image widget from the bytes
           return Image.memory(
             response.bodyBytes,

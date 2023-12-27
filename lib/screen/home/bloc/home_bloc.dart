@@ -23,6 +23,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       final list = await ConversationService().getUserConversations({});
       if (list != state.listConversations) {
         emit(state.copyWith(listConversations: list));
+      } else {
+        print("error");
       }
     });
   }
