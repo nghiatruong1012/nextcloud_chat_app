@@ -19,3 +19,5 @@ class SendMessage extends ChatEvent {
     this.actorDisplayName,
   );
 }
+
+class LoadOlderMessage extends ChatEvent {}

@@ -85,6 +85,33 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         print("khong gui dc tin nhan moi" + response.statusCode.toString());
       }
     });
+
+    on<LoadOlderMessage>((event, emit) async {
+      if (!state.isLoading! && (state.listChat![0].id! > 0)) {
+        state.copyWith(isLoading: true);
+        print("Loadmore");
+        print(state.listChat![0].id!);
+        final response = await ChatService().receiveMessage(state.token!, {
+          "setReadMarker": "0",
+          "lookIntoFuture": "0",
+          "lastKnownMessageId": state.listChat![0].id.toString(),
+          "limit": "100",
+          "includeLastKnown": "0"
+        });
+        if (response.statusCode == 200) {
+          List<dynamic> data = jsonDecode(response.body)["ocs"]["data"];
+          List<Chat> listChat =
+              data.map((item) => Chat.fromJson(item)).toList();
+          state.listChat!.insertAll(0, listChat.reversed);
+
+          state.copyWith(isLoading: false);
+          emit(state.copyWith(listChat: state.listChat));
+          print(state.listChat!.length);
+        } else {
+          print("Fail to load more");
+        }
+      }
+    });
   }
   Future<void> fetchApi() async {
     print("waiting");

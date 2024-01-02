@@ -50,12 +50,29 @@ class _ChatPageState extends State<ChatPage> {
 
   _ChatPageState({required this.token, required this.messageId});
   TextEditingController messController = TextEditingController();
+  ScrollController scrollController = ScrollController();
+  bool isLoading = false;
 
   @override
   void initState() {
     // TODO: implement initState
     context.read<ChatBloc>().add(LoadInitialChat(token, messageId));
     context.read<ChatBloc>().add(ReceiveMessage());
+    scrollController.addListener(() {
+      if (scrollController.position.pixels ==
+          scrollController.position.maxScrollExtent) {
+        setState(() {
+          context.read<ChatBloc>().add(LoadOlderMessage());
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    // messController.dispose();
+    // scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -65,6 +82,7 @@ class _ChatPageState extends State<ChatPage> {
     return BlocBuilder<ChatBloc, ChatState>(
       builder: (context, state) {
         if (state.conversations != null && state.listChat != null) {
+          print(state.listChat!.length);
           return Scaffold(
             appBar: AppBar(
               backgroundColor: Colors.white,
@@ -132,8 +150,10 @@ class _ChatPageState extends State<ChatPage> {
             ),
             body: Column(
               children: [
+                (state.isLoading!) ? CircularProgressIndicator() : Container(),
                 Flexible(
                   child: ListView.builder(
+                      controller: scrollController,
                       reverse: true,
                       itemCount: state.listChat!.length,
                       itemBuilder: (context, index) {

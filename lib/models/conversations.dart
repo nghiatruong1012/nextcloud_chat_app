@@ -1,3 +1,5 @@
+import 'package:nextcloud_chat_app/models/chats.dart';
+
 class Conversations {
   final int? id;
   final String? token;
@@ -30,7 +32,10 @@ class LastMessage {
     return LastMessage(
       json['id'],
       json['actorType'],
-      json['message'],
+      (json["messageParameters"] is Map)
+          ? getSystemMessage(
+              json["message"], json["messageParameters"], json["systemMessage"])
+          : json["message"],
     );
   }
   static const empty = LastMessage(null, null, null);

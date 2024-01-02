@@ -75,7 +75,7 @@ class _HomePageState extends State<HomePage> {
                           if (snapshot.hasData) {
                             return snapshot.data ?? Container();
                           } else {
-                            return CircularProgressIndicator();
+                            return snapshot.data ?? Container();
                           }
                         })),
               ),
