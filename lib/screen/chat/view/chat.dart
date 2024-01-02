@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -44,6 +46,7 @@ class ChatPage extends StatefulWidget {
 class _ChatPageState extends State<ChatPage> {
   final String token;
   final int messageId;
+  late Timer _timer;
 
   _ChatPageState({required this.token, required this.messageId});
   TextEditingController messController = TextEditingController();
@@ -52,6 +55,7 @@ class _ChatPageState extends State<ChatPage> {
   void initState() {
     // TODO: implement initState
     context.read<ChatBloc>().add(LoadInitialChat(token, messageId));
+    context.read<ChatBloc>().add(ReceiveMessage());
   }
 
   @override
@@ -135,13 +139,13 @@ class _ChatPageState extends State<ChatPage> {
                       itemBuilder: (context, index) {
                         int itemCount = state?.listChat?.length ?? 0;
                         int reversedIndex = itemCount - 1 - index;
-                        return (state.listChat![reversedIndex].systemMessage ==
-                                "conversation_created")
+                        return (state.listChat![reversedIndex].systemMessage !=
+                                "")
                             ? Container(
                                 alignment: Alignment.center,
                                 padding: EdgeInsets.symmetric(vertical: 20),
                                 child: Text(
-                                    '${state.listChat![reversedIndex].actorId} đã tạo đàm thoại'),
+                                    '${state.listChat![reversedIndex].message} '),
                               )
                             : Container(
                                 alignment:

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -22,11 +23,19 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  late Timer _timer;
   // @override
   // void initState() {
   //   // TODO: implement initState
   //   context.read<HomeBloc>().add(LoadConversationEvent());
   // }
+  @override
+  void initState() {
+    // TODO: implement initState
+    _timer = Timer.periodic(Duration(seconds: 15), (timer) {
+      context.read<HomeBloc>().add(LoadConversationEvent());
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -49,7 +49,6 @@ class ChatService {
   Future<http.Response> receiveMessage(String token, params) async {
     Map<String, String> requestHeaders = await HTTPService().authHeader();
 
-    print("receive");
     print(
       Uri(
           scheme: 'http',
@@ -69,6 +68,8 @@ class ChatService {
       headers: requestHeaders,
       // body: jsonEncode(params ?? {}),
     );
+    print("receive mess" + response.body);
+
     return response;
     // if (response.statusCode == 200) {
     //   print('Success');

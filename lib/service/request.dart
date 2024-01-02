@@ -3,8 +3,9 @@ import 'dart:convert';
 import 'package:nextcloud_chat_app/utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-const String host = '192.168.1.81';
-// const String signInHost = 'api-sso.salegate.io';
+// const String host = '192.168.0.178';
+const String host = '192.168.1.26';
+
 
 class HTTPService {
   Future<Map<String, String>> authHeader() async {

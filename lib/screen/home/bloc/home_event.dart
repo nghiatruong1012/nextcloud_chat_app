@@ -4,3 +4,5 @@ part of 'home_bloc.dart';
 class HomeEvent {}
 
 class LoadConversationEvent extends HomeEvent{}
+
+

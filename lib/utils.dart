@@ -19,8 +19,7 @@ Map<String, String> parseInputString(String inputString) {
 }
 
 // const String localhost = "http://192.168.0.178:8080";
-const String localhost = "http://192.168.1.81:8080";
-const String host = "192.168.1.81";
+const String localhost = "http://192.168.1.26:8080";
 
 String generateRandomString(int length) {
   const characters =
