@@ -159,51 +159,109 @@ class _ChatPageState extends State<ChatPage> {
                       itemBuilder: (context, index) {
                         int itemCount = state?.listChat?.length ?? 0;
                         int reversedIndex = itemCount - 1 - index;
-                        return (state.listChat![reversedIndex].systemMessage !=
-                                "")
-                            ? Container(
-                                alignment: Alignment.center,
-                                padding: EdgeInsets.symmetric(vertical: 20),
-                                child: Text(
-                                    '${state.listChat![reversedIndex].message} '),
-                              )
-                            : Container(
-                                alignment:
-                                    (state.listChat![reversedIndex].actorId ==
+                        final message = state.listChat![reversedIndex];
+                        final previousMessage = reversedIndex > 0
+                            ? state.listChat![reversedIndex - 1]
+                            : null;
+
+                        // Check if the date has changed
+                        final bool showDate = previousMessage == null ||
+                            message.timestamp!.day !=
+                                previousMessage.timestamp!.day;
+                        return Column(
+                          children: [
+                            showDate
+                                ? Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 20),
+                                    child: Builder(builder: (context) {
+                                      if (message.timestamp!.toLocal().day ==
+                                          DateTime.now().day) {
+                                        return Text(
+                                          "Hôm nay",
+                                          style: TextStyle(
+                                              color: Colors.black
+                                                  .withOpacity(0.6)),
+                                        );
+                                      } else if (message.timestamp!
+                                              .toLocal()
+                                              .day ==
+                                          DateTime.now().day - 1) {
+                                        return Text(
+                                          "Hôm qua",
+                                          style: TextStyle(
+                                              color: Colors.black
+                                                  .withOpacity(0.6)),
+                                        );
+                                      } else {
+                                        return Text(
+                                          "${message.timestamp!.toLocal().day} tháng ${message.timestamp!.toLocal().month} năm ${message.timestamp!.toLocal().year}",
+                                          style: TextStyle(
+                                              color: Colors.black
+                                                  .withOpacity(0.6)),
+                                        );
+                                      }
+                                    }),
+                                  )
+                                : Container(),
+                            (state.listChat![reversedIndex].systemMessage != "")
+                                ? Container(
+                                    alignment: Alignment.center,
+                                    padding: EdgeInsets.symmetric(vertical: 20),
+                                    child: Text(
+                                        '${state.listChat![reversedIndex].message} '),
+                                  )
+                                : Container(
+                                    alignment: (state.listChat![reversedIndex]
+                                                .actorId ==
                                             user.username)
                                         ? Alignment.centerRight
                                         : Alignment.centerLeft,
-                                child: Container(
-                                  constraints: BoxConstraints(maxWidth: 300),
-                                  margin: EdgeInsets.symmetric(
-                                      horizontal: 10, vertical: 2),
-                                  padding: EdgeInsets.symmetric(
-                                      horizontal: 20, vertical: 10),
-                                  decoration: (state.listChat![reversedIndex]
-                                              .actorId ==
-                                          user.username)
-                                      ? BoxDecoration(
-                                          color: Colors.green.withOpacity(0.2),
-                                          borderRadius: BorderRadius.only(
-                                            bottomLeft: Radius.circular(15),
-                                            bottomRight: Radius.circular(15),
-                                            topLeft: Radius.circular(15),
-                                          ),
-                                        )
-                                      : BoxDecoration(
-                                          color: Colors.grey.withOpacity(0.2),
-                                          borderRadius: BorderRadius.only(
-                                            bottomLeft: Radius.circular(15),
-                                            bottomRight: Radius.circular(15),
-                                            topRight: Radius.circular(15),
-                                          )),
-                                  child: Text(
-                                    state.listChat![reversedIndex].message
-                                        .toString(),
-                                    style: TextStyle(fontSize: 18),
+                                    child: Container(
+                                      constraints:
+                                          BoxConstraints(maxWidth: 300),
+                                      margin: (index == 0)
+                                          ? EdgeInsets.only(
+                                              left: 10,
+                                              right: 10,
+                                              top: 2,
+                                              bottom: 10)
+                                          : EdgeInsets.symmetric(
+                                              horizontal: 10, vertical: 2),
+                                      padding: EdgeInsets.symmetric(
+                                          horizontal: 20, vertical: 10),
+                                      decoration: (state
+                                                  .listChat![reversedIndex]
+                                                  .actorId ==
+                                              user.username)
+                                          ? BoxDecoration(
+                                              color:
+                                                  Colors.green.withOpacity(0.2),
+                                              borderRadius: BorderRadius.only(
+                                                bottomLeft: Radius.circular(15),
+                                                bottomRight:
+                                                    Radius.circular(15),
+                                                topLeft: Radius.circular(15),
+                                              ),
+                                            )
+                                          : BoxDecoration(
+                                              color:
+                                                  Colors.grey.withOpacity(0.2),
+                                              borderRadius: BorderRadius.only(
+                                                bottomLeft: Radius.circular(15),
+                                                bottomRight:
+                                                    Radius.circular(15),
+                                                topRight: Radius.circular(15),
+                                              )),
+                                      child: Text(
+                                        state.listChat![reversedIndex].message
+                                            .toString(),
+                                        style: TextStyle(fontSize: 18),
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              );
+                          ],
+                        );
                       }),
                 ),
                 Container(

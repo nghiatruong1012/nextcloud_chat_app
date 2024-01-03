@@ -4,12 +4,14 @@ class Chat {
   final String? actorId;
   final String? message;
   final String? systemMessage;
+  final DateTime? timestamp;
 
   const Chat(
     this.id,
     this.actorId,
     this.message,
     this.systemMessage,
+    this.timestamp,
     // this.messageParameters,
   );
   factory Chat.fromJson(Map<String, dynamic> json) {
@@ -21,10 +23,11 @@ class Chat {
               json["message"], json["messageParameters"], json["systemMessage"])
           : json["message"],
       json["systemMessage"],
+      DateTime.fromMillisecondsSinceEpoch(json["timestamp"] * 1000),
       // json["messageParameters"],
     );
   }
-  static const empty = Chat(null, null, null, null);
+  static const empty = Chat(null, null, null, null, null);
 }
 
 String getSystemMessage(String initalMessage,

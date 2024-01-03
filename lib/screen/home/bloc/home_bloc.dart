@@ -16,8 +16,13 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     });
     on<LoadConversationEvent>((event, emit) async {
       final list = await ConversationService().getUserConversations({});
+      list.sort(
+        (a, b) => b.lastMessage!.id!.compareTo(a.lastMessage!.id!),
+      );
       emit(HomeState(listConversations: list));
     });
+  }
+}
     // _timer = Timer.periodic(Duration(seconds: 15), (timer) async {
     //   final list = await ConversationService().getUserConversations({});
     //   if (list != state.listConversations) {
@@ -26,5 +31,3 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     //     print("error");
     //   }
     // });
-  }
-}
