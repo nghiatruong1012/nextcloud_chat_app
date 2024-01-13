@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nextcloud_chat_app/authentication/bloc/authentication_bloc.dart';
+import 'package:nextcloud_chat_app/screen/call/view/call.dart';
 import 'package:nextcloud_chat_app/screen/chat/bloc/chat_bloc.dart';
 import 'package:nextcloud_chat_app/service/conversation_service.dart';
 
@@ -137,7 +138,13 @@ class _ChatPageState extends State<ChatPage> {
                       color: Colors.black,
                     )),
                 IconButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => CallPage(),
+                          ));
+                    },
                     icon: Icon(
                       Icons.videocam,
                       color: Colors.black,
@@ -204,14 +211,12 @@ class _ChatPageState extends State<ChatPage> {
                                     }),
                                   )
                                 : Container(),
-                            (state.listChat![reversedIndex].systemMessage != "")
-                                ? Container(
-                                    alignment: Alignment.center,
-                                    padding: EdgeInsets.symmetric(vertical: 20),
-                                    child: Text(
-                                        '${state.listChat![reversedIndex].message} '),
-                                  )
-                                : Container(
+                            Builder(
+                              builder: (context) {
+                                if (state.listChat![reversedIndex]
+                                        .systemMessage ==
+                                    "") {
+                                  return Container(
                                     alignment: (state.listChat![reversedIndex]
                                                 .actorId ==
                                             user.username)
@@ -259,7 +264,94 @@ class _ChatPageState extends State<ChatPage> {
                                         style: TextStyle(fontSize: 18),
                                       ),
                                     ),
-                                  ),
+                                  );
+                                } else if (state.listChat![reversedIndex]
+                                        .systemMessage ==
+                                    "call_started") {
+                                  return Container(
+                                    alignment: Alignment.center,
+                                    padding: EdgeInsets.symmetric(vertical: 20),
+                                    child: Column(children: [
+                                      Text(
+                                          '${state.listChat![reversedIndex].message} '),
+                                      // Row(
+                                      //   children: [
+                                      //     ElevatedButton(
+                                      //         onPressed: () {},
+                                      //         child: Text('Audio call')),
+                                      //     ElevatedButton(
+                                      //         onPressed: () {},
+                                      //         child: Text('Video call')),
+                                      //   ],
+                                      // )
+                                    ]),
+                                  );
+                                } else {
+                                  return Container(
+                                    alignment: Alignment.center,
+                                    padding: EdgeInsets.symmetric(vertical: 20),
+                                    child: Text(
+                                        '${state.listChat![reversedIndex].message} '),
+                                  );
+                                }
+                              },
+                            ),
+                            // (state.listChat![reversedIndex].systemMessage != "")
+                            //     ? Container(
+                            //         alignment: Alignment.center,
+                            //         padding: EdgeInsets.symmetric(vertical: 20),
+                            //         child: Text(
+                            //             '${state.listChat![reversedIndex].message} '),
+                            //       )
+                            //     : Container(
+                            //         alignment: (state.listChat![reversedIndex]
+                            //                     .actorId ==
+                            //                 user.username)
+                            //             ? Alignment.centerRight
+                            //             : Alignment.centerLeft,
+                            //         child: Container(
+                            //           constraints:
+                            //               BoxConstraints(maxWidth: 300),
+                            //           margin: (index == 0)
+                            //               ? EdgeInsets.only(
+                            //                   left: 10,
+                            //                   right: 10,
+                            //                   top: 2,
+                            //                   bottom: 10)
+                            //               : EdgeInsets.symmetric(
+                            //                   horizontal: 10, vertical: 2),
+                            //           padding: EdgeInsets.symmetric(
+                            //               horizontal: 20, vertical: 10),
+                            //           decoration: (state
+                            //                       .listChat![reversedIndex]
+                            //                       .actorId ==
+                            //                   user.username)
+                            //               ? BoxDecoration(
+                            //                   color:
+                            //                       Colors.green.withOpacity(0.2),
+                            //                   borderRadius: BorderRadius.only(
+                            //                     bottomLeft: Radius.circular(15),
+                            //                     bottomRight:
+                            //                         Radius.circular(15),
+                            //                     topLeft: Radius.circular(15),
+                            //                   ),
+                            //                 )
+                            //               : BoxDecoration(
+                            //                   color:
+                            //                       Colors.grey.withOpacity(0.2),
+                            //                   borderRadius: BorderRadius.only(
+                            //                     bottomLeft: Radius.circular(15),
+                            //                     bottomRight:
+                            //                         Radius.circular(15),
+                            //                     topRight: Radius.circular(15),
+                            //                   )),
+                            //           child: Text(
+                            //             state.listChat![reversedIndex].message
+                            //                 .toString(),
+                            //             style: TextStyle(fontSize: 18),
+                            //           ),
+                            //         ),
+                            //       ),
                           ],
                         );
                       }),

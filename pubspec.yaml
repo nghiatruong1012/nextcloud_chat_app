@@ -44,6 +44,7 @@ dependencies:
   flutter_svg: ^2.0.9
   shimmer: ^3.0.0
   crypto: ^3.0.3
+  flutter_webrtc: ^0.9.47
 
 dev_dependencies:
   flutter_test:

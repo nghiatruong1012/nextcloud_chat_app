@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:crypto/crypto.dart';
+import './service/request.dart';
 
 Map<String, String> parseInputString(String inputString) {
   Map<String, String> result = {};
@@ -19,7 +20,7 @@ Map<String, String> parseInputString(String inputString) {
 }
 
 // const String localhost = "http://192.168.0.178:8080";
-const String localhost = "http://192.168.1.26:8080";
+const String localhost = "http:/${host}:8080";
 
 String generateRandomString(int length) {
   const characters =
