@@ -26,17 +26,19 @@ class Conversations {
 class LastMessage {
   final int? id;
   final String? actorType;
+  final String? actorId;
   final String? message;
-  const LastMessage(this.id, this.actorType, this.message);
+  const LastMessage(this.id, this.actorType, this.actorId, this.message);
   factory LastMessage.fromJson(Map<String, dynamic> json) {
     return LastMessage(
       json['id'],
       json['actorType'],
+      json['actorId'],
       (json["messageParameters"] is Map)
           ? getSystemMessage(
               json["message"], json["messageParameters"], json["systemMessage"])
           : json["message"],
     );
   }
-  static const empty = LastMessage(null, null, null);
+  static const empty = LastMessage(null, null, null, null);
 }

@@ -48,6 +48,7 @@ class ConversationService {
     }
   }
 
+
   Future<Image> getConversationAvatar(
       String token, String name, String actorType) async {
     Map<String, String> requestHeaders = await HTTPService().authImgHeader();

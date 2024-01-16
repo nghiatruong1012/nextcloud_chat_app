@@ -4,7 +4,7 @@ import 'package:nextcloud_chat_app/utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // const String host = '192.168.0.178';
-const String host = '192.168.1.47';
+const String host = '192.168.1.27';
 
 class HTTPService {
   Future<Map<String, String>> authHeader() async {

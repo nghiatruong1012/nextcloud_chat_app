@@ -4,11 +4,14 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nextcloud_chat_app/authentication/bloc/authentication_bloc.dart';
 import 'package:nextcloud_chat_app/screen/chat/view/chat.dart';
+import 'package:nextcloud_chat_app/screen/createConversation/view/create_conversation.dart';
 import 'package:nextcloud_chat_app/screen/home/bloc/home_bloc.dart';
 import 'package:nextcloud_chat_app/service/conversation_service.dart';
 import 'package:nextcloud_chat_app/service/request.dart';
+
 import 'package:nextcloud_chat_app/utils.dart';
 import 'package:nextcloud_chat_app/widgets/loading_widgets.dart';
 
@@ -24,6 +27,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late Timer _timer;
+  late Map<String, String> requestHeaders;
   // @override
   // void initState() {
   //   // TODO: implement initState
@@ -31,10 +35,15 @@ class _HomePageState extends State<HomePage> {
   // }
   @override
   void initState() {
+    _imageHeader();
     // TODO: implement initState
     _timer = Timer.periodic(Duration(seconds: 15), (timer) {
       context.read<HomeBloc>().add(LoadConversationEvent());
     });
+  }
+
+  _imageHeader() async {
+    requestHeaders = await HTTPService().authImgHeader();
   }
 
   @override
@@ -62,11 +71,40 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
               ),
-              Container(
-                width: 30,
-                height: 30,
-                margin: EdgeInsets.only(right: 30),
-                child: ClipRRect(
+              GestureDetector(
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return SimpleDialog(
+                          contentPadding: EdgeInsets.all(20),
+                          children: [
+                            Container(
+                              height: 40,
+                              alignment: Alignment.centerLeft,
+                              child: Text('Cài đặt'),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                context
+                                    .read<AuthenticationBloc>()
+                                    .add(AuthenticationLogoutRequested());
+                              },
+                              child: Container(
+                                height: 40,
+                                alignment: Alignment.centerLeft,
+                                child: Text('Đăng xuất'),
+                              ),
+                            ),
+                          ]);
+                    },
+                  );
+                },
+                child: Container(
+                  width: 30,
+                  height: 30,
+                  margin: EdgeInsets.only(right: 30),
+                  child: ClipRRect(
                     borderRadius: BorderRadius.circular(100),
                     child: FutureBuilder(
                         future: ConversationService().getConversationAvatar(
@@ -77,7 +115,9 @@ class _HomePageState extends State<HomePage> {
                           } else {
                             return snapshot.data ?? Container();
                           }
-                        })),
+                        }),
+                  ),
+                ),
               ),
             ]),
             BlocBuilder<HomeBloc, HomeState>(
@@ -85,7 +125,8 @@ class _HomePageState extends State<HomePage> {
                   previous.listConversations != current.listConversations,
               builder: (context, state) {
                 if (state.listConversations != null &&
-                    state.listConversations!.isNotEmpty) {
+                    state.listConversations!.isNotEmpty &&
+                    requestHeaders != null) {
                   return Expanded(
                     child: ListView.builder(
                       itemCount: state.listConversations!.length,
@@ -102,30 +143,68 @@ class _HomePageState extends State<HomePage> {
                           width: 40,
                           height: 40,
                           child: ClipRRect(
-                              borderRadius: BorderRadius.circular(100),
-                              child: FutureBuilder(
-                                  future: ConversationService()
-                                      .getConversationAvatar(
-                                          state
-                                              .listConversations![index].token!,
-                                          state.listConversations![index].name!,
-                                          state.listConversations![index]
-                                              .lastMessage!.actorType!),
-                                  builder: (context, snapshot) {
-                                    if (snapshot.hasData) {
-                                      return snapshot.data ?? Container();
-                                    } else {
-                                      return CircularProgressIndicator();
-                                    }
-                                  })),
+                            borderRadius: BorderRadius.circular(100),
+                            child: CachedNetworkImage(
+                              imageUrl:
+                                  'http://${host}:8080/ocs/v2.php/apps/spreed/api/v1/room/${state.listConversations![index].token!}/avatar',
+                              placeholder: (context, url) =>
+                                  CircularProgressIndicator(),
+                              errorWidget: (context, url, error) {
+                                return FutureBuilder(
+                                    future: ConversationService()
+                                        .getConversationAvatar(
+                                            state.listConversations![index]
+                                                .token!,
+                                            state.listConversations![index]
+                                                .name!,
+                                            state.listConversations![index]
+                                                .lastMessage!.actorType!),
+                                    builder: (context, snapshot) {
+                                      if (snapshot.hasData) {
+                                        return snapshot.data ?? Container();
+                                      } else {
+                                        return CircularProgressIndicator();
+                                      }
+                                    });
+
+                                // return Icon(Icons.error);
+                              },
+                              httpHeaders: requestHeaders,
+                            ),
+                            // FutureBuilder(
+                            //     future: ConversationService()
+                            //         .getConversationAvatar(
+                            //             state.listConversations![index].token!,
+                            //             state.listConversations![index].name!,
+                            //             state.listConversations![index]
+                            //                 .lastMessage!.actorType!),
+                            //     builder: (context, snapshot) {
+                            //       if (snapshot.hasData) {
+                            //         return snapshot.data ?? Container();
+                            //       } else {
+                            //         return CircularProgressIndicator();
+                            //       }
+                            //     }),
+                          ),
                         ),
                         title: Text(state.listConversations![index].displayName
                             .toString()),
-                        subtitle: Text(
-                          state.listConversations![index].lastMessage!.message
-                              .toString(),
-                          maxLines: 1,
-                        ),
+                        subtitle: (state.listConversations![index].lastMessage!
+                                    .actorId ==
+                                user.username)
+                            ? Text(
+                                "Bạn: " +
+                                    state.listConversations![index].lastMessage!
+                                        .message
+                                        .toString(),
+                                maxLines: 1,
+                              )
+                            : Text(
+                                state.listConversations![index].lastMessage!
+                                    .message
+                                    .toString(),
+                                maxLines: 1,
+                              ),
                       ),
                     ),
                   );
@@ -136,6 +215,16 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CreateConversation(),
+              ));
+        },
+        child: Icon(Icons.add),
       ),
     );
   }
