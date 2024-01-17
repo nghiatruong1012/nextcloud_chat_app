@@ -48,6 +48,45 @@ class ConversationService {
     }
   }
 
+  Future<Conversations> creatConversation(params) async {
+    Map<String, String> requestHeaders = await HTTPService().authHeader();
+    try {
+      // print(
+      //   Uri(
+      //       scheme: 'http',
+      //       host: host,
+      //       port: 8080,
+      //       path: '/ocs/v2.php/apps/spreed/api/v4/room',
+      //       query: 'includeStatus=true'),
+      // );
+
+      final response = await http.post(
+        Uri(
+          scheme: 'http',
+          host: host,
+          port: 8080,
+          path: '/ocs/v2.php/apps/spreed/api/v4/room',
+        ),
+        headers: requestHeaders,
+        body: jsonEncode(params ?? {}),
+      );
+      if (response.statusCode == 200) {
+        print('Create Success');
+        print("conversation_room" + response.body);
+        // List<dynamic> data = jsonDecode(response.body)["ocs"]["data"];
+        // List<Conversations> listConversation =
+        //     data.map((item) => Conversations.fromJson(item)).toList();
+        // return listConversation;
+        return Conversations.fromJson(jsonDecode(response.body)["ocs"]["data"]);
+      } else {
+        print(response.statusCode.toString());
+        return Conversations.empty;
+      }
+    } catch (e) {
+      print("create error:" + e.toString());
+      return Conversations.empty;
+    }
+  }
 
   Future<Image> getConversationAvatar(
       String token, String name, String actorType) async {

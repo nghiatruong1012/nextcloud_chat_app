@@ -1,7 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:nextcloud_chat_app/models/chats.dart';
+import 'package:nextcloud_chat_app/screen/chat/view/chat.dart';
 import 'package:nextcloud_chat_app/screen/createConversation/bloc/create_conversation_bloc.dart';
+import 'package:nextcloud_chat_app/service/conversation_service.dart';
 import 'package:nextcloud_chat_app/service/request.dart';
 
 class CreateConversation extends StatefulWidget {
@@ -12,9 +15,10 @@ class CreateConversation extends StatefulWidget {
 }
 
 class _CreateConversationState extends State<CreateConversation> {
-  late Map<String, String> requestHeaders;
+  Map<String, String> requestHeaders = {};
 
   bool isSearching = false;
+
   @override
   void initState() {
     _imageHeader();
@@ -67,6 +71,9 @@ class _CreateConversationState extends State<CreateConversation> {
                 onPressed: () {
                   setState(() {
                     isSearching = false;
+                    context
+                        .read<CreateConversationBloc>()
+                        .add(ChangedQueryEvent(''));
                   });
                 },
                 icon: Icon(
@@ -87,7 +94,11 @@ class _CreateConversationState extends State<CreateConversation> {
               actions: [
                 IconButton(
                   onPressed: () {
-                    setState(() {});
+                    setState(() {
+                      context
+                          .read<CreateConversationBloc>()
+                          .add(ChangedQueryEvent(''));
+                    });
                   },
                   icon: Icon(
                     Icons.clear,
@@ -98,7 +109,7 @@ class _CreateConversationState extends State<CreateConversation> {
             ),
       body: BlocBuilder<CreateConversationBloc, CreateConversationState>(
         builder: (context, state) {
-          if (state.users != null && requestHeaders != null) {
+          if (state.users != null && requestHeaders != {}) {
             print(state.users!.length.toString());
             return Column(children: [
               Expanded(
@@ -113,7 +124,7 @@ class _CreateConversationState extends State<CreateConversation> {
                           borderRadius: BorderRadius.circular(100),
                           child: CachedNetworkImage(
                             imageUrl:
-                                'http://${host}:8080/avatar/${state.users![index].id}/64',
+                                'http://${host}:8080/avatar/${state.users![index].userConversation.id}/64',
                             placeholder: (context, url) =>
                                 CircularProgressIndicator(),
                             errorWidget: (context, url, error) {
@@ -123,13 +134,43 @@ class _CreateConversationState extends State<CreateConversation> {
                           ),
                         ),
                       ),
-                      title: Text(state.users![index].label.toString()),
-                      subtitle:
-                          Text(state.users![index].shareWithDisplayNameUnique!),
-                      // onTap: () {
-                      //   BlocProvider.of<CreateConversationBloc>(context)
-                      //       .add(UserSelected(state.users![index]));
-                      // },
+                      title: Text(state.users![index].userConversation.label
+                          .toString()),
+                      subtitle: Text(state.users![index].userConversation
+                          .shareWithDisplayNameUnique!),
+                      trailing: (state.users![index].isSelected)
+                          ? Icon(Icons.check)
+                          : null,
+                      onTap: () async {
+                        final conversation =
+                            await ConversationService().creatConversation({
+                          'invite': state.users![index].userConversation.id,
+                          'roomType': '1',
+                        });
+                        print(conversation);
+                        if (conversation.token != null &&
+                            conversation.lastMessage != null) {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => ChatProvider(
+                                    token: conversation.token!,
+                                    messageId: conversation.lastMessage!.id!)),
+                          );
+                          // Navigator.pushAndRemoveUntil(
+                          //     context,
+                          //     MaterialPageRoute(
+                          //         builder: (context) => ChatProvider(
+                          //             token: conversation.token!,
+                          //             messageId:
+                          //                 conversation.lastMessage!.id!)),
+                          //     (route) => true);
+                        }
+                        // setState(() {
+                        //   BlocProvider.of<CreateConversationBloc>(context)
+                        //       .add(SelectUserEvent(index));
+                        // });
+                      },
                     );
                   },
                 ),

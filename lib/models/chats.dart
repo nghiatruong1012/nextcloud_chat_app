@@ -32,9 +32,9 @@ class Chat {
 
 String getSystemMessage(String initalMessage,
     Map<String, dynamic> messageParameters, String systemMessage) {
-  if (!systemMessage.isNotEmpty) {
-    return initalMessage;
-  } else {
+  // if (!systemMessage.isNotEmpty) {
+  //   return initalMessage;
+  // } else {
     String finalMessage = initalMessage;
 
     // Thay thế các giá trị trong message bằng giá trị từ messageParameters
@@ -44,5 +44,5 @@ String getSystemMessage(String initalMessage,
     });
     print(finalMessage);
     return finalMessage;
-  }
+  // }
 }

@@ -11,3 +11,8 @@ class ChangedQueryEvent extends CreateConversationEvent {
   final String query;
   const ChangedQueryEvent(this.query);
 }
+
+class SelectUserEvent extends CreateConversationEvent {
+  final index;
+  const SelectUserEvent(this.index);
+}
