@@ -2,9 +2,10 @@ import 'dart:convert';
 
 import 'package:nextcloud_chat_app/utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
-// const String host = '192.168.0.178';
-const String host = '192.168.1.27';
+const String host = '192.168.0.178';
+// const String host = '192.168.1.21';
 
 class HTTPService {
   Future<Map<String, String>> authHeader() async {
@@ -19,6 +20,7 @@ class HTTPService {
         'Basic ' + base64Encode(utf8.encode('$username:$password'));
 
     Map<String, String> requestHeaders = new Map();
+
     requestHeaders["Accept"] = "application/json";
     requestHeaders["Content-type"] = "application/json";
     requestHeaders["OCS-APIRequest"] = "true";

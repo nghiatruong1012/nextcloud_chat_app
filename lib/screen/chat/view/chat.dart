@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -6,6 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nextcloud_chat_app/authentication/bloc/authentication_bloc.dart';
 import 'package:nextcloud_chat_app/screen/call/view/call.dart';
 import 'package:nextcloud_chat_app/screen/chat/bloc/chat_bloc.dart';
+import 'package:nextcloud_chat_app/service/chat_service.dart';
 import 'package:nextcloud_chat_app/service/conversation_service.dart';
 
 class ChatProvider extends StatelessWidget {
@@ -213,58 +216,149 @@ class _ChatPageState extends State<ChatPage> {
                                 : Container(),
                             Builder(
                               builder: (context) {
+                                print('mess param' +
+                                    (state.listChat![reversedIndex]
+                                                .messageParameters is Map &&
+                                            state.listChat![reversedIndex]
+                                                .messageParameters
+                                                .containsKey('file'))
+                                        .toString());
+
                                 if (state.listChat![reversedIndex]
                                         .systemMessage ==
                                     "") {
-                                  return Container(
-                                    alignment: (state.listChat![reversedIndex]
-                                                .actorId ==
-                                            user.username)
-                                        ? Alignment.centerRight
-                                        : Alignment.centerLeft,
-                                    child: Container(
-                                      constraints:
-                                          BoxConstraints(maxWidth: 300),
-                                      margin: (index == 0)
-                                          ? EdgeInsets.only(
-                                              left: 10,
-                                              right: 10,
-                                              top: 2,
-                                              bottom: 10)
-                                          : EdgeInsets.symmetric(
-                                              horizontal: 10, vertical: 2),
-                                      padding: EdgeInsets.symmetric(
-                                          horizontal: 20, vertical: 10),
-                                      decoration: (state
-                                                  .listChat![reversedIndex]
+                                  if (state.listChat![reversedIndex]
+                                          .messageParameters is Map &&
+                                      state.listChat![reversedIndex]
+                                          .messageParameters
+                                          .containsKey('file')) {
+                                    return Container(
+                                      alignment: (state.listChat![reversedIndex]
                                                   .actorId ==
                                               user.username)
-                                          ? BoxDecoration(
-                                              color:
-                                                  Colors.green.withOpacity(0.2),
-                                              borderRadius: BorderRadius.only(
-                                                bottomLeft: Radius.circular(15),
-                                                bottomRight:
-                                                    Radius.circular(15),
-                                                topLeft: Radius.circular(15),
-                                              ),
-                                            )
-                                          : BoxDecoration(
-                                              color:
-                                                  Colors.grey.withOpacity(0.2),
-                                              borderRadius: BorderRadius.only(
-                                                bottomLeft: Radius.circular(15),
-                                                bottomRight:
-                                                    Radius.circular(15),
-                                                topRight: Radius.circular(15),
-                                              )),
-                                      child: Text(
-                                        state.listChat![reversedIndex].message
-                                            .toString(),
-                                        style: TextStyle(fontSize: 18),
+                                          ? Alignment.centerRight
+                                          : Alignment.centerLeft,
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          ChatService().downloadAndOpenFile(
+                                              user.username!,
+                                              state.listChat![reversedIndex]
+                                                      .messageParameters['file']
+                                                  ['link'],
+                                              state.listChat![reversedIndex]
+                                                      .messageParameters['file']
+                                                  ['path'],
+                                              state.listChat![reversedIndex]
+                                                      .messageParameters['file']
+                                                  ['name']);
+                                        },
+                                        child: Container(
+                                          constraints:
+                                              BoxConstraints(maxWidth: 300),
+                                          margin: (index == 0)
+                                              ? EdgeInsets.only(
+                                                  left: 10,
+                                                  right: 10,
+                                                  top: 2,
+                                                  bottom: 10)
+                                              : EdgeInsets.symmetric(
+                                                  horizontal: 10, vertical: 2),
+                                          padding: EdgeInsets.symmetric(
+                                              horizontal: 20, vertical: 10),
+                                          decoration: (state
+                                                      .listChat![reversedIndex]
+                                                      .actorId ==
+                                                  user.username)
+                                              ? BoxDecoration(
+                                                  color: Colors.green
+                                                      .withOpacity(0.2),
+                                                  borderRadius:
+                                                      BorderRadius.only(
+                                                    bottomLeft:
+                                                        Radius.circular(15),
+                                                    bottomRight:
+                                                        Radius.circular(15),
+                                                    topLeft:
+                                                        Radius.circular(15),
+                                                  ),
+                                                )
+                                              : BoxDecoration(
+                                                  color: Colors.grey
+                                                      .withOpacity(0.2),
+                                                  borderRadius:
+                                                      BorderRadius.only(
+                                                    bottomLeft:
+                                                        Radius.circular(15),
+                                                    bottomRight:
+                                                        Radius.circular(15),
+                                                    topRight:
+                                                        Radius.circular(15),
+                                                  )),
+                                          child: Text(
+                                            state.listChat![reversedIndex]
+                                                .message
+                                                .toString(),
+                                            style: TextStyle(
+                                                fontSize: 18,
+                                                decoration:
+                                                    TextDecoration.underline,
+                                                fontWeight: FontWeight.w600),
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                  );
+                                    );
+                                  } else
+                                    return Container(
+                                      alignment: (state.listChat![reversedIndex]
+                                                  .actorId ==
+                                              user.username)
+                                          ? Alignment.centerRight
+                                          : Alignment.centerLeft,
+                                      child: Container(
+                                        constraints:
+                                            BoxConstraints(maxWidth: 300),
+                                        margin: (index == 0)
+                                            ? EdgeInsets.only(
+                                                left: 10,
+                                                right: 10,
+                                                top: 2,
+                                                bottom: 10)
+                                            : EdgeInsets.symmetric(
+                                                horizontal: 10, vertical: 2),
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: 20, vertical: 10),
+                                        decoration: (state
+                                                    .listChat![reversedIndex]
+                                                    .actorId ==
+                                                user.username)
+                                            ? BoxDecoration(
+                                                color: Colors.green
+                                                    .withOpacity(0.2),
+                                                borderRadius: BorderRadius.only(
+                                                  bottomLeft:
+                                                      Radius.circular(15),
+                                                  bottomRight:
+                                                      Radius.circular(15),
+                                                  topLeft: Radius.circular(15),
+                                                ),
+                                              )
+                                            : BoxDecoration(
+                                                color: Colors.grey
+                                                    .withOpacity(0.2),
+                                                borderRadius: BorderRadius.only(
+                                                  bottomLeft:
+                                                      Radius.circular(15),
+                                                  bottomRight:
+                                                      Radius.circular(15),
+                                                  topRight: Radius.circular(15),
+                                                )),
+                                        child: Text(
+                                          state.listChat![reversedIndex].message
+                                              .toString(),
+                                          style: TextStyle(fontSize: 18),
+                                        ),
+                                      ),
+                                    );
                                 } else if (state.listChat![reversedIndex]
                                         .systemMessage ==
                                     "call_started") {
@@ -291,7 +385,7 @@ class _ChatPageState extends State<ChatPage> {
                                     alignment: Alignment.center,
                                     padding: EdgeInsets.symmetric(vertical: 20),
                                     child: Text(
-                                        '${state.listChat![reversedIndex].message} '),
+                                        '${state.listChat![reversedIndex].message}'),
                                   );
                                 }
                               },

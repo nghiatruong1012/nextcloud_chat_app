@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:nextcloud_chat_app/models/chats.dart';
 import 'package:nextcloud_chat_app/service/request.dart';
 import 'package:http/http.dart' as http;
+import 'package:open_file/open_file.dart';
+import 'package:path_provider/path_provider.dart';
 
 class ChatService {
   Future<List<Chat>> getChatContext(String token, int messageId) async {
@@ -119,5 +121,54 @@ class ChatService {
     //   print("receive" + response.statusCode.toString());
     //   return [];
     // }
+  }
+
+  Future<void> downloadAndOpenFile(
+      String user, String fileUrl, String filePath, String fileName) async {
+    String baseUrl = 'http://localhost:8080';
+    if (fileUrl.startsWith(baseUrl)) {
+      // Cut the base URL from the original URL
+      fileUrl.substring(baseUrl.length);
+    }
+    Map<String, String> requestHeaders = await HTTPService().authImgHeader();
+
+    final response = await http.get(
+      Uri(
+        scheme: 'http',
+        host: host,
+        port: 8080,
+        path: '/remote.php/dav/files/${user}/${filePath}',
+      ),
+
+      headers: requestHeaders,
+      // body: jsonEncode(params ?? {}),
+    );
+
+    if (response.statusCode == 200) {
+      print("download sucsess");
+      final String dir = (await getExternalStorageDirectory())!.path;
+      final String localPath = '$dir/$fileName'; // Replace with your file name
+      print(localPath);
+
+      File file = File(localPath);
+
+      await file.writeAsBytes(response.bodyBytes);
+      if (await file.exists()) {
+        print('File exists');
+      } else {
+        print('File does not exist');
+      }
+
+      // Open the file
+      try {
+        OpenFile.open(localPath);
+        print('open sucsess');
+      } catch (e) {
+        print('Error opening file: $e');
+      }
+    } else {
+      throw Exception(
+          'Failed to download file' + response.statusCode.toString());
+    }
   }
 }

@@ -5,6 +5,7 @@ class Chat {
   final String? message;
   final String? systemMessage;
   final DateTime? timestamp;
+  final dynamic? messageParameters;
 
   const Chat(
     this.id,
@@ -12,7 +13,7 @@ class Chat {
     this.message,
     this.systemMessage,
     this.timestamp,
-    // this.messageParameters,
+    this.messageParameters,
   );
   factory Chat.fromJson(Map<String, dynamic> json) {
     return Chat(
@@ -24,10 +25,10 @@ class Chat {
           : json["message"],
       json["systemMessage"],
       DateTime.fromMillisecondsSinceEpoch(json["timestamp"] * 1000),
-      // json["messageParameters"],
+      json["messageParameters"],
     );
   }
-  static const empty = Chat(null, null, null, null, null);
+  static const empty = Chat(null, null, null, null, null, null);
 }
 
 String getSystemMessage(String initalMessage,
@@ -35,14 +36,14 @@ String getSystemMessage(String initalMessage,
   // if (!systemMessage.isNotEmpty) {
   //   return initalMessage;
   // } else {
-    String finalMessage = initalMessage;
+  String finalMessage = initalMessage;
 
-    // Thay thế các giá trị trong message bằng giá trị từ messageParameters
+  // Thay thế các giá trị trong message bằng giá trị từ messageParameters
 
-    messageParameters.forEach((key, value) {
-      finalMessage = finalMessage.replaceAll('{$key}', value['name']);
-    });
-    print(finalMessage);
-    return finalMessage;
+  messageParameters.forEach((key, value) {
+    finalMessage = finalMessage.replaceAll('{$key}', value['name']);
+  });
+  print(finalMessage);
+  return finalMessage;
   // }
 }
