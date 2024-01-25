@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:nextcloud_chat_app/models/chats.dart';
 import 'package:nextcloud_chat_app/service/request.dart';
 import 'package:http/http.dart' as http;
+import 'package:nextcloud_chat_app/utils.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -169,6 +170,68 @@ class ChatService {
     } else {
       throw Exception(
           'Failed to download file' + response.statusCode.toString());
+    }
+  }
+
+  Future<void> uploadAndSharedFile(String user, String filePath,
+      String fileName, File file, String token) async {
+    Map<String, String> requestHeaders = await HTTPService().authImgHeader();
+    Map<String, String> requestHeaders2 = await HTTPService().authHeader();
+
+    // var request = http.MultipartRequest(
+    //     "PUT",
+    //     Uri(
+    //       scheme: 'http',
+    //       host: host,
+    //       port: 8080,
+    //       path: '/remote.php/dav/files/${user}/${fileName}',
+    //     ));
+
+    // request.files.add(await http.MultipartFile.fromPath(fileName, filePath));
+
+    // request.headers.addAll(requestHeaders);
+    // final response = await http.post(
+    // host, '/admin/v1/upload_file'
+    //   headers: requestHeaders,
+    //   body: params,
+    // );
+    // print(request.files);
+    // final response = await request.send();
+    final fileByte = await file.readAsBytes();
+
+    final response = await http.put(
+      Uri(
+        scheme: 'http',
+        host: host,
+        port: 8080,
+        path: '/remote.php/dav/files/${user}/Talk/${fileName}',
+      ),
+      headers: requestHeaders,
+      body: fileByte,
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final rp = await http.post(
+          Uri(
+              scheme: 'http',
+              host: host,
+              port: 8080,
+              path: '/ocs/v2.php/apps/files_sharing/api/v1/shares'),
+          headers: requestHeaders2,
+          body: jsonEncode({
+            "shareType": 10,
+            "path": "//Talk/${fileName}",
+            "shareWith": token,
+            "referenceId": generateRandomStringWithSha256(64),
+            "talkMetaData": "{\"messageType\":\"\"}"
+          }));
+      if (rp.statusCode == 200) {
+        print('Shared sucsess');
+      } else {
+        print('shared fail' + rp.statusCode.toString());
+      }
+    } else {
+      throw Exception('Failed to upload file' + response.statusCode.toString());
     }
   }
 }

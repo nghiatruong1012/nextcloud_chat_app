@@ -30,8 +30,12 @@ class ParticipantsService {
         // body: jsonEncode(params ?? {}),
       );
       if (response.statusCode == 200) {
+        HTTPService().updateCookie(response);
         print('Success');
-        print("conversation_room" + response.body);
+        print("conversation_rooom" + response.headers.toString());
+        print(response.headers.keys.toList());
+        print(response.headers.values.toList());
+        print(response.headers['set-cookie']);
 
         // List<dynamic> data = jsonDecode(response.body)["ocs"]["data"];
         // List<Conversations> listConversation =

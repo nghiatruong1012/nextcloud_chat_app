@@ -2,14 +2,18 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nextcloud_chat_app/authentication/bloc/authentication_bloc.dart';
 import 'package:nextcloud_chat_app/screen/call/view/call.dart';
 import 'package:nextcloud_chat_app/screen/chat/bloc/chat_bloc.dart';
+import 'package:nextcloud_chat_app/service/call_service.dart';
 import 'package:nextcloud_chat_app/service/chat_service.dart';
 import 'package:nextcloud_chat_app/service/conversation_service.dart';
+import 'package:nextcloud_chat_app/service/request.dart';
 
 class ChatProvider extends StatelessWidget {
   const ChatProvider({super.key, required this.token, required this.messageId});
@@ -50,16 +54,20 @@ class ChatPage extends StatefulWidget {
 class _ChatPageState extends State<ChatPage> {
   final String token;
   final int messageId;
-  late Timer _timer;
 
   _ChatPageState({required this.token, required this.messageId});
   TextEditingController messController = TextEditingController();
   ScrollController scrollController = ScrollController();
   bool isLoading = false;
+  late Map<String, String> requestHeaders;
+  _imageHeader() async {
+    requestHeaders = await HTTPService().authImgHeader();
+  }
 
   @override
   void initState() {
     // TODO: implement initState
+    _imageHeader();
     context.read<ChatBloc>().add(LoadInitialChat(token, messageId));
     context.read<ChatBloc>().add(ReceiveMessage());
     scrollController.addListener(() {
@@ -94,6 +102,7 @@ class _ChatPageState extends State<ChatPage> {
               elevation: 0.0,
               leading: Container(
                 margin: EdgeInsets.all(0),
+                padding: EdgeInsets.all(0),
                 child: IconButton(
                   icon: Icon(Icons.arrow_back_outlined, color: Colors.black),
                   onPressed: () {
@@ -106,6 +115,7 @@ class _ChatPageState extends State<ChatPage> {
                   Container(
                     width: 40,
                     height: 40,
+                    padding: EdgeInsets.all(0),
                     child: ClipRRect(
                         borderRadius: BorderRadius.circular(100),
                         child: FutureBuilder(
@@ -122,7 +132,7 @@ class _ChatPageState extends State<ChatPage> {
                             })),
                   ),
                   SizedBox(
-                    width: 20,
+                    width: 10,
                   ),
                   Text(
                     state.conversations!.displayName.toString(),
@@ -142,11 +152,13 @@ class _ChatPageState extends State<ChatPage> {
                     )),
                 IconButton(
                     onPressed: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => CallPage(),
-                          ));
+                      CallService()
+                          .joinCall({"flags": '3', "silent": false}, token);
+                      // Navigator.push(
+                      //     context,
+                      //     MaterialPageRoute(
+                      //       builder: (context) => CallPage(),
+                      //     ));
                     },
                     icon: Icon(
                       Icons.videocam,
@@ -216,14 +228,6 @@ class _ChatPageState extends State<ChatPage> {
                                 : Container(),
                             Builder(
                               builder: (context) {
-                                print('mess param' +
-                                    (state.listChat![reversedIndex]
-                                                .messageParameters is Map &&
-                                            state.listChat![reversedIndex]
-                                                .messageParameters
-                                                .containsKey('file'))
-                                        .toString());
-
                                 if (state.listChat![reversedIndex]
                                         .systemMessage ==
                                     "") {
@@ -294,16 +298,38 @@ class _ChatPageState extends State<ChatPage> {
                                                     topRight:
                                                         Radius.circular(15),
                                                   )),
-                                          child: Text(
-                                            state.listChat![reversedIndex]
-                                                .message
-                                                .toString(),
-                                            style: TextStyle(
-                                                fontSize: 18,
-                                                decoration:
-                                                    TextDecoration.underline,
-                                                fontWeight: FontWeight.w600),
-                                          ),
+                                          child: (state.listChat![reversedIndex]
+                                                                  .messageParameters[
+                                                              'file'][
+                                                          'preview-available'] ==
+                                                      'yes' &&
+                                                  state
+                                                      .listChat![reversedIndex]
+                                                      .messageParameters['file']
+                                                          ['mimetype']
+                                                      .toString()
+                                                      .contains('image'))
+                                              ? CachedNetworkImage(
+                                                  imageUrl:
+                                                      'http://${host}:8080/core/preview?x=-1&y=480&a=1&fileId=${state.listChat![reversedIndex].messageParameters['file']['id']}',
+                                                  placeholder: (context, url) =>
+                                                      CircularProgressIndicator(),
+                                                  errorWidget:
+                                                      (context, url, error) {
+                                                    return Icon(Icons.error);
+                                                  },
+                                                  httpHeaders: requestHeaders,
+                                                )
+                                              : Text(
+                                                  state.listChat![reversedIndex]
+                                                      .message
+                                                      .toString(),
+                                                  style: TextStyle(
+                                                      fontSize: 18,
+                                                      decoration: TextDecoration
+                                                          .underline,
+                                                      fontWeight:
+                                                          FontWeight.w600)),
                                         ),
                                       ),
                                     );
@@ -361,25 +387,8 @@ class _ChatPageState extends State<ChatPage> {
                                     );
                                 } else if (state.listChat![reversedIndex]
                                         .systemMessage ==
-                                    "call_started") {
-                                  return Container(
-                                    alignment: Alignment.center,
-                                    padding: EdgeInsets.symmetric(vertical: 20),
-                                    child: Column(children: [
-                                      Text(
-                                          '${state.listChat![reversedIndex].message} '),
-                                      // Row(
-                                      //   children: [
-                                      //     ElevatedButton(
-                                      //         onPressed: () {},
-                                      //         child: Text('Audio call')),
-                                      //     ElevatedButton(
-                                      //         onPressed: () {},
-                                      //         child: Text('Video call')),
-                                      //   ],
-                                      // )
-                                    ]),
-                                  );
+                                    "reaction") {
+                                  return Container();
                                 } else {
                                   return Container(
                                     alignment: Alignment.center,
@@ -390,62 +399,6 @@ class _ChatPageState extends State<ChatPage> {
                                 }
                               },
                             ),
-                            // (state.listChat![reversedIndex].systemMessage != "")
-                            //     ? Container(
-                            //         alignment: Alignment.center,
-                            //         padding: EdgeInsets.symmetric(vertical: 20),
-                            //         child: Text(
-                            //             '${state.listChat![reversedIndex].message} '),
-                            //       )
-                            //     : Container(
-                            //         alignment: (state.listChat![reversedIndex]
-                            //                     .actorId ==
-                            //                 user.username)
-                            //             ? Alignment.centerRight
-                            //             : Alignment.centerLeft,
-                            //         child: Container(
-                            //           constraints:
-                            //               BoxConstraints(maxWidth: 300),
-                            //           margin: (index == 0)
-                            //               ? EdgeInsets.only(
-                            //                   left: 10,
-                            //                   right: 10,
-                            //                   top: 2,
-                            //                   bottom: 10)
-                            //               : EdgeInsets.symmetric(
-                            //                   horizontal: 10, vertical: 2),
-                            //           padding: EdgeInsets.symmetric(
-                            //               horizontal: 20, vertical: 10),
-                            //           decoration: (state
-                            //                       .listChat![reversedIndex]
-                            //                       .actorId ==
-                            //                   user.username)
-                            //               ? BoxDecoration(
-                            //                   color:
-                            //                       Colors.green.withOpacity(0.2),
-                            //                   borderRadius: BorderRadius.only(
-                            //                     bottomLeft: Radius.circular(15),
-                            //                     bottomRight:
-                            //                         Radius.circular(15),
-                            //                     topLeft: Radius.circular(15),
-                            //                   ),
-                            //                 )
-                            //               : BoxDecoration(
-                            //                   color:
-                            //                       Colors.grey.withOpacity(0.2),
-                            //                   borderRadius: BorderRadius.only(
-                            //                     bottomLeft: Radius.circular(15),
-                            //                     bottomRight:
-                            //                         Radius.circular(15),
-                            //                     topRight: Radius.circular(15),
-                            //                   )),
-                            //           child: Text(
-                            //             state.listChat![reversedIndex].message
-                            //                 .toString(),
-                            //             style: TextStyle(fontSize: 18),
-                            //           ),
-                            //         ),
-                            //       ),
                           ],
                         );
                       }),
@@ -463,7 +416,24 @@ class _ChatPageState extends State<ChatPage> {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       IconButton(
-                          onPressed: () {}, icon: Icon(Icons.attach_file)),
+                          onPressed: () async {
+                            FilePickerResult? result =
+                                await FilePicker.platform.pickFiles();
+                            if (result != null) {
+                              PlatformFile file = result.files.first;
+                              File _file = File(result.files.single.path!);
+                              ChatService().uploadAndSharedFile(
+                                  user.username.toString(),
+                                  file.path.toString(),
+                                  file.name,
+                                  _file,
+                                  token);
+                              print('file shared' + file.path.toString());
+                            } else {
+                              print('error');
+                            }
+                          },
+                          icon: Icon(Icons.attach_file)),
                       IconButton(
                           onPressed: () {},
                           icon: Icon(Icons.emoji_emotions_outlined)),
