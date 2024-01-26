@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nextcloud_chat_app/authentication/bloc/authentication_bloc.dart';
+import 'package:nextcloud_chat_app/models/chats.dart';
 import 'package:nextcloud_chat_app/screen/call/view/call.dart';
 import 'package:nextcloud_chat_app/screen/chat/bloc/chat_bloc.dart';
 import 'package:nextcloud_chat_app/service/call_service.dart';
@@ -152,12 +153,10 @@ class _ChatPageState extends State<ChatPage> {
                     )),
                 IconButton(
                     onPressed: () {
-                      CallService()
-                          .joinCall({"flags": '3', "silent": false}, token);
                       // Navigator.push(
                       //     context,
                       //     MaterialPageRoute(
-                      //       builder: (context) => CallPage(),
+                      //       builder: (context) => CallPage(token: token),
                       //     ));
                     },
                     icon: Icon(
@@ -193,38 +192,7 @@ class _ChatPageState extends State<ChatPage> {
                         return Column(
                           children: [
                             showDate
-                                ? Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 20),
-                                    child: Builder(builder: (context) {
-                                      if (message.timestamp!.toLocal().day ==
-                                          DateTime.now().day) {
-                                        return Text(
-                                          "Hôm nay",
-                                          style: TextStyle(
-                                              color: Colors.black
-                                                  .withOpacity(0.6)),
-                                        );
-                                      } else if (message.timestamp!
-                                              .toLocal()
-                                              .day ==
-                                          DateTime.now().day - 1) {
-                                        return Text(
-                                          "Hôm qua",
-                                          style: TextStyle(
-                                              color: Colors.black
-                                                  .withOpacity(0.6)),
-                                        );
-                                      } else {
-                                        return Text(
-                                          "${message.timestamp!.toLocal().day} tháng ${message.timestamp!.toLocal().month} năm ${message.timestamp!.toLocal().year}",
-                                          style: TextStyle(
-                                              color: Colors.black
-                                                  .withOpacity(0.6)),
-                                        );
-                                      }
-                                    }),
-                                  )
+                                ? TimestampChat(message: message)
                                 : Container(),
                             Builder(
                               builder: (context) {
@@ -255,6 +223,27 @@ class _ChatPageState extends State<ChatPage> {
                                               state.listChat![reversedIndex]
                                                       .messageParameters['file']
                                                   ['name']);
+                                        },
+                                        onLongPress: () {
+                                          showModalBottomSheet(
+                                            context: context,
+                                            builder: (context) => Column(
+                                              children: [
+                                                ListTile(
+                                                  leading: Icon(Icons.reply),
+                                                  title: Text('Trả lời'),
+                                                ),
+                                                ListTile(
+                                                  leading: Icon(Icons.forward),
+                                                  title: Text('Chuyển tiếp'),
+                                                ),
+                                                ListTile(
+                                                  leading: Icon(Icons.copy),
+                                                  title: Text('Sao chép'),
+                                                ),
+                                              ],
+                                            ),
+                                          );
                                         },
                                         child: Container(
                                           constraints:
@@ -298,90 +287,213 @@ class _ChatPageState extends State<ChatPage> {
                                                     topRight:
                                                         Radius.circular(15),
                                                   )),
-                                          child: (state.listChat![reversedIndex]
-                                                                  .messageParameters[
-                                                              'file'][
-                                                          'preview-available'] ==
-                                                      'yes' &&
-                                                  state
-                                                      .listChat![reversedIndex]
-                                                      .messageParameters['file']
-                                                          ['mimetype']
-                                                      .toString()
-                                                      .contains('image'))
-                                              ? CachedNetworkImage(
-                                                  imageUrl:
-                                                      'http://${host}:8080/core/preview?x=-1&y=480&a=1&fileId=${state.listChat![reversedIndex].messageParameters['file']['id']}',
-                                                  placeholder: (context, url) =>
-                                                      CircularProgressIndicator(),
-                                                  errorWidget:
-                                                      (context, url, error) {
-                                                    return Icon(Icons.error);
-                                                  },
-                                                  httpHeaders: requestHeaders,
-                                                )
-                                              : Text(
-                                                  state.listChat![reversedIndex]
-                                                      .message
-                                                      .toString(),
-                                                  style: TextStyle(
-                                                      fontSize: 18,
-                                                      decoration: TextDecoration
-                                                          .underline,
-                                                      fontWeight:
-                                                          FontWeight.w600)),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              (state.listChat![reversedIndex]
+                                                                  .messageParameters['file']
+                                                              [
+                                                              'preview-available'] ==
+                                                          'yes' &&
+                                                      state
+                                                          .listChat![
+                                                              reversedIndex]
+                                                          .messageParameters[
+                                                              'file']
+                                                              ['mimetype']
+                                                          .toString()
+                                                          .contains('image'))
+                                                  ? CachedNetworkImage(
+                                                      imageUrl:
+                                                          'http://${host}:8080/core/preview?x=-1&y=480&a=1&fileId=${state.listChat![reversedIndex].messageParameters['file']['id']}',
+                                                      placeholder: (context,
+                                                              url) =>
+                                                          CircularProgressIndicator(),
+                                                      errorWidget: (context,
+                                                          url, error) {
+                                                        return Icon(
+                                                            Icons.error);
+                                                      },
+                                                      httpHeaders:
+                                                          requestHeaders,
+                                                    )
+                                                  : Text(
+                                                      state
+                                                          .listChat![
+                                                              reversedIndex]
+                                                          .message
+                                                          .toString(),
+                                                      style: TextStyle(
+                                                          fontSize: 18,
+                                                          decoration:
+                                                              TextDecoration
+                                                                  .underline,
+                                                          fontWeight:
+                                                              FontWeight.w600)),
+                                              (state.listChat![reversedIndex]
+                                                          .reactions !=
+                                                      {})
+                                                  ? Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .start,
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      children: state
+                                                          .listChat![
+                                                              reversedIndex]
+                                                          .reactions!
+                                                          .entries
+                                                          .map((entries) {
+                                                        return Container(
+                                                          // decoration: BoxDecoration(
+                                                          //     color:
+                                                          //         Colors.amber,
+                                                          //     borderRadius:
+                                                          //         BorderRadius
+                                                          //             .circular(
+                                                          //                 20)),
+                                                          child: Row(
+                                                              mainAxisSize:
+                                                                  MainAxisSize
+                                                                      .min,
+                                                              children: [
+                                                                Text(entries
+                                                                    .key),
+                                                                Text(entries
+                                                                    .value
+                                                                    .toString())
+                                                              ]),
+                                                        );
+                                                      }).toList(),
+                                                    )
+                                                  : Container(),
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     );
                                   } else
-                                    return Container(
-                                      alignment: (state.listChat![reversedIndex]
-                                                  .actorId ==
-                                              user.username)
-                                          ? Alignment.centerRight
-                                          : Alignment.centerLeft,
+                                    return GestureDetector(
+                                      onLongPress: () {
+                                        showModalBottomSheet(
+                                          context: context,
+                                          builder: (context) => Column(
+                                            children: [
+                                              ListTile(
+                                                leading: Icon(Icons.reply),
+                                                title: Text('Trả lời'),
+                                              ),
+                                              ListTile(
+                                                leading: Icon(Icons.forward),
+                                                title: Text('Chuyển tiếp'),
+                                              ),
+                                              ListTile(
+                                                leading: Icon(Icons.copy),
+                                                title: Text('Sao chép'),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      },
                                       child: Container(
-                                        constraints:
-                                            BoxConstraints(maxWidth: 300),
-                                        margin: (index == 0)
-                                            ? EdgeInsets.only(
-                                                left: 10,
-                                                right: 10,
-                                                top: 2,
-                                                bottom: 10)
-                                            : EdgeInsets.symmetric(
-                                                horizontal: 10, vertical: 2),
-                                        padding: EdgeInsets.symmetric(
-                                            horizontal: 20, vertical: 10),
-                                        decoration: (state
+                                        alignment: (state
                                                     .listChat![reversedIndex]
                                                     .actorId ==
                                                 user.username)
-                                            ? BoxDecoration(
-                                                color: Colors.green
-                                                    .withOpacity(0.2),
-                                                borderRadius: BorderRadius.only(
-                                                  bottomLeft:
-                                                      Radius.circular(15),
-                                                  bottomRight:
-                                                      Radius.circular(15),
-                                                  topLeft: Radius.circular(15),
-                                                ),
-                                              )
-                                            : BoxDecoration(
-                                                color: Colors.grey
-                                                    .withOpacity(0.2),
-                                                borderRadius: BorderRadius.only(
-                                                  bottomLeft:
-                                                      Radius.circular(15),
-                                                  bottomRight:
-                                                      Radius.circular(15),
-                                                  topRight: Radius.circular(15),
-                                                )),
-                                        child: Text(
-                                          state.listChat![reversedIndex].message
-                                              .toString(),
-                                          style: TextStyle(fontSize: 18),
+                                            ? Alignment.centerRight
+                                            : Alignment.centerLeft,
+                                        child: Container(
+                                          constraints:
+                                              BoxConstraints(maxWidth: 300),
+                                          margin: (index == 0)
+                                              ? EdgeInsets.only(
+                                                  left: 10,
+                                                  right: 10,
+                                                  top: 2,
+                                                  bottom: 10)
+                                              : EdgeInsets.symmetric(
+                                                  horizontal: 10, vertical: 2),
+                                          padding: EdgeInsets.symmetric(
+                                              horizontal: 20, vertical: 10),
+                                          decoration: (state
+                                                      .listChat![reversedIndex]
+                                                      .actorId ==
+                                                  user.username)
+                                              ? BoxDecoration(
+                                                  color: Colors.green
+                                                      .withOpacity(0.2),
+                                                  borderRadius:
+                                                      BorderRadius.only(
+                                                    bottomLeft:
+                                                        Radius.circular(15),
+                                                    bottomRight:
+                                                        Radius.circular(15),
+                                                    topLeft:
+                                                        Radius.circular(15),
+                                                  ),
+                                                )
+                                              : BoxDecoration(
+                                                  color: Colors.grey
+                                                      .withOpacity(0.2),
+                                                  borderRadius:
+                                                      BorderRadius.only(
+                                                    bottomLeft:
+                                                        Radius.circular(15),
+                                                    bottomRight:
+                                                        Radius.circular(15),
+                                                    topRight:
+                                                        Radius.circular(15),
+                                                  )),
+                                          child: Column(
+                                            children: [
+                                              Text(
+                                                state.listChat![reversedIndex]
+                                                    .message
+                                                    .toString(),
+                                                style: TextStyle(fontSize: 18),
+                                              ),
+                                              (state.listChat![reversedIndex]
+                                                          .reactions !=
+                                                      {})
+                                                  ? Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .start,
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      children: state
+                                                          .listChat![
+                                                              reversedIndex]
+                                                          .reactions!
+                                                          .entries
+                                                          .map((entries) {
+                                                        return Container(
+                                                          // decoration: BoxDecoration(
+                                                          //     color:
+                                                          //         Colors.amber,
+                                                          //     borderRadius:
+                                                          //         BorderRadius
+                                                          //             .circular(
+                                                          //                 20)),
+                                                          child: Row(
+                                                              mainAxisSize:
+                                                                  MainAxisSize
+                                                                      .min,
+                                                              children: [
+                                                                Text(entries
+                                                                    .key),
+                                                                Text(entries
+                                                                    .value
+                                                                    .toString())
+                                                              ]),
+                                                        );
+                                                      }).toList(),
+                                                    )
+                                                  : Container(),
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     );
@@ -480,6 +592,40 @@ class _ChatPageState extends State<ChatPage> {
           return Scaffold();
         }
       },
+    );
+  }
+}
+
+class TimestampChat extends StatelessWidget {
+  const TimestampChat({
+    super.key,
+    required this.message,
+  });
+
+  final Chat message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 20),
+      child: Builder(builder: (context) {
+        if (message.timestamp!.toLocal().day == DateTime.now().day) {
+          return Text(
+            "Hôm nay",
+            style: TextStyle(color: Colors.black.withOpacity(0.6)),
+          );
+        } else if (message.timestamp!.toLocal().day == DateTime.now().day - 1) {
+          return Text(
+            "Hôm qua",
+            style: TextStyle(color: Colors.black.withOpacity(0.6)),
+          );
+        } else {
+          return Text(
+            "${message.timestamp!.toLocal().day} tháng ${message.timestamp!.toLocal().month} năm ${message.timestamp!.toLocal().year}",
+            style: TextStyle(color: Colors.black.withOpacity(0.6)),
+          );
+        }
+      }),
     );
   }
 }

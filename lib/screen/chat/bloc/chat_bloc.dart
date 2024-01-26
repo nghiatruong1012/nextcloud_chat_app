@@ -17,7 +17,6 @@ part 'chat_state.dart';
 
 class ChatBloc extends Bloc<ChatEvent, ChatState> {
   ChatBloc() : super(ChatState()) {
-    late Timer _timer;
 
     on<ChatEvent>((event, emit) {
       // TODO: implement event handler

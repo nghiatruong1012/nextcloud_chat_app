@@ -6,6 +6,7 @@ class Chat {
   final String? systemMessage;
   final DateTime? timestamp;
   final dynamic? messageParameters;
+  final Map? reactions;
 
   const Chat(
     this.id,
@@ -14,6 +15,7 @@ class Chat {
     this.systemMessage,
     this.timestamp,
     this.messageParameters,
+    this.reactions
   );
   factory Chat.fromJson(Map<String, dynamic> json) {
     return Chat(
@@ -26,9 +28,10 @@ class Chat {
       json["systemMessage"],
       DateTime.fromMillisecondsSinceEpoch(json["timestamp"] * 1000),
       json["messageParameters"],
+      json["reactions"]
     );
   }
-  static const empty = Chat(null, null, null, null, null, null);
+  static const empty = Chat(null, null, null, null, null, null, null);
 }
 
 String getSystemMessage(String initalMessage,
