@@ -124,6 +124,27 @@ class ChatService {
     // }
   }
 
+  Future<void> reactMessage(String token, String messId, params) async {
+    Map<String, String> requestHeaders = await HTTPService().authHeader();
+
+    final response = await http.post(
+      Uri(
+        scheme: 'http',
+        host: host,
+        port: 8080,
+        path: '/ocs/v2.php/apps/spreed/api/v1/reaction/$token/$messId',
+      ),
+      headers: requestHeaders,
+      body: jsonEncode(params ?? {}),
+    );
+    // return response;
+    if (response.statusCode == 200) {
+      print('Success');
+    } else {
+      print("fail" + response.statusCode.toString());
+    }
+  }
+
   Future<void> downloadAndOpenFile(
       String user, String fileUrl, String filePath, String fileName) async {
     String baseUrl = 'http://localhost:8080';

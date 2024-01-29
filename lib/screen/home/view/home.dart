@@ -76,27 +76,53 @@ class _HomePageState extends State<HomePage> {
                   showDialog(
                     context: context,
                     builder: (context) {
-                      return SimpleDialog(
-                          contentPadding: EdgeInsets.all(20),
-                          children: [
-                            Container(
-                              height: 40,
-                              alignment: Alignment.centerLeft,
-                              child: Text('Cài đặt'),
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                context
-                                    .read<AuthenticationBloc>()
-                                    .add(AuthenticationLogoutRequested());
-                              },
-                              child: Container(
-                                height: 40,
-                                alignment: Alignment.centerLeft,
-                                child: Text('Đăng xuất'),
+                      return Dialog(
+                          child: Container(
+                        height: 250,
+                        padding: EdgeInsets.all(20),
+                        child: Expanded(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              ListTile(
+                                leading: SizedBox(
+                                  height: 40,
+                                  width: 40,
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(100),
+                                    child: FutureBuilder(
+                                        future: ConversationService()
+                                            .getConversationAvatar('',
+                                                user.username.toString(), ''),
+                                        builder: (context, snapshot) {
+                                          if (snapshot.hasData) {
+                                            return snapshot.data ??
+                                                Icon(Icons.person);
+                                          } else {
+                                            return Icon(Icons.person);
+                                          }
+                                        }),
+                                  ),
+                                ),
+                                title: Text(user.username.toString()),
                               ),
-                            ),
-                          ]);
+                              ListTile(
+                                leading: Icon(Icons.settings),
+                                title: Text('Cài đặt'),
+                              ),
+                              ListTile(
+                                onTap: () {
+                                  context
+                                      .read<AuthenticationBloc>()
+                                      .add(AuthenticationLogoutRequested());
+                                },
+                                leading: Icon(Icons.logout),
+                                title: Text('Đăng xuất'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ));
                     },
                   );
                 },
@@ -161,13 +187,13 @@ class _HomePageState extends State<HomePage> {
                                                 .lastMessage!.actorType!),
                                     builder: (context, snapshot) {
                                       if (snapshot.hasData) {
-                                        return snapshot.data ?? Container();
+                                        return snapshot.data ??
+                                            Icon(Icons.person);
                                       } else {
                                         return CircularProgressIndicator();
                                       }
                                     });
 
-                                // return Icon(Icons.error);
                               },
                               httpHeaders: requestHeaders,
                             ),

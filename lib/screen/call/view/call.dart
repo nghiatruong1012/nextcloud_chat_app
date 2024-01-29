@@ -7,6 +7,21 @@ import 'package:nextcloud_chat_app/service/call_service.dart';
 import 'package:nextcloud_chat_app/service/request.dart';
 import 'package:http/http.dart' as http;
 
+final Map<String, dynamic> constraints = {
+  'audio': true,
+  'video': {
+    'facingMode': 'user',
+  },
+};
+
+const _offerAnswerConstraints = {
+  'mandatory': {
+    'OfferToReceiveAudio': true,
+    'OfferToReceiveVideo': true,
+  },
+  'optional': [],
+};
+
 class CallPage extends StatefulWidget {
   const CallPage({super.key, required this.token});
   final String token;
@@ -26,6 +41,7 @@ class _CallPageState extends State<CallPage> {
 
   @override
   dispose() {
+    _localRenderer.srcObject = null;
     _localRenderer.dispose();
     _remoteRenderer.dispose();
     super.dispose();
@@ -33,19 +49,25 @@ class _CallPageState extends State<CallPage> {
 
   @override
   void initState() {
-    CallService().joinCall({"flags": '3', "silent": false}, token);
-    getSignal();
     initRenderer();
-    // _createPeerConnecion().then((pc) {
-    //   _peerConnection = pc;
-    // });
-    // _getUserMedia();
+    _createPeerConnecion().then((pc) {
+      _peerConnection = pc;
+    });
+    _getUserMedia();
+    joinCall();
     super.initState();
   }
 
   initRenderer() async {
     await _localRenderer.initialize();
     await _remoteRenderer.initialize();
+  }
+
+  Future<void> joinCall() async {
+    CallService().joinCall({"flags": '3', "silent": false}, token);
+    RTCSessionDescription description =
+        await _peerConnection!.createOffer(constraints);
+    getSignal();
   }
 
   Future<void> getSignal() async {
@@ -63,10 +85,11 @@ class _CallPageState extends State<CallPage> {
         // body: jsonEncode(params ?? {}),
       );
       if (response.statusCode == 200) {
+        print("signaling" + response.body);
         if (jsonDecode(response.body)["ocs"]["data"][0]["type"] == "message") {
           final sdp = jsonDecode(response.body)["ocs"]["data"][0]["data"];
           print('sdp' + sdp);
-          // _peerConnection!.setRemoteDescription(sdp);
+          _peerConnection!.setRemoteDescription(sdp);
         }
         getSignal();
       } else {
@@ -80,13 +103,6 @@ class _CallPageState extends State<CallPage> {
   }
 
   _getUserMedia() async {
-    final Map<String, dynamic> constraints = {
-      'audio': false,
-      'video': {
-        'facingMode': 'user',
-      },
-    };
-
     MediaStream stream = await navigator.mediaDevices.getUserMedia(constraints);
 
     setState(() {
@@ -103,8 +119,33 @@ class _CallPageState extends State<CallPage> {
     };
     _localStream = await _getUserMedia();
 
-    RTCPeerConnection pc = await createPeerConnection(configuration);
+    RTCPeerConnection pc =
+        await createPeerConnection(configuration, _offerAnswerConstraints);
     pc.addStream(_localStream!);
+    pc.onIceCandidate = (e) async {
+      if (e.candidate != null) {
+        Map<String, String> requestHeaders = await HTTPService().authHeader();
+        print(e.candidate);
+        try {
+          final response = await http.post(
+            Uri(
+              scheme: 'http',
+              host: host,
+              port: 8080,
+              path: '/ocs/v2.php/apps/spreed/api/v3/signaling/${token}',
+            ),
+            headers: requestHeaders,
+            body: jsonEncode({"messages": e.candidate}),
+          );
+          if (response.statusCode == 200) {
+          } else {
+            print(response.statusCode);
+          }
+        } catch (e) {
+          print(e);
+        }
+      }
+    };
     pc.onAddStream = (stream) {
       print('addStream: ' + stream.id);
       _remoteRenderer.srcObject = stream;
@@ -130,7 +171,6 @@ class _CallPageState extends State<CallPage> {
             alignment: Alignment.topRight,
             children: [
               Container(
-                color: Colors.amber,
                 child: Expanded(
                   child: RTCVideoView(_remoteRenderer),
                 ),
