@@ -110,7 +110,6 @@ class _CreateConversationState extends State<CreateConversation> {
       body: BlocBuilder<CreateConversationBloc, CreateConversationState>(
         builder: (context, state) {
           if (state.users != null && requestHeaders != {}) {
-            print(state.users!.length.toString());
             return Column(children: [
               Expanded(
                 child: ListView.builder(
@@ -147,7 +146,7 @@ class _CreateConversationState extends State<CreateConversation> {
                           'invite': state.users![index].userConversation.id,
                           'roomType': '1',
                         });
-                        print(conversation);
+
                         if (conversation.token != null &&
                             conversation.lastMessage != null) {
                           Navigator.pushReplacement(

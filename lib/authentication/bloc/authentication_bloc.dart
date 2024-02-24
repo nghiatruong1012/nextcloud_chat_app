@@ -33,7 +33,6 @@ class AuthenticationBloc
     AuthenticationStatusChanged event,
     Emitter<AuthenticationState> emit,
   ) async {
-    print("change status");
     switch (event.status) {
       case AuthenticationStatus.unauthenticated:
         final user = await _tryGetUser();

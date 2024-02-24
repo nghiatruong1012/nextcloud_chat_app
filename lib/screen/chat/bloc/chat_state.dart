@@ -7,13 +7,15 @@ class ChatState extends Equatable {
   final Conversations? conversations;
   final String? lastKnownMessageId;
   final List<Chat>? listChat;
+  final List<Participant>? listParticipants;
+
 
   ChatState(
       {this.isLoading = false,
       this.token,
       this.conversations,
       this.lastKnownMessageId,
-      this.listChat});
+      this.listChat, this.listParticipants,});
 
   @override
   // TODO: implement props
@@ -22,7 +24,7 @@ class ChatState extends Equatable {
         this.token,
         this.conversations,
         this.lastKnownMessageId,
-        this.listChat
+        this.listChat, this.listParticipants,
       ];
 
   ChatState copyWith(
@@ -30,13 +32,15 @@ class ChatState extends Equatable {
       String? token,
       Conversations? conversations,
       String? lastKnownMessageId,
-      List<Chat>? listChat}) {
+      List<Participant>? listParticipants,
+      List<Chat>? listChat,}) {
     return ChatState(
       isLoading: isLoading ?? this.isLoading,
       lastKnownMessageId: lastKnownMessageId ?? this.lastKnownMessageId,
       token: token ?? this.token,
       conversations: conversations ?? this.conversations,
       listChat: listChat ?? this.listChat,
+      listParticipants: listParticipants ?? this.listParticipants
     );
   }
 }

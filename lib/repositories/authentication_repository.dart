@@ -17,7 +17,6 @@ class AuthenticationRepository {
     // Map<String, dynamic> usermap =
     //     jsonDecode(sharedUser.getString("user") ?? "{}");
     if (server.isNotEmpty && username.isNotEmpty && password.isNotEmpty) {
-      print(server + " - " + username + " - " + password);
       yield AuthenticationStatus.authenticated;
     } else {
       yield AuthenticationStatus.unauthenticated;
@@ -36,7 +35,6 @@ class AuthenticationRepository {
       shared_User.setString('username', username);
       shared_User.setString('password', password);
       _controller.add(AuthenticationStatus.authenticated);
-      print(" authen ");
     } catch (e) {
       _controller.add(AuthenticationStatus.unauthenticated);
       print(e);

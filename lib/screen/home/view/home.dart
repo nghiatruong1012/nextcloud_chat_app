@@ -90,18 +90,23 @@ class _HomePageState extends State<HomePage> {
                                   width: 40,
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(100),
-                                    child: FutureBuilder(
-                                        future: ConversationService()
-                                            .getConversationAvatar('',
-                                                user.username.toString(), ''),
-                                        builder: (context, snapshot) {
-                                          if (snapshot.hasData) {
-                                            return snapshot.data ??
-                                                Icon(Icons.person);
-                                          } else {
-                                            return Icon(Icons.person);
-                                          }
-                                        }),
+                                    child: Builder(builder: (context) {
+                                      return FutureBuilder(
+                                          future: ConversationService()
+                                              .getConversationAvatar(
+                                                  '',
+                                                  user.username.toString(),
+                                                  '',
+                                                  64),
+                                          builder: (context, snapshot) {
+                                            if (snapshot.hasData) {
+                                              return snapshot.data ??
+                                                  Icon(Icons.person);
+                                            } else {
+                                              return Icon(Icons.person);
+                                            }
+                                          });
+                                    }),
                                   ),
                                 ),
                                 title: Text(user.username.toString()),
@@ -134,7 +139,7 @@ class _HomePageState extends State<HomePage> {
                     borderRadius: BorderRadius.circular(100),
                     child: FutureBuilder(
                         future: ConversationService().getConversationAvatar(
-                            '', user.username.toString(), ''),
+                            '', user.username.toString(), '', 64),
                         builder: (context, snapshot) {
                           if (snapshot.hasData) {
                             return snapshot.data ?? Container();
@@ -170,33 +175,42 @@ class _HomePageState extends State<HomePage> {
                           height: 40,
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(100),
-                            child: CachedNetworkImage(
-                              imageUrl:
-                                  'http://${host}:8080/ocs/v2.php/apps/spreed/api/v1/room/${state.listConversations![index].token!}/avatar',
-                              placeholder: (context, url) =>
-                                  CircularProgressIndicator(),
-                              errorWidget: (context, url, error) {
-                                return FutureBuilder(
-                                    future: ConversationService()
-                                        .getConversationAvatar(
-                                            state.listConversations![index]
-                                                .token!,
-                                            state.listConversations![index]
-                                                .name!,
-                                            state.listConversations![index]
-                                                .lastMessage!.actorType!),
-                                    builder: (context, snapshot) {
-                                      if (snapshot.hasData) {
-                                        return snapshot.data ??
-                                            Icon(Icons.person);
-                                      } else {
-                                        return CircularProgressIndicator();
-                                      }
-                                    });
-
-                              },
-                              httpHeaders: requestHeaders,
-                            ),
+                            child: Builder(builder: (context) {
+                              if (state.listConversations![index].type == 2) {
+                                return Container(
+                                    color: const Color.fromARGB(
+                                        255, 236, 236, 236),
+                                    child: Icon(Icons.group));
+                              } else {
+                                return CachedNetworkImage(
+                                  imageUrl:
+                                      'http://${host}:8080/ocs/v2.php/apps/spreed/api/v1/room/${state.listConversations![index].token!}/avatar',
+                                  placeholder: (context, url) =>
+                                      CircularProgressIndicator(),
+                                  errorWidget: (context, url, error) {
+                                    return FutureBuilder(
+                                        future: ConversationService()
+                                            .getConversationAvatar(
+                                                state.listConversations![index]
+                                                    .token!,
+                                                state.listConversations![index]
+                                                    .name!,
+                                                state.listConversations![index]
+                                                    .lastMessage!.actorType!,
+                                                64),
+                                        builder: (context, snapshot) {
+                                          if (snapshot.hasData) {
+                                            return snapshot.data ??
+                                                Icon(Icons.person);
+                                          } else {
+                                            return CircularProgressIndicator();
+                                          }
+                                        });
+                                  },
+                                  httpHeaders: requestHeaders,
+                                );
+                              }
+                            }),
                             // FutureBuilder(
                             //     future: ConversationService()
                             //         .getConversationAvatar(

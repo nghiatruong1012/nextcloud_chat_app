@@ -3,24 +3,46 @@ import 'package:nextcloud_chat_app/models/chats.dart';
 class Conversations {
   final int? id;
   final String? token;
+  final int? type;
+  final bool? canLeaveConversation;
+  final bool? canDeleteConversation;
+  final int? notificationLevel;
+  final int? notificationCalls;
   final String? name;
   final String? displayName;
   final LastMessage? lastMessage;
   final String? avatarVersion;
 
-  const Conversations(this.id, this.token, this.name, this.displayName,
-      this.lastMessage, this.avatarVersion);
+  const Conversations(
+    this.id,
+    this.token,
+    this.type,
+    this.canLeaveConversation,
+    this.canDeleteConversation,
+    this.notificationLevel,
+    this.notificationCalls,
+    this.name,
+    this.displayName,
+    this.lastMessage,
+    this.avatarVersion,
+  );
   factory Conversations.fromJson(Map<String, dynamic> json) {
     return Conversations(
       json['id'],
       json['token'],
+      json['type'],
+      json['canLeaveConversation'],
+      json['canDeleteConversation'],
+      json['notificationLevel'],
+      json['notificationCalls'],
       json['name'],
       json['displayName'],
       LastMessage.fromJson(json['lastMessage']),
       json['avatarVersion'],
     );
   }
-  static const empty = Conversations(null, null, null, null, null, null);
+  static const empty = Conversations(
+      null, null, null, null, null, null, null, null, null, null, null);
 }
 
 class LastMessage {

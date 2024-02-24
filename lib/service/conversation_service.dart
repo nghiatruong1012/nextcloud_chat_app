@@ -89,7 +89,7 @@ class ConversationService {
   }
 
   Future<Image> getConversationAvatar(
-      String token, String name, String actorType) async {
+      String token, String name, String actorType, int size) async {
     Map<String, String> requestHeaders = await HTTPService().authImgHeader();
     print(actorType);
     if (actorType == 'bots') {
@@ -148,7 +148,7 @@ class ConversationService {
             scheme: 'http',
             host: host,
             port: 8080,
-            path: '/avatar/$name/64?v=0',
+            path: '/avatar/$name/$size?v=0',
           ),
 
           headers: requestHeaders,
@@ -172,6 +172,60 @@ class ConversationService {
         print(e);
         throw Exception();
       }
+    }
+  }
+
+  Future<void> setNotificationLevel(String token, params) async {
+    Map<String, String> requestHeaders = await HTTPService().authHeader();
+    try {
+      final response = await http.post(
+        Uri(
+          scheme: 'http',
+          host: host,
+          port: 8080,
+          path: '/ocs/v2.php/apps/spreed/api/v4/room/$token/notify',
+        ),
+        headers: requestHeaders,
+        body: jsonEncode(params ?? {}),
+      );
+      if (response.statusCode == 200) {
+        print('Success');
+        return;
+        // return Conversations.fromJson(jsonDecode(response.body));
+      } else {
+        print(response.statusCode.toString());
+        return;
+      }
+    } catch (e) {
+      print(e);
+      return;
+    }
+  }
+
+  Future<void> setCallNotificationLevel(String token, params) async {
+    Map<String, String> requestHeaders = await HTTPService().authHeader();
+    try {
+      final response = await http.post(
+        Uri(
+          scheme: 'http',
+          host: host,
+          port: 8080,
+          path: '/ocs/v2.php/apps/spreed/api/v4/room/$token/notify-calls',
+        ),
+        headers: requestHeaders,
+        body: jsonEncode(params ?? {}),
+      );
+      if (response.statusCode == 200) {
+        print('Success');
+        return;
+        // return Conversations.fromJson(jsonDecode(response.body));
+      } else {
+        print(response.statusCode.toString());
+        return;
+      }
+    } catch (e) {
+      print(e);
+      return;
     }
   }
 }

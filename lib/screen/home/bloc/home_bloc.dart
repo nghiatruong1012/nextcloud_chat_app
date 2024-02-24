@@ -4,6 +4,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 import 'package:nextcloud_chat_app/models/conversations.dart';
+import 'package:nextcloud_chat_app/models/participants.dart';
 import 'package:nextcloud_chat_app/service/conversation_service.dart';
 
 part 'home_event.dart';

@@ -5,6 +5,7 @@ part of 'home_bloc.dart';
 class HomeState extends Equatable {
   final List<Conversations>? listConversations;
 
+
   HomeState({this.listConversations});
 
   @override

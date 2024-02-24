@@ -49,6 +49,45 @@ class ChatService {
     }
   }
 
+  Future<Map<dynamic, dynamic>> getShared(String token, String type) async {
+    Map<String, String> requestHeaders = await HTTPService().authHeader();
+    try {
+      print(
+        Uri(
+            scheme: 'http',
+            host: host,
+            port: 8080,
+            path: '/ocs/v2.php/apps/spreed/api/v1/chat/$token/share',
+            query: 'objectType=$type'),
+      );
+
+      final response = await http.get(
+        Uri(
+            scheme: 'http',
+            host: host,
+            port: 8080,
+            path: '/ocs/v2.php/apps/spreed/api/v1/chat/$token/share',
+            query: 'objectType=$type'),
+        headers: requestHeaders,
+        // body: jsonEncode(params ?? {}),
+      );
+      if (response.statusCode == 200) {
+        print('Success');
+        print(jsonDecode(response.body)["ocs"]["data"]);
+        Map<dynamic, dynamic> data = jsonDecode(response.body)["ocs"]["data"];
+        // List<Chat> listChat = data.map((item) => Chat.fromJson(item)).toList();
+        return data;
+        // return Conversations.fromJson(jsonDecode(response.body));
+      } else {
+        print(response.statusCode.toString());
+        return {};
+      }
+    } catch (e) {
+      print(e);
+      return {};
+    }
+  }
+
   Future<http.Response> receiveMessage(String token, params) async {
     Map<String, String> requestHeaders = await HTTPService().authHeader();
 

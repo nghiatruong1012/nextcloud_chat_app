@@ -6,6 +6,7 @@ import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 import 'package:nextcloud_chat_app/models/chats.dart';
 import 'package:nextcloud_chat_app/models/conversations.dart';
+import 'package:nextcloud_chat_app/models/participants.dart';
 import 'package:nextcloud_chat_app/service/chat_service.dart';
 import 'package:nextcloud_chat_app/service/participants_service.dart';
 import 'package:nextcloud_chat_app/service/request.dart';
@@ -17,21 +18,23 @@ part 'chat_state.dart';
 
 class ChatBloc extends Bloc<ChatEvent, ChatState> {
   ChatBloc() : super(ChatState()) {
-
     on<ChatEvent>((event, emit) {
       // TODO: implement event handler
     });
-    print("hello");
     on<LoadInitialChat>((event, emit) async {
       final conversations =
           await ParticipantsService().joinConversation(event.token);
+      final listParticipants = await
+          ParticipantsService().getListParticipants(event.token);
       final listChat =
           await ChatService().getChatContext(event.token, event.messageId);
       emit(state.copyWith(
-          token: event.token,
-          conversations: conversations,
-          lastKnownMessageId: conversations.lastMessage!.id.toString(),
-          listChat: listChat));
+        token: event.token,
+        conversations: conversations,
+        lastKnownMessageId: conversations.lastMessage!.id.toString(),
+        listChat: listChat,
+        listParticipants: listParticipants,
+      ));
       fetchApi();
     });
 
@@ -64,7 +67,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     // });
 
     on<SendMessage>((event, emit) async {
-      print("gui");
       final response = await ChatService().sendMessage(state.token!, {
         "message": event.message,
         "actorDisplayName": event.actorDisplayName,
@@ -72,24 +74,19 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         "silent": "false"
       });
       if (response.statusCode == 200) {
-        print("gui tin nhan moi");
         // List<dynamic> data = jsonDecode(response.body)["ocs"]["data"];
         // List<Chat> listChat = data.map((item) => Chat.fromJson(item)).toList();
         // state.listChat!.addAll(listChat);
         emit(state.copyWith(
             lastKnownMessageId:
                 response.headers["x-chat-last-given"].toString()));
-        print("mess id" + response.headers.toString());
-      } else {
-        print("khong gui dc tin nhan moi" + response.statusCode.toString());
-      }
+      } else {}
     });
 
     on<LoadOlderMessage>((event, emit) async {
       if (!state.isLoading! && (state.listChat![0].id! > 0)) {
         state.copyWith(isLoading: true);
-        print("Loadmore");
-        print(state.listChat![0].id!);
+
         final response = await ChatService().receiveMessage(state.token!, {
           "setReadMarker": "0",
           "lookIntoFuture": "0",
@@ -105,16 +102,11 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
 
           state.copyWith(isLoading: false);
           emit(state.copyWith(listChat: state.listChat));
-          print(state.listChat!.length);
-        } else {
-          print("Fail to load more");
-        }
+        } else {}
       }
     });
   }
   Future<void> fetchApi() async {
-    print("waiting");
-    print(state.lastKnownMessageId);
     if (state.token != null && state.lastKnownMessageId != null) {
       Map<String, String> requestHeaders = await HTTPService().authHeader();
 
@@ -138,18 +130,15 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       );
 
       if (response.statusCode == 200) {
-        print("nhan tin nhan moi");
         List<dynamic> data = jsonDecode(response.body)["ocs"]["data"];
         List<Chat> listChat = data.map((item) => Chat.fromJson(item)).toList();
         state.listChat!.addAll(listChat);
         emit(state.copyWith(
             lastKnownMessageId:
                 response.headers["x-chat-last-given"].toString()));
-        print("mess id" + response.headers["x-chat-last-given"].toString());
+
         fetchApi();
       } else {
-        print("ko nhan tin nhan moi");
-
         fetchApi();
       }
     } else {

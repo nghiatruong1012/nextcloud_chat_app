@@ -51,6 +51,12 @@ dependencies:
   file_picker: ^6.1.1
   emoji_picker_flutter: ^1.6.4
   google_fonts: ^6.1.0
+  intl: ^0.18.1
+  dropdown_button2: ^2.3.9
+  voice_message_package: ^2.1.4
+  record: ^5.0.4
+  just_audio: ^0.9.36
+  audioplayers: ^5.2.1
 
 dev_dependencies:
   flutter_test:

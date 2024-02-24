@@ -46,3 +46,22 @@ String generateRandomStringWithSha256(int length) {
   // Trả về chuỗi SHA-256
   return sha256Hash;
 }
+
+String formatFileSize(int fileSizeInBytes) {
+  const int KB = 1024;
+  const int MB = KB * 1024;
+  const int GB = MB * 1024;
+  const int TB = GB * 1024;
+
+  if (fileSizeInBytes >= TB) {
+    return "${(fileSizeInBytes / TB).toStringAsFixed(2)} TB";
+  } else if (fileSizeInBytes >= GB) {
+    return "${(fileSizeInBytes / GB).toStringAsFixed(2)} GB";
+  } else if (fileSizeInBytes >= MB) {
+    return "${(fileSizeInBytes / MB).toStringAsFixed(2)} MB";
+  } else if (fileSizeInBytes >= KB) {
+    return "${(fileSizeInBytes / KB).toStringAsFixed(2)} KB";
+  } else {
+    return "$fileSizeInBytes Bytes";
+  }
+}

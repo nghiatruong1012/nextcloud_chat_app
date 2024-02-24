@@ -15,8 +15,6 @@ class CreateConversationBloc
       // TODO: implement event handler
     });
     on<ChangedQueryEvent>((event, emit) async {
-      
-      print('search');
       final user = await CreateConversationService().getListUser({
         'search': event.query,
         'itemType': '',
@@ -31,7 +29,6 @@ class CreateConversationBloc
           )
           .toList();
 
-      print(selectedUser);
       emit(state.copyWith(users: selectedUser));
     });
     on<SelectUserEvent>((event, emit) {
