@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:nextcloud_chat_app/authentication/bloc/authentication_bloc.dart';
 import 'package:nextcloud_chat_app/models/chats.dart';
 import 'package:nextcloud_chat_app/models/user.dart';
@@ -27,6 +28,8 @@ import 'package:nextcloud_chat_app/service/conversation_service.dart';
 import 'package:nextcloud_chat_app/service/participants_service.dart';
 import 'package:nextcloud_chat_app/service/request.dart';
 import 'package:nextcloud_chat_app/utils.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:record/record.dart';
 import 'package:voice_message_package/voice_message_package.dart';
 
 const _platform = MethodChannel('emoji_picker_flutter');
@@ -93,6 +96,10 @@ class _ChatPageState extends State<ChatPage> {
   TextEditingController messController = TextEditingController();
   ScrollController scrollController = ScrollController();
   bool isLoading = false;
+  bool isRecording = false;
+  String recordFileName = '';
+  late AudioRecorder audioRecord;
+
   late Map<String, String> requestHeaders;
   _imageHeader() async {
     requestHeaders = await HTTPService().authImgHeader();
@@ -101,9 +108,11 @@ class _ChatPageState extends State<ChatPage> {
   @override
   void initState() {
     // TODO: implement initState
+    audioRecord = AudioRecorder();
     _imageHeader();
     context.read<ChatBloc>().add(LoadInitialChat(token, messageId));
     context.read<ChatBloc>().add(ReceiveMessage());
+
     scrollController.addListener(() {
       if (scrollController.position.pixels ==
           scrollController.position.maxScrollExtent) {
@@ -226,29 +235,119 @@ class _ChatPageState extends State<ChatPage> {
                         children: [
                           IconButton(
                               onPressed: () async {
-                                FilePickerResult? result =
-                                    await FilePicker.platform.pickFiles();
-                                if (result != null) {
-                                  PlatformFile file = result.files.first;
-                                  File _file = File(result.files.single.path!);
-                                  ChatService().uploadAndSharedFile(
-                                      user.username.toString(),
-                                      file.path.toString(),
-                                      file.name,
-                                      _file,
-                                      token);
-                                } else {
-                                  print('error');
-                                }
+                                showModalBottomSheet(
+                                  context: context,
+                                  builder: (context) => Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Container(
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: 20, vertical: 10),
+                                        child: Text(
+                                          'Upload to chat',
+                                          style: TextStyle(
+                                              fontSize: 18,
+                                              color: Colors.black
+                                                  .withOpacity(0.5)),
+                                        ),
+                                      ),
+                                      ListTile(
+                                        leading: Icon(Icons.file_upload),
+                                        title: Text('Upload file'),
+                                        onTap: () async {
+                                          FilePickerResult? result =
+                                              await FilePicker.platform
+                                                  .pickFiles();
+                                          if (result != null) {
+                                            PlatformFile file =
+                                                result.files.first;
+                                            File _file =
+                                                File(result.files.single.path!);
+                                            ChatService().uploadAndSharedFile(
+                                                user.username.toString(),
+                                                file.path.toString(),
+                                                file.name,
+                                                _file,
+                                                token,
+                                                '');
+                                          } else {
+                                            print('error');
+                                          }
+                                        },
+                                      ),
+                                      ListTile(
+                                        leading: Icon(Icons.image),
+                                        title: Text('Upload image'),
+                                        onTap: () async {
+                                          final image = await ImagePicker()
+                                              .pickImage(
+                                                  source: ImageSource.gallery);
+                                          if (image == null) return;
+                                          final _file = File(image.path);
+                                          ChatService().uploadAndSharedFile(
+                                              user.username.toString(),
+                                              image.path.toString(),
+                                              image.name,
+                                              _file,
+                                              token,
+                                              '');
+                                        },
+                                      ),
+                                      ListTile(
+                                        leading: Icon(Icons.copy),
+                                        title: Text('Sao chép'),
+                                      ),
+                                    ],
+                                  ),
+                                );
                               },
                               icon: Icon(Icons.attach_file)),
-                          IconButton(
-                              onPressed: () {
-                                toogleEmoji();
+                          // IconButton(
+                          //     onPressed: () {
+                          //       toogleEmoji();
+                          //     },
+                          //     icon: Icon(_emojiOpen
+                          //         ? Icons.keyboard
+                          //         : Icons.emoji_emotions_outlined)),
+                          GestureDetector(
+                              onLongPressStart: (detail) async {
+                                final String dir =
+                                    (await getExternalStorageDirectory())!.path;
+                                recordFileName =
+                                    '${DateTime.now().millisecondsSinceEpoch}.wav';
+                                final String filePath = '$dir/$recordFileName';
+
+                                await audioRecord.start(
+                                    RecordConfig(encoder: AudioEncoder.wav),
+                                    path: filePath);
+
+                                setState(() {
+                                  isRecording = true;
+                                });
                               },
-                              icon: Icon(_emojiOpen
-                                  ? Icons.keyboard
-                                  : Icons.emoji_emotions_outlined)),
+                              onLongPressEnd: (detail) async {
+                                final path = await audioRecord.stop();
+                                print('Recording: ' + path!);
+                                File file = File(path!);
+                                ChatService().uploadAndSharedFile(
+                                  user.username.toString(),
+                                  file.path.toString(),
+                                  recordFileName,
+                                  file,
+                                  token,
+                                  'voice-message',
+                                );
+
+                                setState(() {
+                                  isRecording = false;
+                                });
+                              },
+                              child: IconButton(
+                                onPressed: () {},
+                                icon: Icon(Icons.mic),
+                              )),
                           Flexible(
                             child: Container(
                               child: TextFormField(
@@ -262,7 +361,9 @@ class _ChatPageState extends State<ChatPage> {
                                 decoration: InputDecoration(
                                     contentPadding: EdgeInsets.symmetric(
                                         vertical: 5, horizontal: 15),
-                                    hintText: "Enter a message ...",
+                                    hintText: (!isRecording)
+                                        ? "Enter a message ..."
+                                        : 'Recording ...',
                                     border: OutlineInputBorder(
                                         borderRadius:
                                             BorderRadius.circular(20))),
@@ -358,12 +459,15 @@ class _ChatPageState extends State<ChatPage> {
           SizedBox(
             width: 10,
           ),
-          Text(
-            state.conversations!.displayName.toString(),
-            style: TextStyle(
-                color: Colors.black,
-                fontSize: 18,
-                fontWeight: FontWeight.normal),
+          ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: 100),
+            child: Text(
+              state.conversations!.displayName.toString(),
+              style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 18,
+                  fontWeight: FontWeight.normal),
+            ),
           )
         ],
       ),

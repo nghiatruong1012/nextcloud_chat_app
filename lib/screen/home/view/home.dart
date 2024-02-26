@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:intl/intl.dart';
 import 'package:nextcloud_chat_app/authentication/bloc/authentication_bloc.dart';
 import 'package:nextcloud_chat_app/screen/chat/view/chat.dart';
 import 'package:nextcloud_chat_app/screen/createConversation/view/create_conversation.dart';
@@ -229,6 +230,54 @@ class _HomePageState extends State<HomePage> {
                         ),
                         title: Text(state.listConversations![index].displayName
                             .toString()),
+                        trailing: Builder(
+                          builder: (context) {
+                            if (state.listConversations![index].lastMessage!
+                                    .timestamp!
+                                    .toLocal()
+                                    .day ==
+                                DateTime.now().day) {
+                              return Text(
+                                DateFormat('HH:mm').format(state
+                                    .listConversations![index]
+                                    .lastMessage!
+                                    .timestamp!),
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.black.withOpacity(0.7)),
+                              );
+                            } else if (state.listConversations![index]
+                                    .lastMessage!.timestamp!
+                                    .toLocal()
+                                    .day ==
+                                DateTime.now().subtract(Duration(days: 1))) {
+                              return Text(
+                                'Hôm qua',
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.black.withOpacity(0.7)),
+                              );
+                            } else if (state.listConversations![index]
+                                    .lastMessage!.timestamp!
+                                    .toLocal()
+                                    .year ==
+                                DateTime.now().year) {
+                              return Text(
+                                '${state.listConversations![index].lastMessage!.timestamp!.day} tháng ${state.listConversations![index].lastMessage!.timestamp!.month}',
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.black.withOpacity(0.7)),
+                              );
+                            } else {
+                              return Text(
+                                '${state.listConversations![index].lastMessage!.timestamp!.day} tháng ${state.listConversations![index].lastMessage!.timestamp!.month}, ${state.listConversations![index].lastMessage!.timestamp!.year}',
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.black.withOpacity(0.7)),
+                              );
+                            }
+                          },
+                        ),
                         subtitle: (state.listConversations![index].lastMessage!
                                     .actorId ==
                                 user.username)

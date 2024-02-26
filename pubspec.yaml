@@ -57,6 +57,7 @@ dependencies:
   record: ^5.0.4
   just_audio: ^0.9.36
   audioplayers: ^5.2.1
+  image_picker: ^1.0.7
 
 dev_dependencies:
   flutter_test:

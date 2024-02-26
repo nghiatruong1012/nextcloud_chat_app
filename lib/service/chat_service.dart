@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:nextcloud_chat_app/models/chats.dart';
 import 'package:nextcloud_chat_app/service/request.dart';
 import 'package:http/http.dart' as http;
@@ -234,7 +235,7 @@ class ChatService {
   }
 
   Future<void> uploadAndSharedFile(String user, String filePath,
-      String fileName, File file, String token) async {
+      String fileName, File file, String token, String messageType) async {
     Map<String, String> requestHeaders = await HTTPService().authImgHeader();
     Map<String, String> requestHeaders2 = await HTTPService().authHeader();
 
@@ -283,7 +284,7 @@ class ChatService {
             "path": "//Talk/${fileName}",
             "shareWith": token,
             "referenceId": generateRandomStringWithSha256(64),
-            "talkMetaData": "{\"messageType\":\"\"}"
+            "talkMetaData": "{\"messageType\":\"$messageType\"}"
           }));
       if (rp.statusCode == 200) {
         print('Shared sucsess');

@@ -27,6 +27,8 @@ class _SharedItemState extends State<SharedItem> {
   final String name;
   late Future<Map<dynamic, dynamic>> futureMedia;
   late Future<Map<dynamic, dynamic>> futureFile;
+  late Future<Map<dynamic, dynamic>> futureAudio;
+
   late Map<String, String> requestHeaders;
 
   _SharedItemState(this.token, this.name);
@@ -36,6 +38,7 @@ class _SharedItemState extends State<SharedItem> {
     // Call getFile in initState and don't forget to handle async operations here
     futureMedia = ChatService().getShared(token, "media");
     futureFile = ChatService().getShared(token, "file");
+    futureAudio = ChatService().getShared(token, "voice");
     setState(() {
       getFile();
     });
@@ -80,6 +83,7 @@ class _SharedItemState extends State<SharedItem> {
               children: [
                 _buildNavItem('Media', 0),
                 _buildNavItem('File', 1),
+                _buildNavItem('Voice messages', 2),
               ],
             ),
           ),
@@ -95,6 +99,7 @@ class _SharedItemState extends State<SharedItem> {
               children: [
                 _buildMediaPage(),
                 _buildFilePage(),
+                _buildAudioPage(),
               ],
             ),
           ),
@@ -108,11 +113,9 @@ class _SharedItemState extends State<SharedItem> {
       future: futureMedia,
       builder: (context, snapshot) {
         if (snapshot.hasData) {
- 
           return GridView.count(
             crossAxisCount: 4,
             children: snapshot.data!.entries.map<Widget>((e) {
-         
               return Container(
                 margin: EdgeInsets.all(5),
                 child: CachedNetworkImage(
@@ -144,7 +147,6 @@ class _SharedItemState extends State<SharedItem> {
         if (snapshot.hasData) {
           return ListView(
             children: snapshot.data!.entries.map<Widget>((e) {
-        
               return ListTile(
                 title: Text(
                   e.value['messageParameters']['file']['name'],
@@ -190,6 +192,41 @@ class _SharedItemState extends State<SharedItem> {
                     },
                   ),
                 ),
+                subtitle: Text(formatFileSize(
+                        e.value['messageParameters']['file']['size']) +
+                    " | " +
+                    DateFormat('yyyy-MM-dd HH:mm:ss').format(
+                        DateTime.fromMillisecondsSinceEpoch(
+                            e.value['timestamp'] * 1000)) +
+                    " | " +
+                    e.value['actorId']),
+              );
+            }).toList(),
+          );
+        } else if (snapshot.hasError) {
+          return Text('Error: ${snapshot.error}');
+        }
+        return Center(
+          child: CircularProgressIndicator(),
+        );
+      },
+    );
+  }
+
+  Widget _buildAudioPage() {
+    return FutureBuilder(
+      future: futureAudio,
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          return ListView(
+            children: snapshot.data!.entries.map<Widget>((e) {
+              return ListTile(
+                title: Text(
+                  e.value['messageParameters']['file']['name'],
+                  maxLines: 1,
+                ),
+                leading: Container(
+                    width: 50, child: Icon(Icons.audio_file_outlined)),
                 subtitle: Text(formatFileSize(
                         e.value['messageParameters']['file']['size']) +
                     " | " +

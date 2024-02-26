@@ -50,7 +50,8 @@ class LastMessage {
   final String? actorType;
   final String? actorId;
   final String? message;
-  const LastMessage(this.id, this.actorType, this.actorId, this.message);
+  final DateTime? timestamp;
+  const LastMessage(this.id, this.actorType, this.actorId, this.message, this.timestamp);
   factory LastMessage.fromJson(Map<String, dynamic> json) {
     return LastMessage(
       json['id'],
@@ -60,7 +61,9 @@ class LastMessage {
           ? getSystemMessage(
               json["message"], json["messageParameters"], json["systemMessage"])
           : json["message"],
+      DateTime.fromMillisecondsSinceEpoch(json["timestamp"] * 1000),
+    
     );
   }
-  static const empty = LastMessage(null, null, null, null);
+  static const empty = LastMessage(null, null, null, null, null);
 }
