@@ -11,6 +11,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:nextcloud_chat_app/authentication/bloc/authentication_bloc.dart';
@@ -20,6 +21,7 @@ import 'package:nextcloud_chat_app/screen/call/view/call.dart';
 import 'package:nextcloud_chat_app/screen/chat/bloc/chat_bloc.dart';
 import 'package:nextcloud_chat_app/screen/chat/widgets/chat_widgets.dart';
 import 'package:nextcloud_chat_app/screen/conversationInfo/view/conversation_info.dart';
+import 'package:nextcloud_chat_app/screen/location/view/location.dart';
 import 'package:nextcloud_chat_app/screen/searchChat/view/search_chat.dart';
 import 'package:nextcloud_chat_app/screen/sharedItem/view/shared_item.dart';
 import 'package:nextcloud_chat_app/service/call_service.dart';
@@ -97,6 +99,8 @@ class _ChatPageState extends State<ChatPage> {
   ScrollController scrollController = ScrollController();
   bool isLoading = false;
   bool isRecording = false;
+  Chat? chatRep;
+  bool isReplying = false;
   String recordFileName = '';
   late AudioRecorder audioRecord;
 
@@ -120,6 +124,21 @@ class _ChatPageState extends State<ChatPage> {
           context.read<ChatBloc>().add(LoadOlderMessage());
         });
       }
+    });
+  }
+
+  void PickChatToReply(Chat chat) {
+    setState(() {
+      print('reppp');
+      isReplying = true;
+      chatRep = chat;
+    });
+  }
+
+  void CancelReply() {
+    setState(() {
+      isReplying = false;
+      chatRep = null;
     });
   }
 
@@ -213,6 +232,7 @@ class _ChatPageState extends State<ChatPage> {
                                 state.conversations!.type!,
                                 isFirstMess,
                                 isLastMess,
+                                PickChatToReply,
                               ),
                             ),
                           ],
@@ -221,6 +241,57 @@ class _ChatPageState extends State<ChatPage> {
                 ),
                 Column(
                   children: [
+                    (isReplying && chatRep != null)
+                        ? Container(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 20),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Container(
+                                    width: 300,
+                                    decoration: BoxDecoration(
+                                      border: Border(
+                                        left: BorderSide(
+                                            color:
+                                                Colors.green.withOpacity(0.5),
+                                            width: 2),
+                                      ),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Container(
+                                            padding: EdgeInsets.only(
+                                                left: 5, bottom: 3, top: 1),
+                                            child: Text(
+                                              chatRep!.actorId.toString(),
+                                              style: TextStyle(
+                                                  color: Colors.black
+                                                      .withOpacity(0.6)),
+                                            )),
+                                        Container(
+                                            padding: EdgeInsets.only(
+                                                left: 5, top: 3, bottom: 1),
+                                            child: Text(
+                                              chatRep!.message.toString(),
+                                              maxLines: 5,
+                                            )),
+                                      ],
+                                    )),
+                                IconButton(
+                                    onPressed: () {
+                                      CancelReply();
+                                    },
+                                    icon: Icon(Icons.close))
+                              ],
+                            ),
+                          )
+                        : Container(
+                            width: 0,
+                          ),
                     Container(
                       // height: 50,
                       padding: EdgeInsets.symmetric(vertical: 10),
@@ -296,8 +367,16 @@ class _ChatPageState extends State<ChatPage> {
                                         },
                                       ),
                                       ListTile(
-                                        leading: Icon(Icons.copy),
-                                        title: Text('Sao chép'),
+                                        leading: Icon(Icons.location_on),
+                                        title: Text('Shared location'),
+                                        onTap: () async {
+                                          Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    Location(token: token,),
+                                              ));
+                                        },
                                       ),
                                     ],
                                   ),
@@ -374,10 +453,15 @@ class _ChatPageState extends State<ChatPage> {
                               onPressed: () {
                                 if (messController.text.isNotEmpty) {
                                   context.read<ChatBloc>().add(SendMessage(
-                                      messController.text,
-                                      user.username.toString()));
+                                        messController.text,
+                                        user.username.toString(),
+                                        (isReplying && chatRep != null)
+                                            ? chatRep!.id.toString()
+                                            : null,
+                                      ));
                                 }
                                 messController.clear();
+                                CancelReply();
 
                                 // Unfocus the current focus node to close the keyboard
                                 FocusScope.of(context).unfocus();

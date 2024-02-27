@@ -24,8 +24,8 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     on<LoadInitialChat>((event, emit) async {
       final conversations =
           await ParticipantsService().joinConversation(event.token);
-      final listParticipants = await
-          ParticipantsService().getListParticipants(event.token);
+      final listParticipants =
+          await ParticipantsService().getListParticipants(event.token);
       final listChat =
           await ChatService().getChatContext(event.token, event.messageId);
       emit(state.copyWith(
@@ -70,6 +70,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       final response = await ChatService().sendMessage(state.token!, {
         "message": event.message,
         "actorDisplayName": event.actorDisplayName,
+        "replyTo": event.id,
         "referenceId": generateRandomStringWithSha256(16),
         "silent": "false"
       });

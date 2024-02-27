@@ -14,9 +14,11 @@ class ReceiveMessage extends ChatEvent {}
 class SendMessage extends ChatEvent {
   String message;
   String actorDisplayName;
+  String? id;
   SendMessage(
     this.message,
     this.actorDisplayName,
+    this.id,
   );
 }
 

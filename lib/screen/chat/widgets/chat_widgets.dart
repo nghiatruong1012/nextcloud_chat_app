@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:intl/intl.dart';
 import 'package:nextcloud_chat_app/models/chats.dart';
 import 'package:nextcloud_chat_app/models/user.dart';
@@ -20,12 +21,13 @@ Widget MessageWidget(
     Map<String, String> requestHeaders,
     int type,
     bool isFirstMess,
-    bool isLastMess) {
+    bool isLastMess,
+    void pickChat(Chat chat)) {
   return Builder(
     builder: (context) {
       if (chat.systemMessage == '') {
         return ChatMessageWidget(chat, user, context, token, index,
-            requestHeaders, type, isFirstMess, isLastMess);
+            requestHeaders, type, isFirstMess, isLastMess, pickChat);
       } else {
         return SystemMessageWiget(chat);
       }
@@ -56,16 +58,21 @@ Widget ChatMessageWidget(
     Map<String, String> requestHeaders,
     int type,
     bool isFirstMess,
-    bool isLastMess) {
+    bool isLastMess,
+    void pickChat(Chat chat)) {
   return Builder(
     builder: (context) {
       if (chat.messageParameters is Map &&
           chat.messageParameters.containsKey('file')) {
         return FileChatWidget(chat, user, context, token, index, requestHeaders,
-            type, isFirstMess, isLastMess);
+            type, isFirstMess, isLastMess, pickChat);
+      } else if (chat.messageParameters is Map &&
+          chat.messageParameters.containsKey('object')) {
+        return ObjectChatWidget(chat, user, context, token, index,
+            requestHeaders, type, isFirstMess, isLastMess, pickChat);
       } else {
         return TextChatWidget(chat, user, context, token, index, requestHeaders,
-            type, isFirstMess, isLastMess);
+            type, isFirstMess, isLastMess, pickChat);
       }
     },
   );
@@ -80,7 +87,8 @@ Widget FileChatWidget(
     Map<String, String> requestHeaders,
     int type,
     bool isFirstMess,
-    bool isLastMess) {
+    bool isLastMess,
+    void pickChat(Chat chat)) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
@@ -152,84 +160,85 @@ Widget FileChatWidget(
                 showModalBottomSheet(
                   context: context,
                   builder: (context) => Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              GestureDetector(
-                                onTap: () {
-                                  ChatService().reactMessage(
-                                      token,
-                                      chat.id.toString(),
-                                      {"reaction": '\u2764\ufe0f'});
-                                },
-                                child: Container(
-                                  padding: EdgeInsets.all(8),
-                                  child: Text(
-                                    '\u2764\ufe0f',
-                                    style: TextStyle(fontSize: 24),
-                                  ),
-                                ),
-                              ),
-                              GestureDetector(
-                                child: Container(
-                                  padding: EdgeInsets.all(8),
-                                  child: Text(
-                                    '\ud83d\udc4d',
-                                    style: TextStyle(fontSize: 24),
-                                  ),
-                                ),
-                              ),
-                              GestureDetector(
-                                child: Container(
-                                  padding: EdgeInsets.all(8),
-                                  child: Text(
-                                    '\ud83d\udc4e',
-                                    style: TextStyle(
-                                      fontSize: 24,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              GestureDetector(
-                                child: Container(
-                                  padding: EdgeInsets.all(8),
-                                  child: Text(
-                                    '\ud83d\ude03',
-                                    style: TextStyle(fontSize: 24),
-                                  ),
-                                ),
-                              ),
-                              GestureDetector(
-                                child: Container(
-                                  padding: EdgeInsets.all(8),
-                                  child: Text(
-                                    '\ud83d\ude22',
-                                    style: TextStyle(fontSize: 24),
-                                  ),
-                                ),
-                              ),
-                              GestureDetector(
-                                child: Container(
-                                  padding: EdgeInsets.all(8),
-                                  child: Text(
-                                    '\ud83d\ude2f',
-                                    style: TextStyle(fontSize: 24),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          IconButton(
-                              alignment: Alignment.centerRight,
-                              onPressed: () {
-                                _emojiReactOpen = !_emojiReactOpen;
-                              },
-                              icon: Icon(Icons.more_horiz))
-                        ],
-                      ),
+                      // Row(
+                      //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      //   children: [
+                      //     Row(
+                      //       children: [
+                      //         GestureDetector(
+                      //           onTap: () {
+                      //             ChatService().reactMessage(
+                      //                 token,
+                      //                 chat.id.toString(),
+                      //                 {"reaction": '\u2764\ufe0f'});
+                      //           },
+                      //           child: Container(
+                      //             padding: EdgeInsets.all(8),
+                      //             child: Text(
+                      //               '\u2764\ufe0f',
+                      //               style: TextStyle(fontSize: 24),
+                      //             ),
+                      //           ),
+                      //         ),
+                      //         GestureDetector(
+                      //           child: Container(
+                      //             padding: EdgeInsets.all(8),
+                      //             child: Text(
+                      //               '\ud83d\udc4d',
+                      //               style: TextStyle(fontSize: 24),
+                      //             ),
+                      //           ),
+                      //         ),
+                      //         GestureDetector(
+                      //           child: Container(
+                      //             padding: EdgeInsets.all(8),
+                      //             child: Text(
+                      //               '\ud83d\udc4e',
+                      //               style: TextStyle(
+                      //                 fontSize: 24,
+                      //               ),
+                      //             ),
+                      //           ),
+                      //         ),
+                      //         GestureDetector(
+                      //           child: Container(
+                      //             padding: EdgeInsets.all(8),
+                      //             child: Text(
+                      //               '\ud83d\ude03',
+                      //               style: TextStyle(fontSize: 24),
+                      //             ),
+                      //           ),
+                      //         ),
+                      //         GestureDetector(
+                      //           child: Container(
+                      //             padding: EdgeInsets.all(8),
+                      //             child: Text(
+                      //               '\ud83d\ude22',
+                      //               style: TextStyle(fontSize: 24),
+                      //             ),
+                      //           ),
+                      //         ),
+                      //         GestureDetector(
+                      //           child: Container(
+                      //             padding: EdgeInsets.all(8),
+                      //             child: Text(
+                      //               '\ud83d\ude2f',
+                      //               style: TextStyle(fontSize: 24),
+                      //             ),
+                      //           ),
+                      //         ),
+                      //       ],
+                      //     ),
+                      //     IconButton(
+                      //         alignment: Alignment.centerRight,
+                      //         onPressed: () {
+                      //           _emojiReactOpen = !_emojiReactOpen;
+                      //         },
+                      //         icon: Icon(Icons.more_horiz))
+                      //   ],
+                      // ),
                       // Offstage(
                       //   offstage: !_emojiReactOpen,
                       //   child: SizedBox(
@@ -245,6 +254,10 @@ Widget FileChatWidget(
                       ListTile(
                         leading: Icon(Icons.reply),
                         title: Text('Trả lời'),
+                        onTap: () {
+                          pickChat(chat);
+                          Navigator.pop(context);
+                        },
                       ),
                       ListTile(
                         leading: Icon(Icons.forward),
@@ -507,7 +520,8 @@ Widget TextChatWidget(
     Map<String, String> requestHeaders,
     int type,
     bool isFirstMess,
-    bool isLastMess) {
+    bool isLastMess,
+    void pickChat(Chat chat)) {
   print(isFirstMess);
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
@@ -569,10 +583,15 @@ Widget TextChatWidget(
               showModalBottomSheet(
                 context: context,
                 builder: (context) => Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     ListTile(
                       leading: Icon(Icons.reply),
                       title: Text('Trả lời'),
+                      onTap: () {
+                        pickChat(chat);
+                        Navigator.pop(context);
+                      },
                     ),
                     ListTile(
                       leading: Icon(Icons.forward),
@@ -608,9 +627,51 @@ Widget TextChatWidget(
                             : EdgeInsets.symmetric(vertical: 2),
                         // padding:
                         //     EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-                        child: Text(
-                          chat.message.toString(),
-                          style: TextStyle(fontSize: 30),
+                        child: Column(
+                          crossAxisAlignment: (chat.actorId == user.username)
+                              ? CrossAxisAlignment.end
+                              : CrossAxisAlignment.start,
+                          children: [
+                            (chat.parent != null)
+                                ? Container(
+                                    decoration: BoxDecoration(
+                                      border: Border(
+                                        left: BorderSide(
+                                            color:
+                                                Colors.green.withOpacity(0.5),
+                                            width: 2),
+                                      ),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Container(
+                                            padding: EdgeInsets.only(
+                                                left: 5, bottom: 3, top: 1),
+                                            child: Text(
+                                              chat.parent!.actorId.toString(),
+                                              style: TextStyle(
+                                                  color: Colors.black
+                                                      .withOpacity(0.6)),
+                                            )),
+                                        Container(
+                                            padding: EdgeInsets.only(
+                                                left: 5, top: 3, bottom: 1),
+                                            child: Text(
+                                              chat.parent!.message.toString(),
+                                              maxLines: 5,
+                                            )),
+                                      ],
+                                    ))
+                                : Container(
+                                    width: 0,
+                                  ),
+                            Text(
+                              chat.message.toString(),
+                              style: TextStyle(fontSize: 30),
+                            ),
+                          ],
                         ),
                       )
                     : Container(
@@ -655,9 +716,392 @@ Widget TextChatWidget(
                           child:
                               // Column(
                               //   children: [
+                              Column(
+                            crossAxisAlignment: (chat.actorId == user.username)
+                                ? CrossAxisAlignment.end
+                                : CrossAxisAlignment.start,
+                            children: [
+                              (chat.parent != null)
+                                  ? Container(
+                                      decoration: BoxDecoration(
+                                        border: Border(
+                                          left: BorderSide(
+                                              color:
+                                                  Colors.green.withOpacity(0.5),
+                                              width: 2),
+                                        ),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Container(
+                                              padding: EdgeInsets.only(
+                                                  left: 5, bottom: 3, top: 1),
+                                              child: Text(
+                                                chat.parent!.actorId.toString(),
+                                                style: TextStyle(
+                                                    color: Colors.black
+                                                        .withOpacity(0.6)),
+                                              )),
+                                          Container(
+                                              padding: EdgeInsets.only(
+                                                  left: 5, top: 3, bottom: 1),
+                                              child: Text(
+                                                chat.parent!.message.toString(),
+                                                maxLines: 5,
+                                              )),
+                                        ],
+                                      ))
+                                  : Container(
+                                      width: 0,
+                                    ),
                               Text(
-                            chat.message.toString(),
-                            style: TextStyle(fontSize: 18),
+                                chat.message.toString(),
+                                style: TextStyle(fontSize: 18),
+                              ),
+                            ],
+                          ),
+                          //     (chat
+                          //                 .reactions !=
+                          //             {})
+                          //         ? Row(
+                          //             mainAxisAlignment:
+                          //                 MainAxisAlignment
+                          //                     .start,
+                          //             mainAxisSize:
+                          //                 MainAxisSize.min,
+                          //             children: state
+                          //                 .listChat![
+                          //                     reversedIndex]
+                          //                 .reactions!
+                          //                 .entries
+                          //                 .map((entries) {
+                          //               return Container(
+                          //                 // decoration: BoxDecoration(
+                          //                 //     color:
+                          //                 //         Colors.amber,
+                          //                 //     borderRadius:
+                          //                 //         BorderRadius
+                          //                 //             .circular(
+                          //                 //                 20)),
+                          //                 child: Row(
+                          //                     mainAxisSize:
+                          //                         MainAxisSize
+                          //                             .min,
+                          //                     children: [
+                          //                       Text(entries
+                          //                           .key),
+                          //                       Text(entries
+                          //                           .value
+                          //                           .toString())
+                          //                     ]),
+                          //               );
+                          //             }).toList(),
+                          //           )
+                          //         : Container(),
+                          //   ],
+                          // ),
+                        ),
+                      ),
+                (chat.actorId != user.username)
+                    ? Container(
+                        margin: EdgeInsets.only(left: 10),
+                        child: Text(
+                          DateFormat('HH:mm').format(chat.timestamp!),
+                          style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.black.withOpacity(0.7)),
+                        ),
+                      )
+                    : Container(),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ],
+  );
+}
+
+Widget ObjectChatWidget(
+    Chat chat,
+    User user,
+    BuildContext context,
+    String token,
+    int index,
+    Map<String, String> requestHeaders,
+    int type,
+    bool isFirstMess,
+    bool isLastMess,
+    void pickChat(Chat chat)) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      (chat.actorId != user.username && isFirstMess)
+          ? Container(
+              margin: EdgeInsets.symmetric(horizontal: 50),
+              child: Text(
+                chat.actorId.toString(),
+                style: TextStyle(fontSize: 12),
+              ))
+          : Container(),
+      Row(
+        // mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: (chat.actorId == user.username)
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          (chat.actorId != user.username && isFirstMess)
+              ? Container(
+                  width: 30,
+                  height: 30,
+                  margin: EdgeInsets.only(right: 5),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(100),
+                    child:
+                        // Builder(builder: (context) {
+                        //   return CachedNetworkImage(
+                        //     imageUrl:
+                        //         'http://${host}:8080/ocs/v2.php/apps/spreed/api/v1/room/${token!}/avatar',
+                        //     placeholder: (context, url) =>
+                        //         CircularProgressIndicator(),
+                        //     errorWidget: (context, url, error) {
+                        //       return Icon(Icons.person);
+                        //     },
+                        //     httpHeaders: requestHeaders,
+                        //   );
+                        // }),
+                        FutureBuilder(
+                            future: ConversationService().getConversationAvatar(
+                                token, chat.actorId!, '', 64),
+                            builder: (context, snapshot) {
+                              if (snapshot.hasData) {
+                                return snapshot.data ?? Container();
+                              } else {
+                                return CircularProgressIndicator();
+                              }
+                            }),
+                  ),
+                )
+              : Container(
+                  width: 30,
+                  height: 30,
+                  margin: EdgeInsets.only(right: 5),
+                ),
+          GestureDetector(
+            onLongPress: () {
+              showModalBottomSheet(
+                context: context,
+                builder: (context) => Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ListTile(
+                      leading: Icon(Icons.reply),
+                      title: Text('Trả lời'),
+                      onTap: () {
+                        pickChat(chat);
+                        Navigator.pop(context);
+                      },
+                    ),
+                    ListTile(
+                      leading: Icon(Icons.forward),
+                      title: Text('Chuyển tiếp'),
+                    ),
+                    ListTile(
+                      leading: Icon(Icons.copy),
+                      title: Text('Sao chép'),
+                    ),
+                  ],
+                ),
+              );
+            },
+            child: Row(
+              children: [
+                (chat.actorId == user.username)
+                    ? Container(
+                        margin: EdgeInsets.only(right: 10),
+                        child: Text(
+                          DateFormat('HH:mm').format(chat.timestamp!),
+                          style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.black.withOpacity(0.7)),
+                        ),
+                      )
+                    : Container(),
+                (containsOnlyEmojis(chat.message.toString()))
+                    ? Container(
+                        constraints: BoxConstraints(maxWidth: 300),
+                        margin: (index == 0)
+                            ? EdgeInsets.only(
+                                left: 2, right: 2, top: 2, bottom: 10)
+                            : EdgeInsets.symmetric(vertical: 2),
+                        // padding:
+                        //     EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+                        child: Column(
+                          crossAxisAlignment: (chat.actorId == user.username)
+                              ? CrossAxisAlignment.end
+                              : CrossAxisAlignment.start,
+                          children: [
+                            (chat.parent != null)
+                                ? Container(
+                                    decoration: BoxDecoration(
+                                      border: Border(
+                                        left: BorderSide(
+                                            color:
+                                                Colors.green.withOpacity(0.5),
+                                            width: 2),
+                                      ),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Container(
+                                            padding: EdgeInsets.only(
+                                                left: 5, bottom: 3, top: 1),
+                                            child: Text(
+                                              chat.parent!.actorId.toString(),
+                                              style: TextStyle(
+                                                  color: Colors.black
+                                                      .withOpacity(0.6)),
+                                            )),
+                                        Container(
+                                            padding: EdgeInsets.only(
+                                                left: 5, top: 3, bottom: 1),
+                                            child: Text(
+                                              chat.parent!.message.toString(),
+                                              maxLines: 5,
+                                            )),
+                                      ],
+                                    ))
+                                : Container(
+                                    width: 0,
+                                  ),
+                            Text(
+                              chat.message.toString(),
+                              style: TextStyle(fontSize: 30),
+                            ),
+                          ],
+                        ),
+                      )
+                    : Container(
+                        // alignment: (chat.actorId == user.username)
+                        //     ? Alignment.centerRight
+                        //     : Alignment.centerLeft,
+                        child: Container(
+                          constraints: BoxConstraints(maxWidth: 300),
+                          margin: (index == 0)
+                              ? EdgeInsets.only(
+                                  left: 2, right: 2, top: 2, bottom: 10)
+                              : EdgeInsets.symmetric(vertical: 2),
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+                          decoration: (chat.actorId == user.username)
+                              ? BoxDecoration(
+                                  color: Colors.green.withOpacity(0.2),
+                                  borderRadius: BorderRadius.only(
+                                    bottomLeft: Radius.circular(20),
+                                    bottomRight: isLastMess
+                                        ? Radius.circular(20)
+                                        : Radius.circular(5),
+                                    topLeft: Radius.circular(20),
+                                    topRight: isFirstMess
+                                        ? Radius.circular(20)
+                                        : Radius.circular(5),
+                                  ),
+                                )
+                              : BoxDecoration(
+                                  color: Colors.grey.withOpacity(0.2),
+                                  borderRadius: BorderRadius.only(
+                                    bottomLeft: isLastMess
+                                        ? Radius.circular(20)
+                                        : Radius.circular(2),
+                                    bottomRight: Radius.circular(20),
+                                    topRight: Radius.circular(20),
+                                    topLeft: isFirstMess
+                                        ? Radius.circular(20)
+                                        : Radius.circular(2),
+                                  ),
+                                ),
+                          child:
+                              // Column(
+                              //   children: [
+                              Column(
+                            crossAxisAlignment: (chat.actorId == user.username)
+                                ? CrossAxisAlignment.end
+                                : CrossAxisAlignment.start,
+                            children: [
+                              (chat.parent != null)
+                                  ? Container(
+                                      decoration: BoxDecoration(
+                                        border: Border(
+                                          left: BorderSide(
+                                              color:
+                                                  Colors.green.withOpacity(0.5),
+                                              width: 2),
+                                        ),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Container(
+                                              padding: EdgeInsets.only(
+                                                  left: 5, bottom: 3, top: 1),
+                                              child: Text(
+                                                chat.parent!.actorId.toString(),
+                                                style: TextStyle(
+                                                    color: Colors.black
+                                                        .withOpacity(0.6)),
+                                              )),
+                                          Container(
+                                              padding: EdgeInsets.only(
+                                                  left: 5, top: 3, bottom: 1),
+                                              child: Text(
+                                                chat.parent!.message.toString(),
+                                                maxLines: 5,
+                                              )),
+                                        ],
+                                      ))
+                                  : Container(
+                                      width: 0,
+                                    ),
+                              // FlutterMap(
+                              //   options: MapOptions(
+                              //     center: LatLng(latitude, longitude),
+                              //     zoom: 13.0,
+                              //   ),
+                              //   layers: [
+                              //     TileLayerOptions(
+                              //       urlTemplate:
+                              //           'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                              //       subdomains: ['a', 'b', 'c'],
+                              //     ),
+                              //     MarkerLayerOptions(
+                              //       markers: [
+                              //         Marker(
+                              //           width: 80.0,
+                              //           height: 80.0,
+                              //           point: LatLng(latitude, longitude),
+                              //           builder: (ctx) => Container(
+                              //             child: Icon(
+                              //               Icons.location_on,
+                              //               size: 40.0,
+                              //               color: Colors.red,
+                              //             ),
+                              //           ),
+                              //         ),
+                              //       ],
+                              //     ),
+                              //   ],
+                              // ),
+                              Text(
+                                chat.message.toString(),
+                                style: TextStyle(fontSize: 18),
+                              ),
+                            ],
                           ),
                           //     (chat
                           //                 .reactions !=

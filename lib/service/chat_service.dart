@@ -164,6 +164,25 @@ class ChatService {
     // }
   }
 
+  Future<void> shareRichObject(String token, params) async {
+    Map<String, String> requestHeaders = await HTTPService().authHeader();
+    final response = await http.post(
+      Uri(
+        scheme: 'http',
+        host: host,
+        port: 8080,
+        path: '/ocs/v2.php/apps/spreed/api/v1/chat/$token/share',
+      ),
+      headers: requestHeaders,
+      body: jsonEncode(params ?? {}),
+    );
+    if (response.statusCode == 200) {
+      print('Success');
+    } else {
+      print("fail" + response.statusCode.toString());
+    }
+  }
+
   Future<void> reactMessage(String token, String messId, params) async {
     Map<String, String> requestHeaders = await HTTPService().authHeader();
 
