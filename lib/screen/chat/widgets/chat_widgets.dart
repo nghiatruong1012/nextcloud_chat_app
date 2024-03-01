@@ -1,6 +1,8 @@
+import 'package:any_link_preview/any_link_preview.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:intl/intl.dart';
 import 'package:nextcloud_chat_app/models/chats.dart';
@@ -996,35 +998,9 @@ Widget ObjectChatWidget(
                               ? EdgeInsets.only(
                                   left: 2, right: 2, top: 2, bottom: 10)
                               : EdgeInsets.symmetric(vertical: 2),
-                          padding:
-                              EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-                          decoration: (chat.actorId == user.username)
-                              ? BoxDecoration(
-                                  color: Colors.green.withOpacity(0.2),
-                                  borderRadius: BorderRadius.only(
-                                    bottomLeft: Radius.circular(20),
-                                    bottomRight: isLastMess
-                                        ? Radius.circular(20)
-                                        : Radius.circular(5),
-                                    topLeft: Radius.circular(20),
-                                    topRight: isFirstMess
-                                        ? Radius.circular(20)
-                                        : Radius.circular(5),
-                                  ),
-                                )
-                              : BoxDecoration(
-                                  color: Colors.grey.withOpacity(0.2),
-                                  borderRadius: BorderRadius.only(
-                                    bottomLeft: isLastMess
-                                        ? Radius.circular(20)
-                                        : Radius.circular(2),
-                                    bottomRight: Radius.circular(20),
-                                    topRight: Radius.circular(20),
-                                    topLeft: isFirstMess
-                                        ? Radius.circular(20)
-                                        : Radius.circular(2),
-                                  ),
-                                ),
+                          // padding:
+                          //     EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+
                           child:
                               // Column(
                               //   children: [
@@ -1068,39 +1044,27 @@ Widget ObjectChatWidget(
                                   : Container(
                                       width: 0,
                                     ),
-                              // FlutterMap(
-                              //   options: MapOptions(
-                              //     center: LatLng(latitude, longitude),
-                              //     zoom: 13.0,
-                              //   ),
-                              //   layers: [
-                              //     TileLayerOptions(
-                              //       urlTemplate:
-                              //           'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                              //       subdomains: ['a', 'b', 'c'],
-                              //     ),
-                              //     MarkerLayerOptions(
-                              //       markers: [
-                              //         Marker(
-                              //           width: 80.0,
-                              //           height: 80.0,
-                              //           point: LatLng(latitude, longitude),
-                              //           builder: (ctx) => Container(
-                              //             child: Icon(
-                              //               Icons.location_on,
-                              //               size: 40.0,
-                              //               color: Colors.red,
-                              //             ),
-                              //           ),
-                              //         ),
-                              //       ],
-                              //     ),
-                              //   ],
-                              // ),
-                              Text(
-                                chat.message.toString(),
-                                style: TextStyle(fontSize: 18),
+                              AnyLinkPreview(
+                                link:
+                                    // 'https://maps.google.com?z=19&q=51.03841,-114.01679',
+                                    "https://www.google.com/maps/search/?api=1&query=${chat.messageParameters["object"]["latitude"]},${chat.messageParameters["object"]["longitude"]}",
+                                // "https://www.openstreetmap.org/?mlat=${chat.messageParameters["object"]["latitude"]}&mlon=${chat.messageParameters["object"]["longitude"]}#map=18/${chat.messageParameters["object"]["latitude"]}/${chat.messageParameters["object"]["longitude"]}",
+                                displayDirection:
+                                    UIDirection.uiDirectionVertical,
+                                showMultimedia: true,
+                                errorTitle: chat.message.toString(),
+                                errorBody: chat.message.toString(),
+                                cache: Duration(hours: 1),
+                                backgroundColor: Colors.grey[200],
+                                errorWidget: Container(
+                                  color: Colors.grey[300],
+                                  child: Text('Oops!'),
+                                ),
                               ),
+                              // Text(
+                              //   chat.message.toString(),
+                              //   style: TextStyle(fontSize: 18),
+                              // ),
                             ],
                           ),
                           //     (chat
