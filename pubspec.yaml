@@ -67,6 +67,9 @@ dependencies:
   flutter_html: ^3.0.0-beta.2
   flutter_local_notifications: ^16.3.2
   flutter_background_service: ^5.0.5
+  full_screen_image: ^2.0.0
+  fluttertoast: ^8.2.4
+  font_awesome_flutter: ^10.7.0
 
 
 dev_dependencies:

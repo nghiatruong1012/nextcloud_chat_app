@@ -22,10 +22,6 @@ class ParticipantsService {
       if (response.statusCode == 200) {
         HTTPService().updateCookie(response);
         print('Success');
-        print("conversation_rooom" + response.headers.toString());
-        print(response.headers.keys.toList());
-        print(response.headers.values.toList());
-        print(response.headers['set-cookie']);
 
         List<dynamic> data = jsonDecode(response.body)["ocs"]["data"];
         List<Participant> listParticipant =
@@ -39,6 +35,32 @@ class ParticipantsService {
     } catch (e) {
       print(e);
       return [];
+    }
+  }
+
+  Future<void> postListParticipants(String token, params) async {
+    Map<String, String> requestHeaders = await HTTPService().authHeader();
+    try {
+      final response = await http.post(
+        Uri(
+          scheme: 'http',
+          host: host,
+          port: 8080,
+          path: '/ocs/v2.php/apps/spreed/api/v4//room/$token/participants',
+        ),
+        headers: requestHeaders,
+        body: jsonEncode(params ?? {}),
+      );
+      if (response.statusCode == 200) {
+        return;
+        // return Conversations.fromJson(jsonDecode(response.body));
+      } else {
+        print(response.statusCode.toString());
+        return;
+      }
+    } catch (e) {
+      print(e);
+      return;
     }
   }
 
@@ -69,10 +91,7 @@ class ParticipantsService {
       if (response.statusCode == 200) {
         HTTPService().updateCookie(response);
         print('Success');
-        print("conversation_rooom" + response.headers.toString());
-        print(response.headers.keys.toList());
-        print(response.headers.values.toList());
-        print(response.headers['set-cookie']);
+
 
         // List<dynamic> data = jsonDecode(response.body)["ocs"]["data"];
         // List<Conversations> listConversation =
@@ -106,10 +125,7 @@ class ParticipantsService {
       if (response.statusCode == 200) {
         HTTPService().updateCookie(response);
         print('Success');
-        print("conversation_rooom" + response.headers.toString());
-        print(response.headers.keys.toList());
-        print(response.headers.values.toList());
-        print(response.headers['set-cookie']);
+
 
         // List<dynamic> data = jsonDecode(response.body)["ocs"]["data"];
         // List<Conversations> listConversation =
@@ -140,10 +156,7 @@ class ParticipantsService {
       if (response.statusCode == 200) {
         HTTPService().updateCookie(response);
         print('Success');
-        print("conversation_rooom" + response.headers.toString());
-        print(response.headers.keys.toList());
-        print(response.headers.values.toList());
-        print(response.headers['set-cookie']);
+
 
         // List<dynamic> data = jsonDecode(response.body)["ocs"]["data"];
         // List<Conversations> listConversation =

@@ -1,8 +1,12 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:full_screen_image/full_screen_image.dart';
 import 'package:intl/intl.dart';
+import 'package:nextcloud_chat_app/authentication/bloc/authentication_bloc.dart';
 
 import 'package:nextcloud_chat_app/models/chats.dart';
+import 'package:nextcloud_chat_app/models/user.dart';
 import 'package:nextcloud_chat_app/service/chat_service.dart';
 import 'package:nextcloud_chat_app/service/request.dart';
 import 'package:nextcloud_chat_app/utils.dart';
@@ -56,6 +60,8 @@ class _SharedItemState extends State<SharedItem> {
 
   @override
   Widget build(BuildContext context) {
+    final user = context.select((AuthenticationBloc bloc) => bloc.state.user);
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -97,9 +103,9 @@ class _SharedItemState extends State<SharedItem> {
                 });
               },
               children: [
-                _buildMediaPage(),
-                _buildFilePage(),
-                _buildAudioPage(),
+                _buildMediaPage(user),
+                _buildFilePage(user),
+                _buildAudioPage(user),
               ],
             ),
           ),
@@ -108,7 +114,7 @@ class _SharedItemState extends State<SharedItem> {
     );
   }
 
-  Widget _buildMediaPage() {
+  Widget _buildMediaPage(User user) {
     return FutureBuilder(
       future: futureMedia,
       builder: (context, snapshot) {
@@ -118,15 +124,46 @@ class _SharedItemState extends State<SharedItem> {
             children: snapshot.data!.entries.map<Widget>((e) {
               return Container(
                 margin: EdgeInsets.all(5),
-                child: CachedNetworkImage(
-                  imageUrl:
-                      'http://${host}:8080/core/preview?x=480&y=480&fileId=${e.value['messageParameters']['file']['id']}',
-                  placeholder: (context, url) => CircularProgressIndicator(),
-                  errorWidget: (context, url, error) {
-                    return Icon(Icons.error);
-                  },
-                  httpHeaders: requestHeaders,
-                ),
+                child: Builder(builder: (context) {
+                  if (e.value['messageParameters']['file']['mimetype']
+                      .toString()
+                      .contains("image")) {
+                    return FullScreenWidget(
+                      disposeLevel: DisposeLevel.High,
+                      child: CachedNetworkImage(
+                        imageUrl:
+                            'http://${host}:8080/core/preview?x=480&y=480&fileId=${e.value['messageParameters']['file']['id']}',
+                        placeholder: (context, url) =>
+                            CircularProgressIndicator(),
+                        errorWidget: (context, url, error) {
+                          return Icon(Icons.error);
+                        },
+                        httpHeaders: requestHeaders,
+                      ),
+                    );
+                  } else if (e.value['messageParameters']['file']['mimetype']
+                      .toString()
+                      .contains("video")) {
+                    return GestureDetector(
+                      onTap: () {
+                        ChatService().downloadAndOpenFile(
+                            user.username!,
+                            e.value['messageParameters']['file']['link'],
+                            e.value['messageParameters']['file']['path'],
+                            e.value['messageParameters']['file']['name']);
+                      },
+                      child: Container(
+                        color: Colors.black,
+                        child: Icon(
+                          Icons.video_collection_outlined,
+                          color: Colors.white,
+                        ),
+                      ),
+                    );
+                  } else {
+                    return Container();
+                  }
+                }),
               );
             }).toList(),
           );
@@ -140,7 +177,7 @@ class _SharedItemState extends State<SharedItem> {
     );
   }
 
-  Widget _buildFilePage() {
+  Widget _buildFilePage(User user) {
     return FutureBuilder(
       future: futureFile,
       builder: (context, snapshot) {
@@ -148,6 +185,13 @@ class _SharedItemState extends State<SharedItem> {
           return ListView(
             children: snapshot.data!.entries.map<Widget>((e) {
               return ListTile(
+                onTap: () {
+                  ChatService().downloadAndOpenFile(
+                      user.username!,
+                      e.value['messageParameters']['file']['link'],
+                      e.value['messageParameters']['file']['path'],
+                      e.value['messageParameters']['file']['name']);
+                },
                 title: Text(
                   e.value['messageParameters']['file']['name'],
                   maxLines: 1,
@@ -213,7 +257,7 @@ class _SharedItemState extends State<SharedItem> {
     );
   }
 
-  Widget _buildAudioPage() {
+  Widget _buildAudioPage(User user) {
     return FutureBuilder(
       future: futureAudio,
       builder: (context, snapshot) {
@@ -221,6 +265,13 @@ class _SharedItemState extends State<SharedItem> {
           return ListView(
             children: snapshot.data!.entries.map<Widget>((e) {
               return ListTile(
+                onTap: () {
+                  ChatService().downloadAndOpenFile(
+                      user.username!,
+                      e.value['messageParameters']['file']['link'],
+                      e.value['messageParameters']['file']['path'],
+                      e.value['messageParameters']['file']['name']);
+                },
                 title: Text(
                   e.value['messageParameters']['file']['name'],
                   maxLines: 1,

@@ -35,7 +35,6 @@ class ChatService {
       );
       if (response.statusCode == 200) {
         print('Success');
-        print("conversation_room" + response.body);
         List<dynamic> data = jsonDecode(response.body)["ocs"]["data"];
         List<Chat> listChat = data.map((item) => Chat.fromJson(item)).toList();
         return listChat;
@@ -162,6 +161,37 @@ class ChatService {
     //   print("receive" + response.statusCode.toString());
     //   return [];
     // }
+  }
+
+  Future<Chat> deleteMessage(String token, String id) async {
+    Map<String, String> requestHeaders = await HTTPService().authHeader();
+
+    print("receive");
+    print(
+      Uri(
+        scheme: 'http',
+        host: host,
+        port: 8080,
+        path: '/ocs/v2.php/apps/spreed/api/v1/chat/$token/$id',
+      ),
+    );
+
+    final response = await http.delete(
+      Uri(
+        scheme: 'http',
+        host: host,
+        port: 8080,
+        path: '/ocs/v2.php/apps/spreed/api/v1/chat/$token/$id',
+      ),
+      headers: requestHeaders,
+      // body: jsonEncode(params ?? {}),
+    );
+    if (response.statusCode == 200) {
+      return Chat.fromJson(jsonDecode(response.body)["ocs"]["data"]);
+    } else {
+      print("receive" + response.statusCode.toString());
+      return Chat.empty;
+    }
   }
 
   Future<void> shareRichObject(String token, params) async {

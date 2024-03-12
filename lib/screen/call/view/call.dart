@@ -11,9 +11,7 @@ import 'package:nextcloud_chat_app/service/signaling_service.dart';
 
 final Map<String, dynamic> constraints = {
   'audio': true,
-  'video': {
-    'facingMode': 'user',
-  },
+  'video': true,
 };
 
 const _offerAnswerConstraints = {
@@ -54,6 +52,7 @@ class _CallPageState extends State<CallPage> {
   @override
   dispose() {
     _localRenderer.srcObject = null;
+    _remoteRenderer.srcObject = null;
     _localRenderer.dispose();
     _remoteRenderer.dispose();
     super.dispose();
@@ -80,19 +79,20 @@ class _CallPageState extends State<CallPage> {
 
     RTCSessionDescription description =
         await _peerConnection!.createOffer(constraints);
-    print("description: " + description.sdp.toString());
+
     data.add({
       "ev": "message",
-      "fn": {
-        "to": remoteSessionId,
-        "sid": sid,
-        "roomType": "video",
+      "fn": jsonEncode({
         "payload": {
-          "type": description.type,
-          "sdp": description.sdp,
           "nick": user,
+          "sdp": description.sdp,
+          "type": description.type,
         },
-      },
+        "roomType": "video",
+        // "sid": sid,
+        "to": remoteSessionId,
+        "type": description.type,
+      }),
       "sessionId": localSessionId,
     });
     _peerConnection!.setLocalDescription(description);
@@ -100,7 +100,7 @@ class _CallPageState extends State<CallPage> {
 
   Future<void> getSignal() async {
     Map<String, String> requestHeaders = await HTTPService().authHeader();
-    print(requestHeaders['Cookie']);
+
     try {
       final response = await http.get(
         Uri(
@@ -115,39 +115,59 @@ class _CallPageState extends State<CallPage> {
       if (response.statusCode == 200) {
         print("signaling" + jsonDecode(response.body)["ocs"].toString());
 
-        if (jsonDecode(response.body)["ocs"]["data"][0]["data"][0]["inCall"] !=
-                0 &&
-            jsonDecode(response.body)["ocs"]["data"][0]["data"][1]["inCall"] !=
-                0) {
-          // localSessionId = jsonDecode(response.body)["ocs"]["data"][0]["data"]
-          //     [0]["sessionId"];
-          // remoteSessionId = jsonDecode(response.body)["ocs"]["data"][0]["data"]
-          //     [1]["sessionId"];
+        if (jsonDecode(response.body)["ocs"]["data"][0]["type"].toString() ==
+            "usersInRoom") {
           if (jsonDecode(response.body)["ocs"]["data"][0]["data"][0]
-                  ["userId"] ==
-              user) {
+                      ["inCall"] !=
+                  0 &&
+              jsonDecode(response.body)["ocs"]["data"][0]["data"][1]
+                      ["inCall"] !=
+                  0) {
+            // localSessionId = jsonDecode(response.body)["ocs"]["data"][0]["data"]
+            //     [0]["sessionId"];
+            // remoteSessionId = jsonDecode(response.body)["ocs"]["data"][0]["data"]
+            //     [1]["sessionId"];
+            if (jsonDecode(response.body)["ocs"]["data"][0]["data"][0]
+                    ["userId"] ==
+                user) {
+              localSessionId = jsonDecode(response.body)["ocs"]["data"][0]
+                  ["data"][0]["sessionId"];
+              remoteSessionId = jsonDecode(response.body)["ocs"]["data"][0]
+                  ["data"][1]["sessionId"];
+            }
+            print("sid" + localSessionId);
+            print("sid" + remoteSessionId);
+          } else {
             localSessionId = jsonDecode(response.body)["ocs"]["data"][0]["data"]
-                [0]["sessionId"];
+                [1]["sessionId"];
             remoteSessionId = jsonDecode(response.body)["ocs"]["data"][0]
-                ["data"][1]["sessionId"];
+                ["data"][0]["sessionId"];
           }
-          print("sid" + localSessionId);
-          print("sid" + remoteSessionId);
-        } else {
-          localSessionId = jsonDecode(response.body)["ocs"]["data"][0]["data"]
-              [1]["sessionId"];
-          remoteSessionId = jsonDecode(response.body)["ocs"]["data"][0]["data"]
-              [0]["sessionId"];
+        } else if (jsonDecode(response.body)["ocs"]["data"][0]["type"]
+                .toString() ==
+            "message") {
+          final sdp = jsonDecode(jsonDecode(response.body)["ocs"]["data"][0]
+              ["data"])["payload"]["sdp"];
+          final candicate = jsonDecode(jsonDecode(response.body)["ocs"]["data"]
+              [1]["data"])["payload"]["candidate"];
+          if (sdp != null) {
+            _peerConnection!.setRemoteDescription(
+                RTCSessionDescription(sdp.toString(), "answer"));
+          }
+          if (candicate != null) {
+            _peerConnection!.addCandidate(RTCIceCandidate(
+                candicate["candidate"],
+                candicate["sdpMid"],
+                candicate["sdpMLineIndex"]));
+          }
+
+          print("sdp: " + sdp.toString());
+
+          print("candicate: " + candicate.toString());
         }
 
-        // print("signaling" + jsonDecode(response.body)["ocs"]["data"]);
-        // if (jsonDecode(response.body)["ocs"]["data"][0]["type"] == "message") {
-        //   final sdp = jsonDecode(response.body)["ocs"]["data"][0]["data"];
-        //   print('sdp' + sdp);
-        //   final candicate = jsonDecode(response.body)["ocs"]["data"][2]["data"];
-        //   print('cadicate' + candicate);
-        //   _peerConnection!.setRemoteDescription(sdp);
-        // }
+        print("signaling" + jsonDecode(response.body)["ocs"]["data"]);
+
         getSignal();
       } else {
         print(response.statusCode);
@@ -191,19 +211,19 @@ class _CallPageState extends State<CallPage> {
         print("candidate:" + e.candidate.toString());
         data.add({
           "ev": "message",
-          "fn": {
-            "to": remoteSessionId,
-            "sid": sid,
-            "roomType": "video",
-            "type": "candidate",
+          "fn": jsonEncode({
             "payload": {
               "candidate": {
                 "candidate": e.candidate,
                 "sdpMid": e.sdpMid,
-                "sdpMLineIndex": e.sdpMLineIndex,
+                "sdpMLineIndex": e.sdpMLineIndex.toString(),
               },
-            }
-          },
+            },
+            "roomType": "video",
+            // "sid": sid,
+            "to": remoteSessionId,
+            "type": "candidate",
+          }),
           "sessionId": localSessionId,
         });
         // try {
@@ -227,8 +247,11 @@ class _CallPageState extends State<CallPage> {
       }
     };
     pc.onAddStream = (stream) {
-      print('addStream: ' + stream.id);
-      _remoteRenderer.srcObject = stream;
+      print('addStream: ' + stream.toString());
+      print(stream.active);
+      setState(() {
+        _remoteRenderer.srcObject = stream;
+      });
     };
     return pc;
   }
@@ -237,6 +260,7 @@ class _CallPageState extends State<CallPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButton: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           FloatingActionButton(
             onPressed: () {
@@ -249,11 +273,35 @@ class _CallPageState extends State<CallPage> {
             onPressed: () {
               print("data: " + data.toString());
               Clipboard.setData(ClipboardData(
-                  text: {
-                "messages": data,
-              }.toString()));
+                  text: jsonEncode({
+                "messages": jsonEncode(data),
+              })));
               SignalingService().postSignal(token, {
-                "messages": data,
+                "messages": jsonEncode(data),
+              });
+              SignalingService().postSignal(token, {
+                "messages": jsonEncode([
+                  {
+                    "ev": "message",
+                    "fn": jsonEncode({
+                      "to": remoteSessionId,
+                      "roomType": "video",
+                      "type": "unmute",
+                      "payload": {"name": "video"}
+                    }),
+                    "sessionId": localSessionId,
+                  },
+                  {
+                    "ev": "message",
+                    "fn": jsonEncode({
+                      "to": remoteSessionId,
+                      "roomType": "video",
+                      "type": "unmute",
+                      "payload": {"name": "audio"}
+                    }),
+                    "sessionId": localSessionId,
+                  }
+                ]),
               });
             },
             child: Icon(Icons.call_made_outlined),
@@ -272,24 +320,22 @@ class _CallPageState extends State<CallPage> {
       ),
       body: SafeArea(
         child: Container(
-            // child: Stack(
-            //   alignment: Alignment.topRight,
-            //   children: [
-            //     Container(
-            //       child: Expanded(
-            //         child: RTCVideoView(_remoteRenderer),
-            //       ),
-            //     ),
-            //     Container(
-            //       height: 128 * 2,
-            //       width: 72 * 2,
-            //       child: Expanded(
-            //         child: RTCVideoView(_localRenderer),
-            //       ),
-            //     ),
-            //   ],
-            // ),
-            ),
+          child: Column(
+            // alignment: Alignment.topRight,
+            children: [
+              Container(
+                child: Expanded(
+                  child: RTCVideoView(_remoteRenderer),
+                ),
+              ),
+              Container(
+                child: Expanded(
+                  child: RTCVideoView(_localRenderer),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

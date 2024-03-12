@@ -16,6 +16,7 @@ final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  final service = FlutterBackgroundService();
   List<dynamic> currentNoti = [];
 
   // Initialization settings
@@ -37,20 +38,25 @@ Future<void> main() async {
     // onSelectNotification: onSelectNotification,
   );
 
-  Timer.periodic(Duration(seconds: 5), (timer) async {
-    final listNoti = await NotiService().getNoti();
-    print("noti" + listNoti.toString());
-    if (listNoti.isNotEmpty && listNoti != currentNoti) {
-      currentNoti = listNoti;
-      listNoti.forEach((element) {
-        if (element["object_type"] == 'chat') {
-          _showNotification(element["notification_id"], element["subject"],
-              element["message"]);
-        }
-      });
-    }
-    // _showNotification();
-  });
+  await service.configure(
+      iosConfiguration: IosConfiguration(),
+      androidConfiguration:
+          AndroidConfiguration(onStart: onStart, isForegroundMode: true));
+  service.startService();
+  // Timer.periodic(Duration(seconds: 5), (timer) async {
+  //   final listNoti = await NotiService().getNoti();
+  //   print("noti" + listNoti.toString());
+  //   if (listNoti.isNotEmpty && listNoti != currentNoti) {
+  //     currentNoti = listNoti;
+  //     listNoti.forEach((element) {
+  //       if (element["object_type"] == 'chat') {
+  //         _showNotification(element["notification_id"], element["subject"],
+  //             element["message"]);
+  //       }
+  //     });
+  //   }
+  //   // _showNotification();
+  // });
   runApp(
     // MaterialApp(),
     MyApp(
@@ -60,7 +66,31 @@ Future<void> main() async {
   );
 }
 
+void onStart(ServiceInstance service) {
+  DartPluginRegistrant.ensureInitialized();
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
+  Timer.periodic(Duration(seconds: 5), (timer) async {
+    final listNoti = await NotiService().getNoti();
+
+
+    listNoti.forEach((element) {
+      if (element["object_type"] == 'chat') {
+        _showNotification(
+            element["notification_id"], element["subject"], element["message"]);
+      }
+    });
+  });
+}
+
+final Set<int> shownNotificationIds = Set<int>();
+
 Future<void> _showNotification(int id, String title, String content) async {
+  // Check if the notification ID has already been shown
+  if (shownNotificationIds.contains(id)) {
+
+    return;
+  }
   const AndroidNotificationDetails androidPlatformChannelSpecifics =
       AndroidNotificationDetails(
     'your channel id',
@@ -78,6 +108,9 @@ Future<void> _showNotification(int id, String title, String content) async {
     content,
     platformChannelSpecifics,
   );
+
+  // Add the notification ID to the set of shown IDs
+  shownNotificationIds.add(id);
 }
 
 Future<void> onSelectNotification(String? payload) async {

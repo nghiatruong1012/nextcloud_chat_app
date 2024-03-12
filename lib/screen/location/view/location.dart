@@ -31,7 +31,7 @@ class _LocationState extends State<Location> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(title: Text('')),
+        appBar: AppBar(title: Text('Share location')),
         body: FutureBuilder(
           future: position,
           builder: (context, snapshot) {

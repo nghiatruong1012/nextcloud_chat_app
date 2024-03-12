@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
 // const String host = '192.168.0.178';
-const String host = '192.168.1.25';
+const String host = '192.168.1.21';
 
 class HTTPService {
   // String? cookie;
@@ -28,7 +28,7 @@ class HTTPService {
     requestHeaders["Content-type"] = "application/json";
     requestHeaders["OCS-APIRequest"] = "true";
     if (cookie != null) {
-      print('cookie 2: ' + cookie);
+   
 
       requestHeaders["Cookie"] = cookie;
     }
@@ -50,7 +50,7 @@ class HTTPService {
 
     Map<String, String> requestHeaders = new Map();
     if (cookie != null) {
-      print('cookie 2: ' + cookie!);
+
 
       requestHeaders["Cookie"] = cookie;
     }
@@ -91,11 +91,10 @@ class HTTPService {
           .join(';');
 
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      print(mapCookies);
-      print('cookie: $stringCookie');
+
       prefs.setString('cookie', stringCookie);
     } else {
-      print('allSetCookie null');
+
     }
   }
 

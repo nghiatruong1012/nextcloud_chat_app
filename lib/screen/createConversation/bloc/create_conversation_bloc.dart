@@ -29,12 +29,12 @@ class CreateConversationBloc
           )
           .toList();
 
-      emit(state.copyWith(users: selectedUser));
+      emit(state.copyWith(users: user));
     });
-    on<SelectUserEvent>((event, emit) {
-      state.users![event.index].isSelected =
-          !state.users![event.index].isSelected;
-      emit(state.copyWith(users: state.users));
-    });
+    // on<SelectUserEvent>((event, emit) {
+    //   state.users![event.index].isSelected =
+    //       !state.users![event.index].isSelected;
+    //   emit(state.copyWith(users: state.users));
+    // });
   }
 }

@@ -2,8 +2,10 @@ import 'package:any_link_preview/any_link_preview.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:full_screen_image/full_screen_image.dart';
 import 'package:intl/intl.dart';
 import 'package:nextcloud_chat_app/models/chats.dart';
 import 'package:nextcloud_chat_app/models/user.dart';
@@ -98,7 +100,7 @@ Widget FileChatWidget(
           ? Container(
               margin: EdgeInsets.symmetric(horizontal: 50),
               child: Text(
-                chat.actorId.toString(),
+                chat.actorDisplayName.toString(),
                 style: TextStyle(fontSize: 12),
               ))
           : Container(),
@@ -265,10 +267,19 @@ Widget FileChatWidget(
                         leading: Icon(Icons.forward),
                         title: Text('Chuyển tiếp'),
                       ),
-                      ListTile(
-                        leading: Icon(Icons.copy),
-                        title: Text('Sao chép'),
-                      ),
+                      (!chat.timestamp!.isBefore(DateTime.now()
+                                  .subtract(Duration(hours: 5))) &&
+                              chat.actorId == user.username)
+                          ? ListTile(
+                              leading: Icon(Icons.delete),
+                              title: Text('Delete message'),
+                              onTap: () async {
+                                final newChat = await ChatService()
+                                    .deleteMessage(token, chat.id.toString());
+                                chat = newChat;
+                              },
+                            )
+                          : Container()
                     ],
                   ),
                 );
@@ -330,15 +341,18 @@ Widget FileChatWidget(
                                 .contains('image')))
                         ? Builder(
                             builder: (context) {
-                              return CachedNetworkImage(
-                                imageUrl:
-                                    'http://${host}:8080/core/preview?x=-1&y=480&a=1&fileId=${chat.messageParameters['file']['id']}',
-                                placeholder: (context, url) =>
-                                    CircularProgressIndicator(),
-                                errorWidget: (context, url, error) {
-                                  return Icon(Icons.error);
-                                },
-                                httpHeaders: requestHeaders,
+                              return FullScreenWidget(
+                                disposeLevel: DisposeLevel.High,
+                                child: CachedNetworkImage(
+                                  imageUrl:
+                                      'http://${host}:8080/core/preview?x=-1&y=480&a=1&fileId=${chat.messageParameters['file']['id']}',
+                                  placeholder: (context, url) =>
+                                      CircularProgressIndicator(),
+                                  errorWidget: (context, url, error) {
+                                    return Icon(Icons.error);
+                                  },
+                                  httpHeaders: requestHeaders,
+                                ),
                               );
                             },
                           )
@@ -532,7 +546,7 @@ Widget TextChatWidget(
           ? Container(
               margin: EdgeInsets.symmetric(horizontal: 50),
               child: Text(
-                chat.actorId.toString(),
+                chat.actorDisplayName.toString(),
                 style: TextStyle(fontSize: 12),
               ))
           : Container(),
@@ -602,7 +616,31 @@ Widget TextChatWidget(
                     ListTile(
                       leading: Icon(Icons.copy),
                       title: Text('Sao chép'),
+                      onTap: () {
+                        Clipboard.setData(ClipboardData(text: chat.message!));
+                      },
                     ),
+                    // (!chat.timestamp!.isBefore(
+                    //             DateTime.now().subtract(Duration(hours: 5))) &&
+                    //         chat.actorId == user.username)
+                    //     ? ListTile(
+                    //         leading: Icon(Icons.edit),
+                    //         title: Text('Edit message'),
+                    //       )
+                    //     : Container(),
+                    (!chat.timestamp!.isBefore(
+                                DateTime.now().subtract(Duration(hours: 5))) &&
+                            chat.actorId == user.username)
+                        ? ListTile(
+                            leading: Icon(Icons.delete),
+                            title: Text('Delete message'),
+                            onTap: () async {
+                              final newChat = await ChatService()
+                                  .deleteMessage(token, chat.id.toString());
+                              chat = newChat;
+                            },
+                          )
+                        : Container()
                   ],
                 ),
               );
@@ -652,7 +690,8 @@ Widget TextChatWidget(
                                             padding: EdgeInsets.only(
                                                 left: 5, bottom: 3, top: 1),
                                             child: Text(
-                                              chat.parent!.actorId.toString(),
+                                              chat.parent!.actorDisplayName
+                                                  .toString(),
                                               style: TextStyle(
                                                   color: Colors.black
                                                       .withOpacity(0.6)),
@@ -741,7 +780,8 @@ Widget TextChatWidget(
                                               padding: EdgeInsets.only(
                                                   left: 5, bottom: 3, top: 1),
                                               child: Text(
-                                                chat.parent!.actorId.toString(),
+                                                chat.parent!.actorDisplayName
+                                                    .toString(),
                                                 style: TextStyle(
                                                     color: Colors.black
                                                         .withOpacity(0.6)),
@@ -844,7 +884,7 @@ Widget ObjectChatWidget(
           ? Container(
               margin: EdgeInsets.symmetric(horizontal: 50),
               child: Text(
-                chat.actorId.toString(),
+                chat.actorDisplayName.toString(),
                 style: TextStyle(fontSize: 12),
               ))
           : Container(),
@@ -964,7 +1004,8 @@ Widget ObjectChatWidget(
                                             padding: EdgeInsets.only(
                                                 left: 5, bottom: 3, top: 1),
                                             child: Text(
-                                              chat.parent!.actorId.toString(),
+                                              chat.parent!.actorDisplayName
+                                                  .toString(),
                                               style: TextStyle(
                                                   color: Colors.black
                                                       .withOpacity(0.6)),
@@ -1027,7 +1068,8 @@ Widget ObjectChatWidget(
                                               padding: EdgeInsets.only(
                                                   left: 5, bottom: 3, top: 1),
                                               child: Text(
-                                                chat.parent!.actorId.toString(),
+                                                chat.parent!.actorDisplayName
+                                                    .toString(),
                                                 style: TextStyle(
                                                     color: Colors.black
                                                         .withOpacity(0.6)),

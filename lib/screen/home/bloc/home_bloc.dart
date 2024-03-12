@@ -20,7 +20,14 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       list.sort(
         (a, b) => b.lastMessage!.id!.compareTo(a.lastMessage!.id!),
       );
-      emit(HomeState(listConversations: list));
+      emit(HomeState(listConversations: list, searchList: list));
+    });
+    on<SearchConversationEvent>((event, emit) {
+      final searchList = state.listConversations!
+          .where((element) =>
+              element.name!.toLowerCase().contains(event.query.toLowerCase()))
+          .toList();
+      emit(HomeState(searchList: searchList));
     });
   }
 }

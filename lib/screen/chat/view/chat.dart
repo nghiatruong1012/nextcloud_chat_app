@@ -14,6 +14,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:nextcloud_chat_app/authentication/bloc/authentication_bloc.dart';
 import 'package:nextcloud_chat_app/models/chats.dart';
 import 'package:nextcloud_chat_app/models/user.dart';
@@ -129,7 +130,7 @@ class _ChatPageState extends State<ChatPage> {
 
   void PickChatToReply(Chat chat) {
     setState(() {
-      print('reppp');
+ 
       isReplying = true;
       chatRep = chat;
     });
@@ -352,18 +353,28 @@ class _ChatPageState extends State<ChatPage> {
                                         leading: Icon(Icons.image),
                                         title: Text('Upload image'),
                                         onTap: () async {
-                                          final image = await ImagePicker()
-                                              .pickImage(
-                                                  source: ImageSource.gallery);
-                                          if (image == null) return;
-                                          final _file = File(image.path);
-                                          ChatService().uploadAndSharedFile(
-                                              user.username.toString(),
-                                              image.path.toString(),
-                                              image.name,
-                                              _file,
-                                              token,
-                                              '');
+                                          // final image = await ImagePicker()
+                                          //     .pickImage(
+                                          //         source: ImageSource.gallery);
+                                          // if (image == null) return;
+                                          // final _file = File(image.path);
+                                          FilePickerResult? result =
+                                              await FilePicker.platform
+                                                  .pickFiles(
+                                                      type: FileType.image);
+                                          if (result != null) {
+                                            PlatformFile image =
+                                                result.files.first;
+                                            File _file =
+                                                File(result.files.single.path!);
+                                            ChatService().uploadAndSharedFile(
+                                                user.username.toString(),
+                                                image.path.toString(),
+                                                image.name,
+                                                _file,
+                                                token,
+                                                '');
+                                          }
                                         },
                                       ),
                                       ListTile(
@@ -373,8 +384,9 @@ class _ChatPageState extends State<ChatPage> {
                                           Navigator.push(
                                               context,
                                               MaterialPageRoute(
-                                                builder: (context) =>
-                                                    Location(token: token,),
+                                                builder: (context) => Location(
+                                                  token: token,
+                                                ),
                                               ));
                                         },
                                       ),
@@ -391,11 +403,23 @@ class _ChatPageState extends State<ChatPage> {
                           //         ? Icons.keyboard
                           //         : Icons.emoji_emotions_outlined)),
                           GestureDetector(
+                              onTap: () {
+                                // Utils().showToast("Hold to record");
+                                ScaffoldMessenger.of(context)
+                                    .showSnackBar(SnackBar(
+                                  content: Text("Hold to record"),
+                                  backgroundColor: Colors.grey.withOpacity(0.3),
+                                  action: SnackBarAction(
+                                    label: 'Ok',
+                                    onPressed: () {},
+                                  ),
+                                ));
+                              },
                               onLongPressStart: (detail) async {
                                 final String dir =
                                     (await getExternalStorageDirectory())!.path;
                                 recordFileName =
-                                    '${DateTime.now().millisecondsSinceEpoch}.wav';
+                                    'Talk recording from ${DateFormat('yyyy-MM-dd HH-mm-ss').format(DateTime.now())} (${user.username}).wav';
                                 final String filePath = '$dir/$recordFileName';
 
                                 await audioRecord.start(
@@ -408,7 +432,7 @@ class _ChatPageState extends State<ChatPage> {
                               },
                               onLongPressEnd: (detail) async {
                                 final path = await audioRecord.stop();
-                                print('Recording: ' + path!);
+                         
                                 File file = File(path!);
                                 ChatService().uploadAndSharedFile(
                                   user.username.toString(),
@@ -424,7 +448,17 @@ class _ChatPageState extends State<ChatPage> {
                                 });
                               },
                               child: IconButton(
-                                onPressed: () {},
+                                onPressed: () {
+                                  // Utils().showToast("Hold to record");
+                                  ScaffoldMessenger.of(context)
+                                      .showSnackBar(SnackBar(
+                                    content: Text("Hold to record"),
+                                    action: SnackBarAction(
+                                      label: 'Ok',
+                                      onPressed: () {},
+                                    ),
+                                  ));
+                                },
                                 icon: Icon(Icons.mic),
                               )),
                           Flexible(

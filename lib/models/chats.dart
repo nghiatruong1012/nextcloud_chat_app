@@ -2,6 +2,7 @@
 class Chat {
   final int? id;
   final String? actorId;
+  final String? actorDisplayName;
   final String? message;
   final String? systemMessage;
   final DateTime? timestamp;
@@ -9,12 +10,21 @@ class Chat {
   final Map? reactions;
   final ParentChat? parent;
 
-  const Chat(this.id, this.actorId, this.message, this.systemMessage,
-      this.timestamp, this.messageParameters, this.reactions, this.parent);
+  const Chat(
+      this.id,
+      this.actorId,
+      this.actorDisplayName,
+      this.message,
+      this.systemMessage,
+      this.timestamp,
+      this.messageParameters,
+      this.reactions,
+      this.parent);
   factory Chat.fromJson(Map<String, dynamic> json) {
     return Chat(
       json["id"],
       json["actorId"],
+      json["actorDisplayName"],
       (json["messageParameters"] is Map)
           ? getSystemMessage(
               json["message"], json["messageParameters"], json["systemMessage"])
@@ -26,7 +36,8 @@ class Chat {
       (json["parent"] != null) ? ParentChat.fromJson(json["parent"]) : null,
     );
   }
-  static const empty = Chat(null, null, null, null, null, null, null, null);
+  static const empty =
+      Chat(null, null, null, null, null, null, null, null, null);
 }
 
 String getSystemMessage(String initalMessage,
@@ -48,6 +59,7 @@ String getSystemMessage(String initalMessage,
 class ParentChat {
   final int? id;
   final String? actorId;
+  final String? actorDisplayName;
   final String? message;
   final String? systemMessage;
   final DateTime? timestamp;
@@ -55,12 +67,21 @@ class ParentChat {
   final Map? reactions;
   final Map<String, dynamic>? parent;
 
-  const ParentChat(this.id, this.actorId, this.message, this.systemMessage,
-      this.timestamp, this.messageParameters, this.reactions, this.parent);
+  const ParentChat(
+      this.id,
+      this.actorId,
+      this.actorDisplayName,
+      this.message,
+      this.systemMessage,
+      this.timestamp,
+      this.messageParameters,
+      this.reactions,
+      this.parent);
   factory ParentChat.fromJson(Map<String, dynamic> json) {
     return ParentChat(
         json["id"],
         json["actorId"],
+        json["actorDisplayName"],
         (json["messageParameters"] is Map)
             ? getSystemMessage(json["message"], json["messageParameters"],
                 json["systemMessage"])
@@ -71,5 +92,5 @@ class ParentChat {
         json["reactions"],
         json["parent"]);
   }
-  static const empty = Chat(null, null, null, null, null, null, null, null);
+  static const empty = Chat(null, null, null, null, null, null, null, null, null);
 }

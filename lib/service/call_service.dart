@@ -6,7 +6,7 @@ import 'package:nextcloud_chat_app/service/request.dart';
 class CallService {
   Future<void> joinCall(params, String token) async {
     Map<String, String> requestHeaders = await HTTPService().authHeader();
-    print(requestHeaders['Cookie']);
+
     try {
       final response = await http.post(
         Uri(
@@ -33,7 +33,7 @@ class CallService {
 
   Future<void> leaveCall(params, String token) async {
     Map<String, String> requestHeaders = await HTTPService().authHeader();
-    print(requestHeaders['Cookie']);
+  
     try {
       final response = await http.delete(
         Uri(
@@ -60,7 +60,7 @@ class CallService {
 
   Future<List<dynamic>> getSignaling(String token) async {
     Map<String, String> requestHeaders = await HTTPService().authHeader();
-    print(requestHeaders['Cookie']);
+
     try {
       final response = await http.get(
         Uri(

@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:crypto/crypto.dart';
+import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import './service/request.dart';
 
 Map<String, String> parseInputString(String inputString) {
@@ -68,17 +70,17 @@ String formatFileSize(int fileSizeInBytes) {
 
 bool containsOnlyEmojis(String text) {
   RegExp emojiPattern = RegExp(
-    r"[\u{1F600}-\u{1F64F}"  // emoticons
-    r"\u{1F300}-\u{1F5FF}"   // symbols & pictographs
-    r"\u{1F680}-\u{1F6FF}"   // transport & map symbols
-    r"\u{1F700}-\u{1F77F}"   // alchemical symbols
-    r"\u{1F780}-\u{1F7FF}"   // Geometric Shapes Extended
-    r"\u{1F800}-\u{1F8FF}"   // Supplemental Arrows-C
-    r"\u{1F900}-\u{1F9FF}"   // Supplemental Symbols and Pictographs
-    r"\u{1FA00}-\u{1FA6F}"   // Chess Symbols
-    r"\u{1FA70}-\u{1FAFF}"   // Symbols and Pictographs Extended-A
-    r"\u{2702}-\u{27B0}"     // Dingbats
-    r"\u{24C2}-\u{1F251}"    // Enclosed characters
+    r"[\u{1F600}-\u{1F64F}" // emoticons
+    r"\u{1F300}-\u{1F5FF}" // symbols & pictographs
+    r"\u{1F680}-\u{1F6FF}" // transport & map symbols
+    r"\u{1F700}-\u{1F77F}" // alchemical symbols
+    r"\u{1F780}-\u{1F7FF}" // Geometric Shapes Extended
+    r"\u{1F800}-\u{1F8FF}" // Supplemental Arrows-C
+    r"\u{1F900}-\u{1F9FF}" // Supplemental Symbols and Pictographs
+    r"\u{1FA00}-\u{1FA6F}" // Chess Symbols
+    r"\u{1FA70}-\u{1FAFF}" // Symbols and Pictographs Extended-A
+    r"\u{2702}-\u{27B0}" // Dingbats
+    r"\u{24C2}-\u{1F251}" // Enclosed characters
     "]+",
     unicode: true,
   );
@@ -86,4 +88,14 @@ bool containsOnlyEmojis(String text) {
   return emojiPattern.hasMatch(text);
 }
 
-
+class Utils {
+  void showToast(String message) => Fluttertoast.showToast(
+        msg: message,
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+}

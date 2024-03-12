@@ -70,7 +70,7 @@ class ConversationService {
         headers: requestHeaders,
         body: jsonEncode(params ?? {}),
       );
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 && response.statusCode == 201) {
         print('Create Success');
         print("conversation_room" + response.body);
         // List<dynamic> data = jsonDecode(response.body)["ocs"]["data"];
@@ -134,15 +134,6 @@ class ConversationService {
       }
     } else {
       try {
-        print(
-          Uri(
-            scheme: 'http',
-            host: host,
-            port: 8080,
-            path: '/avatar/$name/64?v=0',
-          ),
-        );
-
         final response = await http.get(
           Uri(
             scheme: 'http',

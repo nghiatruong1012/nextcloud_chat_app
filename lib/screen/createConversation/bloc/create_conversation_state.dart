@@ -4,7 +4,7 @@ part of 'create_conversation_bloc.dart';
 @immutable
 class CreateConversationState extends Equatable {
   final String? query;
-  final List<SelectUser>? users;
+  final List<UserConversation>? users;
   CreateConversationState({this.query, this.users});
 
   @override
@@ -12,7 +12,7 @@ class CreateConversationState extends Equatable {
 
   CreateConversationState copyWith({
     String? query,
-    List<SelectUser>? users,
+    List<UserConversation>? users,
   }) {
     return CreateConversationState(
       query: query ?? this.query,

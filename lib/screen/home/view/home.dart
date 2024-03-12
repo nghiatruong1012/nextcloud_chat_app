@@ -10,6 +10,7 @@ import 'package:nextcloud_chat_app/authentication/bloc/authentication_bloc.dart'
 import 'package:nextcloud_chat_app/screen/chat/view/chat.dart';
 import 'package:nextcloud_chat_app/screen/createConversation/view/create_conversation.dart';
 import 'package:nextcloud_chat_app/screen/home/bloc/home_bloc.dart';
+import 'package:nextcloud_chat_app/screen/setting/view/setting.dart';
 import 'package:nextcloud_chat_app/service/conversation_service.dart';
 import 'package:nextcloud_chat_app/service/request.dart';
 
@@ -59,6 +60,11 @@ class _HomePageState extends State<HomePage> {
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 child: TextField(
+                  onChanged: (value) {
+                    context
+                        .read<HomeBloc>()
+                        .add(SearchConversationEvent(value));
+                  },
                   decoration: InputDecoration(
                     contentPadding:
                         EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -74,63 +80,68 @@ class _HomePageState extends State<HomePage> {
               ),
               GestureDetector(
                 onTap: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) {
-                      return Dialog(
-                          child: Container(
-                        height: 250,
-                        padding: EdgeInsets.all(20),
-                        child: Expanded(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              ListTile(
-                                leading: SizedBox(
-                                  height: 40,
-                                  width: 40,
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(100),
-                                    child: Builder(builder: (context) {
-                                      return FutureBuilder(
-                                          future: ConversationService()
-                                              .getConversationAvatar(
-                                                  '',
-                                                  user.username.toString(),
-                                                  '',
-                                                  64),
-                                          builder: (context, snapshot) {
-                                            if (snapshot.hasData) {
-                                              return snapshot.data ??
-                                                  Icon(Icons.person);
-                                            } else {
-                                              return Icon(Icons.person);
-                                            }
-                                          });
-                                    }),
-                                  ),
-                                ),
-                                title: Text(user.username.toString()),
-                              ),
-                              ListTile(
-                                leading: Icon(Icons.settings),
-                                title: Text('Cài đặt'),
-                              ),
-                              ListTile(
-                                onTap: () {
-                                  context
-                                      .read<AuthenticationBloc>()
-                                      .add(AuthenticationLogoutRequested());
-                                },
-                                leading: Icon(Icons.logout),
-                                title: Text('Đăng xuất'),
-                              ),
-                            ],
-                          ),
-                        ),
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => SettingScreen(),
                       ));
-                    },
-                  );
+                  // showDialog(
+                  //   context: context,
+                  //   builder: (context) {
+                  //     return Dialog(
+                  //         child: Container(
+                  //       height: 250,
+                  //       padding: EdgeInsets.all(20),
+                  //       child: Expanded(
+                  //         child: Column(
+                  //           mainAxisAlignment: MainAxisAlignment.center,
+                  //           children: [
+                  //             ListTile(
+                  //               leading: SizedBox(
+                  //                 height: 40,
+                  //                 width: 40,
+                  //                 child: ClipRRect(
+                  //                   borderRadius: BorderRadius.circular(100),
+                  //                   child: Builder(builder: (context) {
+                  //                     return FutureBuilder(
+                  //                         future: ConversationService()
+                  //                             .getConversationAvatar(
+                  //                                 '',
+                  //                                 user.username.toString(),
+                  //                                 '',
+                  //                                 64),
+                  //                         builder: (context, snapshot) {
+                  //                           if (snapshot.hasData) {
+                  //                             return snapshot.data ??
+                  //                                 Icon(Icons.person);
+                  //                           } else {
+                  //                             return Icon(Icons.person);
+                  //                           }
+                  //                         });
+                  //                   }),
+                  //                 ),
+                  //               ),
+                  //               title: Text(user.username.toString()),
+                  //             ),
+                  //             ListTile(
+                  //               leading: Icon(Icons.settings),
+                  //               title: Text('Cài đặt'),
+                  //             ),
+                  //             ListTile(
+                  //               onTap: () {
+                  //                 context
+                  //                     .read<AuthenticationBloc>()
+                  //                     .add(AuthenticationLogoutRequested());
+                  //               },
+                  //               leading: Icon(Icons.logout),
+                  //               title: Text('Đăng xuất'),
+                  //             ),
+                  //           ],
+                  //         ),
+                  //       ),
+                  //     ));
+                  //   },
+                  // );
                 },
                 child: Container(
                   width: 30,
@@ -154,22 +165,21 @@ class _HomePageState extends State<HomePage> {
             ]),
             BlocBuilder<HomeBloc, HomeState>(
               buildWhen: (previous, current) =>
-                  previous.listConversations != current.listConversations,
+                  previous.searchList != current.searchList,
               builder: (context, state) {
-                if (state.listConversations != null &&
-                    state.listConversations!.isNotEmpty &&
+                if (state.searchList != null &&
+                    state.searchList!.isNotEmpty &&
                     requestHeaders != null) {
                   return Expanded(
                     child: ListView.builder(
-                      itemCount: state.listConversations!.length,
+                      itemCount: state.searchList!.length,
                       itemBuilder: (context, index) => ListTile(
                         onTap: () {
                           Navigator.push(
                               context,
                               ChatProvider.route(
-                                  state.listConversations![index].token!,
-                                  state.listConversations![index].lastMessage!
-                                      .id!));
+                                  state.searchList![index].token!,
+                                  state.searchList![index].lastMessage!.id!));
                         },
                         leading: Container(
                           width: 40,
@@ -177,7 +187,7 @@ class _HomePageState extends State<HomePage> {
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(100),
                             child: Builder(builder: (context) {
-                              if (state.listConversations![index].type == 2) {
+                              if (state.searchList![index].type == 2) {
                                 return Container(
                                     color: const Color.fromARGB(
                                         255, 236, 236, 236),
@@ -185,18 +195,16 @@ class _HomePageState extends State<HomePage> {
                               } else {
                                 return CachedNetworkImage(
                                   imageUrl:
-                                      'http://${host}:8080/ocs/v2.php/apps/spreed/api/v1/room/${state.listConversations![index].token!}/avatar',
+                                      'http://${host}:8080/ocs/v2.php/apps/spreed/api/v1/room/${state.searchList![index].token!}/avatar',
                                   placeholder: (context, url) =>
                                       CircularProgressIndicator(),
                                   errorWidget: (context, url, error) {
                                     return FutureBuilder(
                                         future: ConversationService()
                                             .getConversationAvatar(
-                                                state.listConversations![index]
-                                                    .token!,
-                                                state.listConversations![index]
-                                                    .name!,
-                                                state.listConversations![index]
+                                                state.searchList![index].token!,
+                                                state.searchList![index].name!,
+                                                state.searchList![index]
                                                     .lastMessage!.actorType!,
                                                 64),
                                         builder: (context, snapshot) {
@@ -215,9 +223,9 @@ class _HomePageState extends State<HomePage> {
                             // FutureBuilder(
                             //     future: ConversationService()
                             //         .getConversationAvatar(
-                            //             state.listConversations![index].token!,
-                            //             state.listConversations![index].name!,
-                            //             state.listConversations![index]
+                            //             state.searchList![index].token!,
+                            //             state.searchList![index].name!,
+                            //             state.searchList![index]
                             //                 .lastMessage!.actorType!),
                             //     builder: (context, snapshot) {
                             //       if (snapshot.hasData) {
@@ -228,26 +236,25 @@ class _HomePageState extends State<HomePage> {
                             //     }),
                           ),
                         ),
-                        title: Text(state.listConversations![index].displayName
-                            .toString()),
+                        title: Text(
+                            state.searchList![index].displayName.toString()),
                         trailing: Builder(
                           builder: (context) {
-                            if (state.listConversations![index].lastMessage!
-                                    .timestamp!
+                            if (state.searchList![index].lastMessage!.timestamp!
                                     .toLocal()
                                     .day ==
                                 DateTime.now().day) {
                               return Text(
                                 DateFormat('HH:mm').format(state
-                                    .listConversations![index]
+                                    .searchList![index]
                                     .lastMessage!
                                     .timestamp!),
                                 style: TextStyle(
                                     fontSize: 12,
                                     color: Colors.black.withOpacity(0.7)),
                               );
-                            } else if (state.listConversations![index]
-                                    .lastMessage!.timestamp!
+                            } else if (state
+                                    .searchList![index].lastMessage!.timestamp!
                                     .toLocal()
                                     .day ==
                                 DateTime.now().subtract(Duration(days: 1))) {
@@ -257,20 +264,20 @@ class _HomePageState extends State<HomePage> {
                                     fontSize: 12,
                                     color: Colors.black.withOpacity(0.7)),
                               );
-                            } else if (state.listConversations![index]
-                                    .lastMessage!.timestamp!
+                            } else if (state
+                                    .searchList![index].lastMessage!.timestamp!
                                     .toLocal()
                                     .year ==
                                 DateTime.now().year) {
                               return Text(
-                                '${state.listConversations![index].lastMessage!.timestamp!.day} tháng ${state.listConversations![index].lastMessage!.timestamp!.month}',
+                                '${state.searchList![index].lastMessage!.timestamp!.day} tháng ${state.searchList![index].lastMessage!.timestamp!.month}',
                                 style: TextStyle(
                                     fontSize: 12,
                                     color: Colors.black.withOpacity(0.7)),
                               );
                             } else {
                               return Text(
-                                '${state.listConversations![index].lastMessage!.timestamp!.day} tháng ${state.listConversations![index].lastMessage!.timestamp!.month}, ${state.listConversations![index].lastMessage!.timestamp!.year}',
+                                '${state.searchList![index].lastMessage!.timestamp!.day} tháng ${state.searchList![index].lastMessage!.timestamp!.month}, ${state.searchList![index].lastMessage!.timestamp!.year}',
                                 style: TextStyle(
                                     fontSize: 12,
                                     color: Colors.black.withOpacity(0.7)),
@@ -278,19 +285,18 @@ class _HomePageState extends State<HomePage> {
                             }
                           },
                         ),
-                        subtitle: (state.listConversations![index].lastMessage!
-                                    .actorId ==
+                        subtitle: (state
+                                    .searchList![index].lastMessage!.actorId ==
                                 user.username)
                             ? Text(
                                 "Bạn: " +
-                                    state.listConversations![index].lastMessage!
-                                        .message
+                                    state
+                                        .searchList![index].lastMessage!.message
                                         .toString(),
                                 maxLines: 1,
                               )
                             : Text(
-                                state.listConversations![index].lastMessage!
-                                    .message
+                                state.searchList![index].lastMessage!.message
                                     .toString(),
                                 maxLines: 1,
                               ),
@@ -307,6 +313,8 @@ class _HomePageState extends State<HomePage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
+          // Utils().showToast('message');
+
           Navigator.push(
               context,
               MaterialPageRoute(
