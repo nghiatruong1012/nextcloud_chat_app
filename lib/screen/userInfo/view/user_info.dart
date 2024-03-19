@@ -32,12 +32,15 @@ class _UserInfoState extends State<UserInfo> {
   @override
   void initState() {
     // TODO: implement initState
-    displayname.text = widget.userData.displayname!;
-    phone.text = widget.userData.phone!;
-    email.text = widget.userData.email!;
-    address.text = widget.userData.address!;
-    website.text = widget.userData.website!;
-    twitter.text = widget.userData.twitter!;
+    print(widget.userData.displayname.toString());
+    displayname.text = widget.userData.displayname.toString();
+    phone.text = widget.userData.phone.toString();
+    if (widget.userData.email != null) {
+      email.text = widget.userData.email.toString();
+    }
+    address.text = widget.userData.address.toString();
+    website.text = widget.userData.website.toString();
+    twitter.text = widget.userData.twitter.toString();
 
     super.initState();
   }
@@ -219,7 +222,7 @@ class _UserInfoState extends State<UserInfo> {
                 : Container(
                     height: 70,
                   ),
-            (widget.userData.displayname!.isNotEmpty || isEditing)
+            (widget.userData.displayname.toString().isNotEmpty || isEditing)
                 ? Container(
                     padding: EdgeInsets.symmetric(horizontal: 20, vertical: 5),
                     child: Row(
@@ -251,7 +254,7 @@ class _UserInfoState extends State<UserInfo> {
                     ),
                   )
                 : Container(),
-            (widget.userData.phone!.isNotEmpty || isEditing)
+            (widget.userData.phone.toString().isNotEmpty || isEditing)
                 ? Container(
                     padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                     child: Row(
@@ -279,7 +282,9 @@ class _UserInfoState extends State<UserInfo> {
                     ),
                   )
                 : Container(),
-            (widget.userData.email!.isNotEmpty || isEditing)
+            (widget.userData.email.toString() != "null" ||
+                    isEditing ||
+                    widget.userData.email != null)
                 ? Container(
                     padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                     child: Row(
@@ -308,7 +313,7 @@ class _UserInfoState extends State<UserInfo> {
                     ),
                   )
                 : Container(),
-            (widget.userData.address!.isNotEmpty || isEditing)
+            (widget.userData.address.toString().isNotEmpty || isEditing)
                 ? Container(
                     padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                     child: Row(
@@ -336,7 +341,7 @@ class _UserInfoState extends State<UserInfo> {
                     ),
                   )
                 : Container(),
-            (widget.userData.website!.isNotEmpty || isEditing)
+            (widget.userData.website.toString().isNotEmpty || isEditing)
                 ? Container(
                     padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                     child: Row(
@@ -364,7 +369,7 @@ class _UserInfoState extends State<UserInfo> {
                     ),
                   )
                 : Container(),
-            (widget.userData.twitter!.isNotEmpty || isEditing)
+            (widget.userData.twitter.toString().isNotEmpty || isEditing)
                 ? Container(
                     padding: EdgeInsets.symmetric(horizontal: 20, vertical: 5),
                     child: Row(

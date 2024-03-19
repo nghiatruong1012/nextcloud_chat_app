@@ -12,9 +12,11 @@ import 'package:nextcloud_chat_app/models/user.dart';
 import 'package:nextcloud_chat_app/screen/chat/widgets/voice_message_player.dart';
 import 'package:nextcloud_chat_app/service/chat_service.dart';
 import 'package:nextcloud_chat_app/service/conversation_service.dart';
+import 'package:nextcloud_chat_app/service/encrypt.dart';
 import 'package:nextcloud_chat_app/service/request.dart';
 import 'package:nextcloud_chat_app/utils.dart';
 import 'package:voice_message_package/voice_message_package.dart';
+import 'package:encrypt/encrypt.dart' as encrypt;
 
 Widget MessageWidget(
     Chat chat,
@@ -263,10 +265,10 @@ Widget FileChatWidget(
                           Navigator.pop(context);
                         },
                       ),
-                      ListTile(
-                        leading: Icon(Icons.forward),
-                        title: Text('Chuyển tiếp'),
-                      ),
+                      // ListTile(
+                      //   leading: Icon(Icons.forward),
+                      //   title: Text('Chuyển tiếp'),
+                      // ),
                       (!chat.timestamp!.isBefore(DateTime.now()
                                   .subtract(Duration(hours: 5))) &&
                               chat.actorId == user.username)
@@ -309,7 +311,7 @@ Widget FileChatWidget(
                     //     horizontal: 20, vertical: 10),
                     decoration: (chat.actorId == user.username)
                         ? BoxDecoration(
-                            color: Colors.green.withOpacity(0.2),
+                            color: Colors.blue.withOpacity(0.2),
                             borderRadius: BorderRadius.only(
                               bottomLeft: Radius.circular(20),
                               bottomRight: isLastMess
@@ -609,10 +611,10 @@ Widget TextChatWidget(
                         Navigator.pop(context);
                       },
                     ),
-                    ListTile(
-                      leading: Icon(Icons.forward),
-                      title: Text('Chuyển tiếp'),
-                    ),
+                    // ListTile(
+                    //   leading: Icon(Icons.forward),
+                    //   title: Text('Chuyển tiếp'),
+                    // ),
                     ListTile(
                       leading: Icon(Icons.copy),
                       title: Text('Sao chép'),
@@ -658,8 +660,10 @@ Widget TextChatWidget(
                         ),
                       )
                     : Container(),
-                (containsOnlyEmojis(chat.message.toString()))
-                    ? Container(
+                Builder(
+                  builder: (context) {
+                    if (containsOnlyEmojis(chat.message.toString())) {
+                      return Container(
                         constraints: BoxConstraints(maxWidth: 300),
                         margin: (index == 0)
                             ? EdgeInsets.only(
@@ -677,8 +681,7 @@ Widget TextChatWidget(
                                     decoration: BoxDecoration(
                                       border: Border(
                                         left: BorderSide(
-                                            color:
-                                                Colors.green.withOpacity(0.5),
+                                            color: Colors.blue.withOpacity(0.5),
                                             width: 2),
                                       ),
                                     ),
@@ -714,8 +717,62 @@ Widget TextChatWidget(
                             ),
                           ],
                         ),
-                      )
-                    : Container(
+                      );
+                    } else if (isUrl(chat.message.toString())) {
+                      return Container(
+                        constraints: BoxConstraints(maxWidth: 300),
+                        margin: (index == 0)
+                            ? EdgeInsets.only(
+                                left: 2, right: 2, top: 2, bottom: 10)
+                            : EdgeInsets.symmetric(vertical: 2),
+                        // padding:
+                        //     EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+                        child: Column(
+                          crossAxisAlignment: (chat.actorId == user.username)
+                              ? CrossAxisAlignment.end
+                              : CrossAxisAlignment.start,
+                          children: [
+                            (chat.parent != null)
+                                ? Container(
+                                    decoration: BoxDecoration(
+                                      border: Border(
+                                        left: BorderSide(
+                                            color: Colors.blue.withOpacity(0.5),
+                                            width: 2),
+                                      ),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Container(
+                                            padding: EdgeInsets.only(
+                                                left: 5, bottom: 3, top: 1),
+                                            child: Text(
+                                              chat.parent!.actorDisplayName
+                                                  .toString(),
+                                              style: TextStyle(
+                                                  color: Colors.black
+                                                      .withOpacity(0.6)),
+                                            )),
+                                        Container(
+                                            padding: EdgeInsets.only(
+                                                left: 5, top: 3, bottom: 1),
+                                            child: Text(
+                                              chat.parent!.message.toString(),
+                                              maxLines: 5,
+                                            )),
+                                      ],
+                                    ))
+                                : Container(
+                                    width: 0,
+                                  ),
+                            AnyLinkPreview(link: chat.message.toString())
+                          ],
+                        ),
+                      );
+                    } else {
+                      return Container(
                         // alignment: (chat.actorId == user.username)
                         //     ? Alignment.centerRight
                         //     : Alignment.centerLeft,
@@ -729,7 +786,7 @@ Widget TextChatWidget(
                               EdgeInsets.symmetric(horizontal: 15, vertical: 8),
                           decoration: (chat.actorId == user.username)
                               ? BoxDecoration(
-                                  color: Colors.green.withOpacity(0.2),
+                                  color: Colors.blue.withOpacity(0.2),
                                   borderRadius: BorderRadius.only(
                                     bottomLeft: Radius.circular(20),
                                     bottomRight: isLastMess
@@ -768,7 +825,7 @@ Widget TextChatWidget(
                                         border: Border(
                                           left: BorderSide(
                                               color:
-                                                  Colors.green.withOpacity(0.5),
+                                                  Colors.blue.withOpacity(0.5),
                                               width: 2),
                                         ),
                                       ),
@@ -799,8 +856,13 @@ Widget TextChatWidget(
                                       width: 0,
                                     ),
                               Text(
+                                // EncryptionDecryption.decryptMessage(
+                                //     encrypt.Encrypted.fromBase64(
+                                //         chat.message.toString())),
+                                // EncryptionDecryption().decryptMessage(token, chat.message.toString()),
                                 chat.message.toString(),
                                 style: TextStyle(fontSize: 18),
+                                maxLines: 10,
                               ),
                             ],
                           ),
@@ -845,7 +907,201 @@ Widget TextChatWidget(
                           //   ],
                           // ),
                         ),
-                      ),
+                      );
+                    }
+                  },
+                ),
+                // (containsOnlyEmojis(chat.message.toString()))
+                //     ? Container(
+                //         constraints: BoxConstraints(maxWidth: 300),
+                //         margin: (index == 0)
+                //             ? EdgeInsets.only(
+                //                 left: 2, right: 2, top: 2, bottom: 10)
+                //             : EdgeInsets.symmetric(vertical: 2),
+                //         // padding:
+                //         //     EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+                //         child: Column(
+                //           crossAxisAlignment: (chat.actorId == user.username)
+                //               ? CrossAxisAlignment.end
+                //               : CrossAxisAlignment.start,
+                //           children: [
+                //             (chat.parent != null)
+                //                 ? Container(
+                //                     decoration: BoxDecoration(
+                //                       border: Border(
+                //                         left: BorderSide(
+                //                             color:
+                //                                 Colors.blue.withOpacity(0.5),
+                //                             width: 2),
+                //                       ),
+                //                     ),
+                //                     child: Column(
+                //                       crossAxisAlignment:
+                //                           CrossAxisAlignment.start,
+                //                       children: [
+                //                         Container(
+                //                             padding: EdgeInsets.only(
+                //                                 left: 5, bottom: 3, top: 1),
+                //                             child: Text(
+                //                               chat.parent!.actorDisplayName
+                //                                   .toString(),
+                //                               style: TextStyle(
+                //                                   color: Colors.black
+                //                                       .withOpacity(0.6)),
+                //                             )),
+                //                         Container(
+                //                             padding: EdgeInsets.only(
+                //                                 left: 5, top: 3, bottom: 1),
+                //                             child: Text(
+                //                               chat.parent!.message.toString(),
+                //                               maxLines: 5,
+                //                             )),
+                //                       ],
+                //                     ))
+                //                 : Container(
+                //                     width: 0,
+                //                   ),
+                //             Text(
+                //               chat.message.toString(),
+                //               style: TextStyle(fontSize: 30),
+                //             ),
+                //           ],
+                //         ),
+                //       )
+                //     : Container(
+                //         // alignment: (chat.actorId == user.username)
+                //         //     ? Alignment.centerRight
+                //         //     : Alignment.centerLeft,
+                //         child: Container(
+                //           constraints: BoxConstraints(maxWidth: 300),
+                //           margin: (index == 0)
+                //               ? EdgeInsets.only(
+                //                   left: 2, right: 2, top: 2, bottom: 10)
+                //               : EdgeInsets.symmetric(vertical: 2),
+                //           padding:
+                //               EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+                //           decoration: (chat.actorId == user.username)
+                //               ? BoxDecoration(
+                //                   color: Colors.blue.withOpacity(0.2),
+                //                   borderRadius: BorderRadius.only(
+                //                     bottomLeft: Radius.circular(20),
+                //                     bottomRight: isLastMess
+                //                         ? Radius.circular(20)
+                //                         : Radius.circular(5),
+                //                     topLeft: Radius.circular(20),
+                //                     topRight: isFirstMess
+                //                         ? Radius.circular(20)
+                //                         : Radius.circular(5),
+                //                   ),
+                //                 )
+                //               : BoxDecoration(
+                //                   color: Colors.grey.withOpacity(0.2),
+                //                   borderRadius: BorderRadius.only(
+                //                     bottomLeft: isLastMess
+                //                         ? Radius.circular(20)
+                //                         : Radius.circular(2),
+                //                     bottomRight: Radius.circular(20),
+                //                     topRight: Radius.circular(20),
+                //                     topLeft: isFirstMess
+                //                         ? Radius.circular(20)
+                //                         : Radius.circular(2),
+                //                   ),
+                //                 ),
+                //           child:
+                //               // Column(
+                //               //   children: [
+                //               Column(
+                //             crossAxisAlignment: (chat.actorId == user.username)
+                //                 ? CrossAxisAlignment.end
+                //                 : CrossAxisAlignment.start,
+                //             children: [
+                //               (chat.parent != null)
+                //                   ? Container(
+                //                       decoration: BoxDecoration(
+                //                         border: Border(
+                //                           left: BorderSide(
+                //                               color:
+                //                                   Colors.blue.withOpacity(0.5),
+                //                               width: 2),
+                //                         ),
+                //                       ),
+                //                       child: Column(
+                //                         crossAxisAlignment:
+                //                             CrossAxisAlignment.start,
+                //                         children: [
+                //                           Container(
+                //                               padding: EdgeInsets.only(
+                //                                   left: 5, bottom: 3, top: 1),
+                //                               child: Text(
+                //                                 chat.parent!.actorDisplayName
+                //                                     .toString(),
+                //                                 style: TextStyle(
+                //                                     color: Colors.black
+                //                                         .withOpacity(0.6)),
+                //                               )),
+                //                           Container(
+                //                               padding: EdgeInsets.only(
+                //                                   left: 5, top: 3, bottom: 1),
+                //                               child: Text(
+                //                                 chat.parent!.message.toString(),
+                //                                 maxLines: 5,
+                //                               )),
+                //                         ],
+                //                       ))
+                //                   : Container(
+                //                       width: 0,
+                //                     ),
+                //               (isUrl(chat.message.toString()))
+                //                   ? AnyLinkPreview(
+                //                       link: chat.message.toString())
+                //                   : Text(
+                //                       chat.message.toString(),
+                //                       style: TextStyle(fontSize: 18),
+                //                     ),
+                //             ],
+                //           ),
+                //           //     (chat
+                //           //                 .reactions !=
+                //           //             {})
+                //           //         ? Row(
+                //           //             mainAxisAlignment:
+                //           //                 MainAxisAlignment
+                //           //                     .start,
+                //           //             mainAxisSize:
+                //           //                 MainAxisSize.min,
+                //           //             children: state
+                //           //                 .listChat![
+                //           //                     reversedIndex]
+                //           //                 .reactions!
+                //           //                 .entries
+                //           //                 .map((entries) {
+                //           //               return Container(
+                //           //                 // decoration: BoxDecoration(
+                //           //                 //     color:
+                //           //                 //         Colors.amber,
+                //           //                 //     borderRadius:
+                //           //                 //         BorderRadius
+                //           //                 //             .circular(
+                //           //                 //                 20)),
+                //           //                 child: Row(
+                //           //                     mainAxisSize:
+                //           //                         MainAxisSize
+                //           //                             .min,
+                //           //                     children: [
+                //           //                       Text(entries
+                //           //                           .key),
+                //           //                       Text(entries
+                //           //                           .value
+                //           //                           .toString())
+                //           //                     ]),
+                //           //               );
+                //           //             }).toList(),
+                //           //           )
+                //           //         : Container(),
+                //           //   ],
+                //           // ),
+                //         ),
+                //       ),
                 (chat.actorId != user.username)
                     ? Container(
                         margin: EdgeInsets.only(left: 10),
@@ -947,10 +1203,10 @@ Widget ObjectChatWidget(
                         Navigator.pop(context);
                       },
                     ),
-                    ListTile(
-                      leading: Icon(Icons.forward),
-                      title: Text('Chuyển tiếp'),
-                    ),
+                    // ListTile(
+                    //   leading: Icon(Icons.forward),
+                    //   title: Text('Chuyển tiếp'),
+                    // ),
                     ListTile(
                       leading: Icon(Icons.copy),
                       title: Text('Sao chép'),
@@ -991,8 +1247,7 @@ Widget ObjectChatWidget(
                                     decoration: BoxDecoration(
                                       border: Border(
                                         left: BorderSide(
-                                            color:
-                                                Colors.green.withOpacity(0.5),
+                                            color: Colors.blue.withOpacity(0.5),
                                             width: 2),
                                       ),
                                     ),
@@ -1056,7 +1311,7 @@ Widget ObjectChatWidget(
                                         border: Border(
                                           left: BorderSide(
                                               color:
-                                                  Colors.green.withOpacity(0.5),
+                                                  Colors.blue.withOpacity(0.5),
                                               width: 2),
                                         ),
                                       ),

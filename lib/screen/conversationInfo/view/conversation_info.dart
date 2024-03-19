@@ -87,18 +87,18 @@ class _ConversationInfoState extends State<ConversationInfo> {
             child: Center(
               child: Text(
                 conversations.displayName!,
-                style: TextStyle(fontSize: 18),
+                style: TextStyle(fontSize: 16),
               ),
             ),
           ),
           Container(
-            margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            margin: EdgeInsets.symmetric(horizontal: 15, vertical: 5),
             child: Text(
               'Cài đặt thông báo',
               style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Color.fromARGB(255, 57, 118, 216)),
+                  color: Color(0xFF0082c9)),
             ),
           ),
           Container(
@@ -148,13 +148,13 @@ class _ConversationInfoState extends State<ConversationInfo> {
             },
           ),
           Container(
-            margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            margin: EdgeInsets.symmetric(horizontal: 15, vertical: 5),
             child: Text(
               'Shared items',
               style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Color.fromARGB(255, 57, 118, 216)),
+                  color: Color(0xFF0082c9)),
             ),
           ),
           ListTile(
@@ -173,13 +173,13 @@ class _ConversationInfoState extends State<ConversationInfo> {
                 Icons.folder_copy_outlined,
               )),
           Container(
-            margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            margin: EdgeInsets.symmetric(horizontal: 15, vertical: 5),
             child: Text(
               'Người tham gia',
               style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Color.fromARGB(255, 57, 118, 216)),
+                  color: Color(0xFF0082c9)),
             ),
           ),
           Column(
@@ -212,11 +212,11 @@ class _ConversationInfoState extends State<ConversationInfo> {
                 .toList(),
           ),
           Container(
-            margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            margin: EdgeInsets.symmetric(horizontal: 15, vertical: 5),
             child: Text(
               'Danger Zone',
               style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: Color.fromARGB(255, 178, 39, 29)),
             ),

@@ -40,8 +40,10 @@ Future<void> main() async {
 
   await service.configure(
       iosConfiguration: IosConfiguration(),
-      androidConfiguration:
-          AndroidConfiguration(onStart: onStart, isForegroundMode: true));
+      androidConfiguration: AndroidConfiguration(
+        onStart: onStart,
+        isForegroundMode: true,
+      ));
   service.startService();
   // Timer.periodic(Duration(seconds: 5), (timer) async {
   //   final listNoti = await NotiService().getNoti();
@@ -66,13 +68,13 @@ Future<void> main() async {
   );
 }
 
+@pragma('vm:entry-point')
 void onStart(ServiceInstance service) {
   DartPluginRegistrant.ensureInitialized();
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
   Timer.periodic(Duration(seconds: 5), (timer) async {
     final listNoti = await NotiService().getNoti();
-
 
     listNoti.forEach((element) {
       if (element["object_type"] == 'chat') {
@@ -88,7 +90,6 @@ final Set<int> shownNotificationIds = Set<int>();
 Future<void> _showNotification(int id, String title, String content) async {
   // Check if the notification ID has already been shown
   if (shownNotificationIds.contains(id)) {
-
     return;
   }
   const AndroidNotificationDetails androidPlatformChannelSpecifics =

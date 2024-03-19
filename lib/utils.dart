@@ -88,6 +88,13 @@ bool containsOnlyEmojis(String text) {
   return emojiPattern.hasMatch(text);
 }
 
+bool isUrl(String string) {
+  // Regular expression to match URLs
+  RegExp urlRegex = RegExp(
+      r"^(?:http|https):\/\/(?:www\.)?[a-zA-Z0-9\-\.]+(?:\.[a-zA-Z]{2,})+(?:[\/?=&#]?[a-zA-Z0-9\-\.\?,'\/\\\+&%\$#_]*)?$");
+  return urlRegex.hasMatch(string);
+}
+
 class Utils {
   void showToast(String message) => Fluttertoast.showToast(
         msg: message,

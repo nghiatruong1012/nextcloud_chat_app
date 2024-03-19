@@ -119,16 +119,18 @@ class _CreateConversationState extends State<CreateConversation> {
                                         'roomName': controller.text,
                                         'roomType': '2',
                                       });
+                                      print(conversation.token.toString());
                                       if (conversation.token != null) {
-                                        selectedUser.map((e) {
-                                          print("add user");
+                                        print("add user");
+
+                                        for (var e in selectedUser) {
                                           ParticipantsService()
                                               .postListParticipants(
                                                   conversation.token!, {
                                             "newParticipant": e.id,
                                             "source": "users"
                                           });
-                                        });
+                                        }
                                         // Navigator.pushReplacement(
                                         //   context,
                                         //   MaterialPageRoute(

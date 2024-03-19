@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -28,6 +29,7 @@ import 'package:nextcloud_chat_app/screen/sharedItem/view/shared_item.dart';
 import 'package:nextcloud_chat_app/service/call_service.dart';
 import 'package:nextcloud_chat_app/service/chat_service.dart';
 import 'package:nextcloud_chat_app/service/conversation_service.dart';
+import 'package:nextcloud_chat_app/service/encrypt.dart';
 import 'package:nextcloud_chat_app/service/participants_service.dart';
 import 'package:nextcloud_chat_app/service/request.dart';
 import 'package:nextcloud_chat_app/utils.dart';
@@ -130,7 +132,6 @@ class _ChatPageState extends State<ChatPage> {
 
   void PickChatToReply(Chat chat) {
     setState(() {
- 
       isReplying = true;
       chatRep = chat;
     });
@@ -255,8 +256,7 @@ class _ChatPageState extends State<ChatPage> {
                                     decoration: BoxDecoration(
                                       border: Border(
                                         left: BorderSide(
-                                            color:
-                                                Colors.green.withOpacity(0.5),
+                                            color: Colors.blue.withOpacity(0.5),
                                             width: 2),
                                       ),
                                     ),
@@ -378,6 +378,17 @@ class _ChatPageState extends State<ChatPage> {
                                         },
                                       ),
                                       ListTile(
+                                        leading:
+                                            Icon(Icons.camera_alt_outlined),
+                                        title: Text('Take picture'),
+                                        onTap: () async {},
+                                      ),
+                                      ListTile(
+                                        leading: Icon(Icons.videocam_outlined),
+                                        title: Text('Take video'),
+                                        onTap: () async {},
+                                      ),
+                                      ListTile(
                                         leading: Icon(Icons.location_on),
                                         title: Text('Shared location'),
                                         onTap: () async {
@@ -432,7 +443,7 @@ class _ChatPageState extends State<ChatPage> {
                               },
                               onLongPressEnd: (detail) async {
                                 final path = await audioRecord.stop();
-                         
+
                                 File file = File(path!);
                                 ChatService().uploadAndSharedFile(
                                   user.username.toString(),
@@ -487,6 +498,9 @@ class _ChatPageState extends State<ChatPage> {
                               onPressed: () {
                                 if (messController.text.isNotEmpty) {
                                   context.read<ChatBloc>().add(SendMessage(
+                                        // EncryptionDecryption.encryptMessage(
+                                        //     messController.text),
+                                        // EncryptionDecryption().encryptMessage(token, messController.text),
                                         messController.text,
                                         user.username.toString(),
                                         (isReplying && chatRep != null)
@@ -552,26 +566,34 @@ class _ChatPageState extends State<ChatPage> {
             padding: EdgeInsets.all(0),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(100),
-              child: (state.conversations!.type! == 2)
-                  ? Container(
-                      color: const Color.fromARGB(255, 236, 236, 236),
-                      child: Icon(
-                        Icons.group,
-                        color: Colors.black,
-                      ))
-                  : FutureBuilder(
-                      future: ConversationService().getConversationAvatar(
-                          token,
-                          state.conversations!.name!,
-                          state.conversations!.lastMessage!.actorType!,
-                          64),
-                      builder: (context, snapshot) {
-                        if (snapshot.hasData) {
-                          return snapshot.data ?? Container();
-                        } else {
-                          return Container();
-                        }
-                      }),
+              child: Builder(
+                builder: (context) {
+                  if (state.conversations!.type! == 1) {
+                    return FutureBuilder(
+                        future: ConversationService().getConversationAvatar(
+                            token,
+                            state.conversations!.name!,
+                            state.conversations!.lastMessage!.actorType!,
+                            64),
+                        builder: (context, snapshot) {
+                          if (snapshot.hasData) {
+                            return snapshot.data ?? Container();
+                          } else {
+                            return Container();
+                          }
+                        });
+                  } else if (state.conversations!.type! == 6) {
+                    return Container(
+                        color: Color(0xFF0082c9),
+                        child: Center(child: Text('📝')));
+                  } else {
+                    return SvgPicture.network(
+                      'http://${host}:8080//ocs/v2.php/apps/spreed/api/v1/room/${token}/avatar',
+                      headers: requestHeaders,
+                    );
+                  }
+                },
+              ),
             ),
           ),
           SizedBox(

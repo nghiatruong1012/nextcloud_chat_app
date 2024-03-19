@@ -29,7 +29,10 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late Timer _timer;
-  late Map<String, String> requestHeaders;
+  Timer? _debounceTimer;
+  final _focusNode = FocusNode();
+  Future<Map<String, String>> futureRequestHeaders =
+      HTTPService().authImgHeader();
   // @override
   // void initState() {
   //   // TODO: implement initState
@@ -37,16 +40,23 @@ class _HomePageState extends State<HomePage> {
   // }
   @override
   void initState() {
-    _imageHeader();
+    // _imageHeader();
     // TODO: implement initState
     _timer = Timer.periodic(Duration(seconds: 15), (timer) {
       context.read<HomeBloc>().add(LoadConversationEvent());
     });
   }
 
-  _imageHeader() async {
-    requestHeaders = await HTTPService().authImgHeader();
+  @override
+  void dispose() {
+    _timer.cancel(); // Cancel the timer to prevent memory leaks
+    _debounceTimer?.cancel(); // Cancel the debounce timer
+    super.dispose();
   }
+
+  // _imageHeader() async {
+  //   requestHeaders = await HTTPService().authImgHeader();
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -54,264 +64,235 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       // appBar: AppBar(title: Text("Home")),
       body: SafeArea(
-        child: Column(
-          children: [
-            Stack(alignment: FractionalOffset.centerRight, children: [
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                child: TextField(
-                  onChanged: (value) {
-                    context
-                        .read<HomeBloc>()
-                        .add(SearchConversationEvent(value));
-                  },
-                  decoration: InputDecoration(
-                    contentPadding:
-                        EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                    hintText: 'Tìm kiếm',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(100),
-                      borderSide: BorderSide(
-                        color: Colors.grey.withOpacity(0.2),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => SettingScreen(),
-                      ));
-                  // showDialog(
-                  //   context: context,
-                  //   builder: (context) {
-                  //     return Dialog(
-                  //         child: Container(
-                  //       height: 250,
-                  //       padding: EdgeInsets.all(20),
-                  //       child: Expanded(
-                  //         child: Column(
-                  //           mainAxisAlignment: MainAxisAlignment.center,
-                  //           children: [
-                  //             ListTile(
-                  //               leading: SizedBox(
-                  //                 height: 40,
-                  //                 width: 40,
-                  //                 child: ClipRRect(
-                  //                   borderRadius: BorderRadius.circular(100),
-                  //                   child: Builder(builder: (context) {
-                  //                     return FutureBuilder(
-                  //                         future: ConversationService()
-                  //                             .getConversationAvatar(
-                  //                                 '',
-                  //                                 user.username.toString(),
-                  //                                 '',
-                  //                                 64),
-                  //                         builder: (context, snapshot) {
-                  //                           if (snapshot.hasData) {
-                  //                             return snapshot.data ??
-                  //                                 Icon(Icons.person);
-                  //                           } else {
-                  //                             return Icon(Icons.person);
-                  //                           }
-                  //                         });
-                  //                   }),
-                  //                 ),
-                  //               ),
-                  //               title: Text(user.username.toString()),
-                  //             ),
-                  //             ListTile(
-                  //               leading: Icon(Icons.settings),
-                  //               title: Text('Cài đặt'),
-                  //             ),
-                  //             ListTile(
-                  //               onTap: () {
-                  //                 context
-                  //                     .read<AuthenticationBloc>()
-                  //                     .add(AuthenticationLogoutRequested());
-                  //               },
-                  //               leading: Icon(Icons.logout),
-                  //               title: Text('Đăng xuất'),
-                  //             ),
-                  //           ],
-                  //         ),
-                  //       ),
-                  //     ));
-                  //   },
-                  // );
-                },
-                child: Container(
-                  width: 30,
-                  height: 30,
-                  margin: EdgeInsets.only(right: 30),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(100),
-                    child: FutureBuilder(
-                        future: ConversationService().getConversationAvatar(
-                            '', user.username.toString(), '', 64),
-                        builder: (context, snapshot) {
-                          if (snapshot.hasData) {
-                            return snapshot.data ?? Container();
-                          } else {
-                            return snapshot.data ?? Container();
-                          }
-                        }),
-                  ),
-                ),
-              ),
-            ]),
-            BlocBuilder<HomeBloc, HomeState>(
-              buildWhen: (previous, current) =>
-                  previous.searchList != current.searchList,
-              builder: (context, state) {
-                if (state.searchList != null &&
-                    state.searchList!.isNotEmpty &&
-                    requestHeaders != null) {
-                  return Expanded(
-                    child: ListView.builder(
-                      itemCount: state.searchList!.length,
-                      itemBuilder: (context, index) => ListTile(
-                        onTap: () {
-                          Navigator.push(
-                              context,
-                              ChatProvider.route(
-                                  state.searchList![index].token!,
-                                  state.searchList![index].lastMessage!.id!));
+          child: GestureDetector(
+        onTap: () {
+          _focusNode.unfocus();
+        },
+        child: FutureBuilder(
+          future: futureRequestHeaders,
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              return Column(
+                children: [
+                  Stack(alignment: FractionalOffset.centerRight, children: [
+                    Container(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      child: TextField(
+                        focusNode: _focusNode,
+                        onChanged: (value) {
+                          // if (_debounceTimer!.isActive) {
+                          //   _debounceTimer!.cancel();
+                          // }
+                          _debounceTimer?.cancel();
+                          _debounceTimer =
+                              Timer(Duration(milliseconds: 500), () {
+                            context
+                                .read<HomeBloc>()
+                                .add(SearchConversationEvent(value));
+                          });
                         },
-                        leading: Container(
-                          width: 40,
-                          height: 40,
-                          child: ClipRRect(
+                        decoration: InputDecoration(
+                          contentPadding: EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 10),
+                          hintText: 'Tìm kiếm',
+                          border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(100),
-                            child: Builder(builder: (context) {
-                              if (state.searchList![index].type == 2) {
-                                return Container(
-                                    color: const Color.fromARGB(
-                                        255, 236, 236, 236),
-                                    child: Icon(Icons.group));
-                              } else {
-                                return CachedNetworkImage(
-                                  imageUrl:
-                                      'http://${host}:8080/ocs/v2.php/apps/spreed/api/v1/room/${state.searchList![index].token!}/avatar',
-                                  placeholder: (context, url) =>
-                                      CircularProgressIndicator(),
-                                  errorWidget: (context, url, error) {
-                                    return FutureBuilder(
-                                        future: ConversationService()
-                                            .getConversationAvatar(
-                                                state.searchList![index].token!,
-                                                state.searchList![index].name!,
-                                                state.searchList![index]
-                                                    .lastMessage!.actorType!,
-                                                64),
-                                        builder: (context, snapshot) {
-                                          if (snapshot.hasData) {
-                                            return snapshot.data ??
-                                                Icon(Icons.person);
-                                          } else {
-                                            return CircularProgressIndicator();
-                                          }
-                                        });
-                                  },
-                                  httpHeaders: requestHeaders,
-                                );
-                              }
-                            }),
-                            // FutureBuilder(
-                            //     future: ConversationService()
-                            //         .getConversationAvatar(
-                            //             state.searchList![index].token!,
-                            //             state.searchList![index].name!,
-                            //             state.searchList![index]
-                            //                 .lastMessage!.actorType!),
-                            //     builder: (context, snapshot) {
-                            //       if (snapshot.hasData) {
-                            //         return snapshot.data ?? Container();
-                            //       } else {
-                            //         return CircularProgressIndicator();
-                            //       }
-                            //     }),
+                            borderSide: BorderSide(
+                              color: Colors.grey.withOpacity(0.2),
+                            ),
                           ),
                         ),
-                        title: Text(
-                            state.searchList![index].displayName.toString()),
-                        trailing: Builder(
-                          builder: (context) {
-                            if (state.searchList![index].lastMessage!.timestamp!
-                                    .toLocal()
-                                    .day ==
-                                DateTime.now().day) {
-                              return Text(
-                                DateFormat('HH:mm').format(state
-                                    .searchList![index]
-                                    .lastMessage!
-                                    .timestamp!),
-                                style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.black.withOpacity(0.7)),
-                              );
-                            } else if (state
-                                    .searchList![index].lastMessage!.timestamp!
-                                    .toLocal()
-                                    .day ==
-                                DateTime.now().subtract(Duration(days: 1))) {
-                              return Text(
-                                'Hôm qua',
-                                style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.black.withOpacity(0.7)),
-                              );
-                            } else if (state
-                                    .searchList![index].lastMessage!.timestamp!
-                                    .toLocal()
-                                    .year ==
-                                DateTime.now().year) {
-                              return Text(
-                                '${state.searchList![index].lastMessage!.timestamp!.day} tháng ${state.searchList![index].lastMessage!.timestamp!.month}',
-                                style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.black.withOpacity(0.7)),
-                              );
-                            } else {
-                              return Text(
-                                '${state.searchList![index].lastMessage!.timestamp!.day} tháng ${state.searchList![index].lastMessage!.timestamp!.month}, ${state.searchList![index].lastMessage!.timestamp!.year}',
-                                style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.black.withOpacity(0.7)),
-                              );
-                            }
-                          },
-                        ),
-                        subtitle: (state
-                                    .searchList![index].lastMessage!.actorId ==
-                                user.username)
-                            ? Text(
-                                "Bạn: " +
-                                    state
-                                        .searchList![index].lastMessage!.message
-                                        .toString(),
-                                maxLines: 1,
-                              )
-                            : Text(
-                                state.searchList![index].lastMessage!.message
-                                    .toString(),
-                                maxLines: 1,
-                              ),
                       ),
                     ),
-                  );
-                } else {
-                  return ListLoading();
-                }
-              },
-            ),
-          ],
+                    Container(
+                      margin: EdgeInsets.only(right: 15),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => SettingScreen(),
+                              ));
+                        },
+                        style: ElevatedButton.styleFrom(
+                          shape: CircleBorder(),
+                          padding: EdgeInsets.all(4),
+                          backgroundColor: Colors.blue.shade300,
+                          foregroundColor: Colors.blue.shade700,
+                        ),
+                        child: Container(
+                          width: 30,
+                          height: 30,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(100),
+                            child: FutureBuilder(
+                                future: ConversationService()
+                                    .getConversationAvatar(
+                                        '', user.username.toString(), '', 64),
+                                builder: (context, snapshot) {
+                                  if (snapshot.hasData) {
+                                    return snapshot.data ?? Container();
+                                  } else {
+                                    return snapshot.data ?? Container();
+                                  }
+                                }),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ]),
+                  BlocBuilder<HomeBloc, HomeState>(
+                    buildWhen: (previous, current) =>
+                        previous.searchList != current.searchList,
+                    builder: (context, state) {
+                      if (state.searchList != null &&
+                          state.searchList!.isNotEmpty &&
+                          snapshot.data != null) {
+                        return Expanded(
+                          child: ListView.builder(
+                            itemCount: state.searchList!.length,
+                            itemBuilder: (context, index) => ListTile(
+                              onTap: () {
+                                Navigator.push(
+                                    context,
+                                    ChatProvider.route(
+                                        state.searchList![index].token!,
+                                        state.searchList![index].lastMessage!
+                                            .id!));
+                              },
+                              leading: Container(
+                                width: 40,
+                                height: 40,
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(100),
+                                  child: Builder(builder: (context) {
+                                    if (state.searchList![index].type == 1) {
+                                      return CachedNetworkImage(
+                                        imageUrl:
+                                            'http://${host}:8080/ocs/v2.php/apps/spreed/api/v1/room/${state.searchList![index].token!}/avatar',
+                                        placeholder: (context, url) =>
+                                            CircularProgressIndicator(),
+                                        errorWidget: (context, url, error) {
+                                          return Container();
+                                        },
+                                        httpHeaders: snapshot.data,
+                                      );
+                                    } else if (state.searchList![index].type ==
+                                        6) {
+                                      return Container(
+                                          color: Color(0xFF0082c9),
+                                          child: Center(child: Text('📝')));
+                                    } else {
+                                      return SvgPicture.network(
+                                        'http://${host}:8080//ocs/v2.php/apps/spreed/api/v1/room/${state.searchList![index].token!}/avatar',
+                                        headers: snapshot.data,
+                                      );
+                                    }
+                                  }),
+                                  // FutureBuilder(
+                                  //     future: ConversationService()
+                                  //         .getConversationAvatar(
+                                  //             state.searchList![index].token!,
+                                  //             state.searchList![index].name!,
+                                  //             state.searchList![index]
+                                  //                 .lastMessage!.actorType!),
+                                  //     builder: (context, snapshot) {
+                                  //       if (snapshot.hasData) {
+                                  //         return snapshot.data ?? Container();
+                                  //       } else {
+                                  //         return CircularProgressIndicator();
+                                  //       }
+                                  //     }),
+                                ),
+                              ),
+                              title: Text(state.searchList![index].displayName
+                                  .toString()),
+                              trailing: Builder(
+                                builder: (context) {
+                                  if (state.searchList![index].lastMessage!
+                                          .timestamp!
+                                          .toLocal()
+                                          .day ==
+                                      DateTime.now().day) {
+                                    return Text(
+                                      DateFormat('HH:mm').format(state
+                                          .searchList![index]
+                                          .lastMessage!
+                                          .timestamp!),
+                                      style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.black.withOpacity(0.7)),
+                                    );
+                                  } else if (state.searchList![index]
+                                          .lastMessage!.timestamp!
+                                          .toLocal()
+                                          .day ==
+                                      DateTime.now()
+                                          .subtract(Duration(days: 1))) {
+                                    return Text(
+                                      'Hôm qua',
+                                      style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.black.withOpacity(0.7)),
+                                    );
+                                  } else if (state.searchList![index]
+                                          .lastMessage!.timestamp!
+                                          .toLocal()
+                                          .year ==
+                                      DateTime.now().year) {
+                                    return Text(
+                                      '${state.searchList![index].lastMessage!.timestamp!.day} tháng ${state.searchList![index].lastMessage!.timestamp!.month}',
+                                      style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.black.withOpacity(0.7)),
+                                    );
+                                  } else {
+                                    return Text(
+                                      '${state.searchList![index].lastMessage!.timestamp!.day} tháng ${state.searchList![index].lastMessage!.timestamp!.month}, ${state.searchList![index].lastMessage!.timestamp!.year}',
+                                      style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.black.withOpacity(0.7)),
+                                    );
+                                  }
+                                },
+                              ),
+                              subtitle: (state.searchList![index].lastMessage!
+                                          .actorId ==
+                                      user.username)
+                                  ? Text(
+                                      "Bạn: " +
+                                          state.searchList![index].lastMessage!
+                                              .message
+                                              .toString(),
+                                      maxLines: 1,
+                                    )
+                                  : Text(
+                                      state.searchList![index].lastMessage!
+                                          .message
+                                          .toString(),
+                                      maxLines: 1,
+                                    ),
+                            ),
+                          ),
+                        );
+                      } else {
+                        return ListLoading();
+                      }
+                    },
+                  ),
+                ],
+              );
+            } else {
+              return Center(
+                child: CircularProgressIndicator(),
+              );
+            }
+          },
         ),
-      ),
+      )),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: Color(0xFF0082c9),
         onPressed: () {
           // Utils().showToast('message');
 

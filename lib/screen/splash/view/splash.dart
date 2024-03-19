@@ -16,7 +16,7 @@ class _SplashPageState extends State<SplashPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        color: Color.fromARGB(255, 57, 118, 216),
+        color: Color(0xFF0082c9),
         child: Center(
           child: Container(
             width: 100,

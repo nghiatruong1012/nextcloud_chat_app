@@ -70,6 +70,7 @@ dependencies:
   full_screen_image: ^2.0.0
   fluttertoast: ^8.2.4
   font_awesome_flutter: ^10.7.0
+  encrypt: ^5.0.3
 
 
 dev_dependencies:

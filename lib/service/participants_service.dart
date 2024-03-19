@@ -46,12 +46,13 @@ class ParticipantsService {
           scheme: 'http',
           host: host,
           port: 8080,
-          path: '/ocs/v2.php/apps/spreed/api/v4//room/$token/participants',
+          path: '/ocs/v2.php/apps/spreed/api/v4/room/$token/participants',
         ),
         headers: requestHeaders,
         body: jsonEncode(params ?? {}),
       );
       if (response.statusCode == 200) {
+        print("add user success");
         return;
         // return Conversations.fromJson(jsonDecode(response.body));
       } else {
@@ -92,7 +93,6 @@ class ParticipantsService {
         HTTPService().updateCookie(response);
         print('Success');
 
-
         // List<dynamic> data = jsonDecode(response.body)["ocs"]["data"];
         // List<Conversations> listConversation =
         //     data.map((item) => Conversations.fromJson(item)).toList();
@@ -126,7 +126,6 @@ class ParticipantsService {
         HTTPService().updateCookie(response);
         print('Success');
 
-
         // List<dynamic> data = jsonDecode(response.body)["ocs"]["data"];
         // List<Conversations> listConversation =
         //     data.map((item) => Conversations.fromJson(item)).toList();
@@ -156,7 +155,6 @@ class ParticipantsService {
       if (response.statusCode == 200) {
         HTTPService().updateCookie(response);
         print('Success');
-
 
         // List<dynamic> data = jsonDecode(response.body)["ocs"]["data"];
         // List<Conversations> listConversation =

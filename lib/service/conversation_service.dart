@@ -70,7 +70,7 @@ class ConversationService {
         headers: requestHeaders,
         body: jsonEncode(params ?? {}),
       );
-      if (response.statusCode == 200 && response.statusCode == 201) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         print('Create Success');
         print("conversation_room" + response.body);
         // List<dynamic> data = jsonDecode(response.body)["ocs"]["data"];
