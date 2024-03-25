@@ -74,7 +74,7 @@ class ParticipantsService {
             host: host,
             port: 8080,
             path:
-                '/ocs/v2.php/apps/spreed/api/v4//room/$token/participants/active',
+                '/ocs/v2.php/apps/spreed/api/v4/room/$token/participants/active',
             query: 'includeStatus=true'),
       );
 
@@ -84,7 +84,7 @@ class ParticipantsService {
           host: host,
           port: 8080,
           path:
-              '/ocs/v2.php/apps/spreed/api/v4//room/$token/participants/active',
+              '/ocs/v2.php/apps/spreed/api/v4/room/$token/participants/active',
         ),
         headers: requestHeaders,
         // body: jsonEncode(params ?? {}),
@@ -117,7 +117,7 @@ class ParticipantsService {
           host: host,
           port: 8080,
           path:
-              '/ocs/v2.php/apps/spreed/api/v4//room/$token/participants/active',
+              '/ocs/v2.php/apps/spreed/api/v4/room/$token/participants/active',
         ),
         headers: requestHeaders,
         // body: jsonEncode(params ?? {}),
@@ -147,10 +147,70 @@ class ParticipantsService {
           scheme: 'http',
           host: host,
           port: 8080,
-          path: '/ocs/v2.php/apps/spreed/api/v4//room/$token/participants/self',
+          path: '/ocs/v2.php/apps/spreed/api/v4/room/$token/participants/self',
         ),
         headers: requestHeaders,
         // body: jsonEncode(params ?? {}),
+      );
+      if (response.statusCode == 200) {
+        HTTPService().updateCookie(response);
+        print('Success');
+
+        // List<dynamic> data = jsonDecode(response.body)["ocs"]["data"];
+        // List<Conversations> listConversation =
+        //     data.map((item) => Conversations.fromJson(item)).toList();
+
+        // return Conversations.fromJson(jsonDecode(response.body));
+      } else {
+        print(response.statusCode.toString());
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future<void> promoteModerator(String token, params) async {
+    Map<String, String> requestHeaders = await HTTPService().authHeader();
+    try {
+      final response = await http.post(
+        Uri(
+          scheme: 'http',
+          host: host,
+          port: 8080,
+          path: '/ocs/v2.php/apps/spreed/api/v4/room/$token/moderators',
+        ),
+        headers: requestHeaders,
+        body: jsonEncode(params ?? {}),
+      );
+      if (response.statusCode == 200) {
+        HTTPService().updateCookie(response);
+        print('Success');
+
+        // List<dynamic> data = jsonDecode(response.body)["ocs"]["data"];
+        // List<Conversations> listConversation =
+        //     data.map((item) => Conversations.fromJson(item)).toList();
+
+        // return Conversations.fromJson(jsonDecode(response.body));
+      } else {
+        print(response.statusCode.toString());
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future<void> deleteModerator(String token, params) async {
+    Map<String, String> requestHeaders = await HTTPService().authHeader();
+    try {
+      final response = await http.delete(
+        Uri(
+          scheme: 'http',
+          host: host,
+          port: 8080,
+          path: '/ocs/v2.php/apps/spreed/api/v4/room/$token/moderators',
+        ),
+        headers: requestHeaders,
+        body: jsonEncode(params ?? {}),
       );
       if (response.statusCode == 200) {
         HTTPService().updateCookie(response);

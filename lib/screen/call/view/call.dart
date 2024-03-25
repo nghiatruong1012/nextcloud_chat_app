@@ -64,7 +64,10 @@ class _CallPageState extends State<CallPage> {
     CallService().joinCall({"flags": '7', "silent": false}, token);
     getSignal();
     _createPeerConnecion().then((pc) {
-      _peerConnection = pc;
+      print("pc: " + pc.toString());
+      setState(() {
+        _peerConnection = pc;
+      });
     });
     super.initState();
   }
@@ -76,6 +79,7 @@ class _CallPageState extends State<CallPage> {
 
   void joinCall() async {
     sid = DateTime.now().millisecondsSinceEpoch.toString();
+    print(_peerConnection.toString());
 
     RTCSessionDescription description =
         await _peerConnection!.createOffer(constraints);
@@ -266,10 +270,12 @@ class _CallPageState extends State<CallPage> {
             onPressed: () {
               joinCall();
             },
+            heroTag: 'join_call',
             child: Icon(Icons.call),
             backgroundColor: Colors.green,
           ),
           FloatingActionButton(
+            heroTag: 'data',
             onPressed: () {
               print("data: " + data.toString());
               Clipboard.setData(ClipboardData(
@@ -279,6 +285,14 @@ class _CallPageState extends State<CallPage> {
               SignalingService().postSignal(token, {
                 "messages": jsonEncode(data),
               });
+            },
+            child: Icon(Icons.call_made_outlined),
+            backgroundColor: Colors.yellow,
+          ),
+          FloatingActionButton(
+            child: Icon(Icons.camera),
+            heroTag: 'camera',
+            onPressed: () {
               SignalingService().postSignal(token, {
                 "messages": jsonEncode([
                   {
@@ -304,13 +318,12 @@ class _CallPageState extends State<CallPage> {
                 ]),
               });
             },
-            child: Icon(Icons.call_made_outlined),
-            backgroundColor: Colors.yellow,
           ),
           FloatingActionButton(
+            heroTag: 'end',
             onPressed: () {
               CallService().leaveCall({"all": true}, token);
-              // dispose();
+              dispose();
               Navigator.pop(context);
             },
             child: Icon(Icons.call_end),

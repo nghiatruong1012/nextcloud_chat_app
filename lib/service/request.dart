@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
 // const String host = '192.168.0.178';
-const String host = '192.168.1.20';
+const String host = '192.168.1.21';
 
 class HTTPService {
   // String? cookie;

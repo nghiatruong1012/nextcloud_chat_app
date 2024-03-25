@@ -26,6 +26,7 @@ import 'package:nextcloud_chat_app/screen/conversationInfo/view/conversation_inf
 import 'package:nextcloud_chat_app/screen/location/view/location.dart';
 import 'package:nextcloud_chat_app/screen/searchChat/view/search_chat.dart';
 import 'package:nextcloud_chat_app/screen/sharedItem/view/shared_item.dart';
+import 'package:nextcloud_chat_app/screen/zegoCall/zego_call.dart';
 import 'package:nextcloud_chat_app/service/call_service.dart';
 import 'package:nextcloud_chat_app/service/chat_service.dart';
 import 'package:nextcloud_chat_app/service/conversation_service.dart';
@@ -381,12 +382,36 @@ class _ChatPageState extends State<ChatPage> {
                                         leading:
                                             Icon(Icons.camera_alt_outlined),
                                         title: Text('Take picture'),
-                                        onTap: () async {},
+                                        onTap: () async {
+                                          XFile? _xfile = await ImagePicker()
+                                              .pickImage(
+                                                  source: ImageSource.camera);
+                                          File _file = File(_xfile!.path!);
+                                          ChatService().uploadAndSharedFile(
+                                              user.username.toString(),
+                                              _file.path.toString(),
+                                              _xfile.name,
+                                              _file,
+                                              token,
+                                              '');
+                                        },
                                       ),
                                       ListTile(
                                         leading: Icon(Icons.videocam_outlined),
                                         title: Text('Take video'),
-                                        onTap: () async {},
+                                        onTap: () async {
+                                          XFile? _xfile = await ImagePicker()
+                                              .pickVideo(
+                                                  source: ImageSource.camera);
+                                          File _file = File(_xfile!.path!);
+                                          ChatService().uploadAndSharedFile(
+                                              user.username.toString(),
+                                              _file.path.toString(),
+                                              _xfile.name,
+                                              _file,
+                                              token,
+                                              '');
+                                        },
                                       ),
                                       ListTile(
                                         leading: Icon(Icons.location_on),
@@ -620,14 +645,27 @@ class _ChatPageState extends State<ChatPage> {
             )),
         IconButton(
             onPressed: () {
+              // Navigator.push(
+              //   context,
+              //   MaterialPageRoute(
+              //     builder: (context) =>
+              //         ZegoCallPage(callID: token, user: user.username!),
+              //   ),
+              // );
               Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => CallPage(
-                      token: token,
-                      user: user.username.toString(),
-                    ),
-                  ));
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      CallPage(token: token, user: user.username!),
+                ),
+              );
+              // Navigator.push(
+              //     context,
+              //     MaterialPageRoute(
+              //       builder: (context) =>
+              //           // MeetingScreen(meetingId: token, token: tokenSDK),
+              //           JoinScreen(),
+              //     ));
             },
             icon: Icon(
               Icons.videocam,
@@ -640,16 +678,16 @@ class _ChatPageState extends State<ChatPage> {
           ),
           color: Colors.white,
           itemBuilder: (context) => [
-            PopupMenuItem(
-              child: Text('Tìm kiếm'),
-              onTap: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => SearchChat(),
-                    ));
-              },
-            ),
+            // PopupMenuItem(
+            //   child: Text('Tìm kiếm'),
+            //   onTap: () {
+            //     Navigator.push(
+            //         context,
+            //         MaterialPageRoute(
+            //           builder: (context) => SearchChat(),
+            //         ));
+            //   },
+            // ),
             PopupMenuItem(
               child: Text('Conversation info'),
               onTap: () {

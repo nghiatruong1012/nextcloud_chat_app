@@ -1,11 +1,15 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:nextcloud_chat_app/models/conversations.dart';
 import 'package:nextcloud_chat_app/models/participants.dart';
+import 'package:nextcloud_chat_app/screen/addParticipants/view/add_participants.dart';
 import 'package:nextcloud_chat_app/screen/sharedItem/view/shared_item.dart';
 import 'package:nextcloud_chat_app/service/conversation_service.dart';
 import 'package:nextcloud_chat_app/service/participants_service.dart';
+import 'package:nextcloud_chat_app/service/request.dart';
 
 const participantType = [
   'Owner',
@@ -28,6 +32,8 @@ class ConversationInfo extends StatefulWidget {
 
 class _ConversationInfoState extends State<ConversationInfo> {
   Conversations conversations;
+  Future<Map<String, String>> futureRequestHeaders =
+      HTTPService().authImgHeader();
   final List<Participant> listParticipant;
 
   _ConversationInfoState(
@@ -68,18 +74,66 @@ class _ConversationInfoState extends State<ConversationInfo> {
               child: ClipRRect(
                   borderRadius: BorderRadius.circular(100),
                   child: FutureBuilder(
-                      future: ConversationService().getConversationAvatar(
-                          conversations.token!,
-                          conversations!.name!,
-                          conversations!.lastMessage!.actorType!,
-                          128),
-                      builder: (context, snapshot) {
-                        if (snapshot.hasData) {
-                          return snapshot.data ?? Container();
+                    future: futureRequestHeaders,
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData) {
+                        if (conversations.type == 1) {
+                          return CachedNetworkImage(
+                            imageUrl:
+                                'http://${host}:8080/ocs/v2.php/apps/spreed/api/v1/room/${conversations.token!}/avatar',
+                            placeholder: (context, url) =>
+                                CircularProgressIndicator(),
+                            errorWidget: (context, url, error) {
+                              return Container();
+                            },
+                            httpHeaders: snapshot.data,
+                          );
+                        } else if (conversations.type == 6) {
+                          return Container(
+                              color: Color(0xFF0082c9),
+                              child: Center(child: Text('📝')));
                         } else {
-                          return Container();
+                          return SvgPicture.network(
+                            'http://${host}:8080//ocs/v2.php/apps/spreed/api/v1/room/${conversations.token!}/avatar',
+                            headers: snapshot.data,
+                          );
                         }
-                      })),
+                      } else {
+                        return Container();
+                      }
+                    },
+                  )
+
+                  // FutureBuilder(
+                  //     future: ConversationService()
+                  //         .getConversationAvatar(
+                  //             state.searchList![index].token!,
+                  //             state.searchList![index].name!,
+                  //             state.searchList![index]
+                  //                 .lastMessage!.actorType!),
+                  //     builder: (context, snapshot) {
+                  //       if (snapshot.hasData) {
+                  //         return snapshot.data ?? Container();
+                  //       } else {
+                  //         return CircularProgressIndicator();
+                  //       }
+                  //     }),
+                  ),
+              // ClipRRect(
+              //     borderRadius: BorderRadius.circular(100),
+              //     child: FutureBuilder(
+              //         future: ConversationService().getConversationAvatar(
+              //             conversations.token!,
+              //             conversations!.name!,
+              //             conversations!.lastMessage!.actorType!,
+              //             128),
+              //         builder: (context, snapshot) {
+              //           if (snapshot.hasData) {
+              //             return snapshot.data ?? Container();
+              //           } else {
+              //             return Container();
+              //           }
+              //         })),
             ),
           ),
           Container(
@@ -182,9 +236,81 @@ class _ConversationInfoState extends State<ConversationInfo> {
                   color: Color(0xFF0082c9)),
             ),
           ),
+          (conversations.type == 2 && conversations.participantType! <= 2)
+              ? ListTile(
+                  onTap: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              AddParticipant(token: conversations.token!),
+                        ));
+                  },
+                  title: Text('Add participant'),
+                  leading: Icon(
+                    Icons.person_add_alt_outlined,
+                  ))
+              : Container(),
           Column(
             children: listParticipant
                 .map((e) => ListTile(
+                      onTap: () {
+                        if (conversations.type == 2 &&
+                            conversations.participantType! <= 2) {
+                          showModalBottomSheet(
+                            context: context,
+                            builder: (context) => Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 20, vertical: 10),
+                                  child: Text(
+                                    e.displayName.toString(),
+                                    style: TextStyle(
+                                        fontSize: 18,
+                                        color: Colors.black.withOpacity(0.5)),
+                                  ),
+                                ),
+                                Builder(
+                                  builder: (context) {
+                                    if (e.participantType == 3 ||
+                                        e.participantType == 4) {
+                                      return ListTile(
+                                        leading: Icon(Icons.edit),
+                                        title: Text('Promote to moderator'),
+                                        onTap: () {
+                                          ParticipantsService()
+                                              .promoteModerator(
+                                                  conversations.token!,
+                                                  {"attendeeId": e.actorId});
+                                        },
+                                      );
+                                    } else if (e.participantType == 1) {
+                                      return ListTile(
+                                        leading: Icon(Icons.edit),
+                                        title: Text('Demote to moderator'),
+                                        onTap: () {
+                                          ParticipantsService().deleteModerator(
+                                              conversations.token!,
+                                              {"attendeeId": e.actorId});
+                                        },
+                                      );
+                                    } else {
+                                      return Container();
+                                    }
+                                  },
+                                ),
+                                ListTile(
+                                  leading: Icon(Icons.delete),
+                                  title: Text('Remove participant'),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+                      },
                       leading: Container(
                         width: 40,
                         height: 40,

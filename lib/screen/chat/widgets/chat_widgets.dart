@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:full_screen_image/full_screen_image.dart';
 import 'package:intl/intl.dart';
 import 'package:nextcloud_chat_app/models/chats.dart';
@@ -32,8 +33,12 @@ Widget MessageWidget(
   return Builder(
     builder: (context) {
       if (chat.systemMessage == '') {
-        return ChatMessageWidget(chat, user, context, token, index,
-            requestHeaders, type, isFirstMess, isLastMess, pickChat);
+        return Column(
+          children: [
+            ChatMessageWidget(chat, user, context, token, index, requestHeaders,
+                type, isFirstMess, isLastMess, pickChat),
+          ],
+        );
       } else {
         return SystemMessageWiget(chat);
       }
@@ -132,16 +137,39 @@ Widget FileChatWidget(
                         //     httpHeaders: requestHeaders,
                         //   );
                         // }),
-                        FutureBuilder(
-                            future: ConversationService().getConversationAvatar(
-                                token, chat.actorId!, '', 64),
-                            builder: (context, snapshot) {
-                              if (snapshot.hasData) {
-                                return snapshot.data ?? Container();
-                              } else {
-                                return CircularProgressIndicator();
-                              }
-                            }),
+                        Builder(builder: (context) {
+                      if (type == 4) {
+                        return SvgPicture.network(
+                          'http://${host}:8080//ocs/v2.php/apps/spreed/api/v1/room/${token!}/avatar',
+                          headers: requestHeaders,
+                        );
+                      } else if (type == 6) {
+                        return Container(
+                            color: Color(0xFF0082c9),
+                            child: Center(child: Text('📝')));
+                      } else {
+                        return CachedNetworkImage(
+                          imageUrl:
+                              'http://${host}:8080/avatar/${chat.actorId!}/64?v=0',
+                          placeholder: (context, url) =>
+                              CircularProgressIndicator(),
+                          errorWidget: (context, url, error) {
+                            return Container();
+                          },
+                          httpHeaders: requestHeaders,
+                        );
+                      }
+                    }),
+                    // FutureBuilder(
+                    //     future: ConversationService().getConversationAvatar(
+                    //         token, chat.actorId!, '', 64),
+                    //     builder: (context, snapshot) {
+                    //       if (snapshot.hasData) {
+                    //         return snapshot.data ?? Container();
+                    //       } else {
+                    //         return CircularProgressIndicator();
+                    //       }
+                    //     }),
                   ),
                 )
               : Container(
@@ -445,82 +473,6 @@ Widget FileChatWidget(
                       : Container(),
                 ],
               ),
-              //     (chat
-              //                     .reactions !=
-              //                 {} &&
-              //             state
-              //                 .listChat![
-              //                     reversedIndex]
-              //                 .reactions!
-              //                 .isNotEmpty)
-              //         ? Positioned(
-              //             bottom: 0,
-              //             left: 20,
-              //             child: Container(
-              //               decoration: BoxDecoration(
-              //                   color:
-              //                       (Color.fromARGB(
-              //                           90,
-              //                           162,
-              //                           155,
-              //                           155)),
-              //                   borderRadius:
-              //                       BorderRadius
-              //                           .circular(
-              //                               20)),
-              //               padding:
-              //                   EdgeInsets.symmetric(
-              //                       horizontal: 3,
-              //                       vertical: 2),
-              //               child: Row(
-              //                 mainAxisAlignment:
-              //                     MainAxisAlignment
-              //                         .start,
-              //                 mainAxisSize:
-              //                     MainAxisSize.min,
-              //                 children: state
-              //                     .listChat![
-              //                         reversedIndex]
-              //                     .reactions!
-              //                     .entries
-              //                     .map((entries) {
-              //                   return Container(
-              //                     margin:
-              //                         EdgeInsets.only(
-              //                             right: 5),
-              //                     padding: EdgeInsets
-              //                         .symmetric(
-              //                             horizontal:
-              //                                 3,
-              //                             vertical:
-              //                                 2),
-              //                     // decoration: BoxDecoration(
-              //                     //     color: Colors
-              //                     //         .amber,
-              //                     //     borderRadius:
-              //                     //         BorderRadius
-              //                     //             .circular(
-              //                     //                 20)),
-              //                     child: Row(
-              //                         mainAxisSize:
-              //                             MainAxisSize
-              //                                 .min,
-              //                         children: [
-              //                           Text(entries
-              //                                   .key +
-              //                               " "),
-              //                           Text(entries
-              //                               .value
-              //                               .toString())
-              //                         ]),
-              //                   );
-              //                 }).toList(),
-              //               ),
-              //             ),
-              //           )
-              //         : Container(),
-              //   ],
-              // ),
             ),
           ),
         ],
@@ -579,16 +531,39 @@ Widget TextChatWidget(
                         //     httpHeaders: requestHeaders,
                         //   );
                         // }),
-                        FutureBuilder(
-                            future: ConversationService().getConversationAvatar(
-                                token, chat.actorId!, '', 64),
-                            builder: (context, snapshot) {
-                              if (snapshot.hasData) {
-                                return snapshot.data ?? Container();
-                              } else {
-                                return CircularProgressIndicator();
-                              }
-                            }),
+                        Builder(builder: (context) {
+                      if (type == 4) {
+                        return SvgPicture.network(
+                          'http://${host}:8080//ocs/v2.php/apps/spreed/api/v1/room/${token!}/avatar',
+                          headers: requestHeaders,
+                        );
+                      } else if (type == 6) {
+                        return Container(
+                            color: Color(0xFF0082c9),
+                            child: Center(child: Text('📝')));
+                      } else {
+                        return CachedNetworkImage(
+                          imageUrl:
+                              'http://${host}:8080/avatar/${chat.actorId!}/64?v=0',
+                          placeholder: (context, url) =>
+                              CircularProgressIndicator(),
+                          errorWidget: (context, url, error) {
+                            return Container();
+                          },
+                          httpHeaders: requestHeaders,
+                        );
+                      }
+                    }),
+                    // FutureBuilder(
+                    //     future: ConversationService().getConversationAvatar(
+                    //         token, chat.actorId!, '', 64),
+                    //     builder: (context, snapshot) {
+                    //       if (snapshot.hasData) {
+                    //         return snapshot.data ?? Container();
+                    //       } else {
+                    //         return CircularProgressIndicator();
+                    //       }
+                    //     }),
                   ),
                 )
               : Container(
@@ -596,525 +571,333 @@ Widget TextChatWidget(
                   height: 30,
                   margin: EdgeInsets.only(right: 5),
                 ),
-          GestureDetector(
-            onLongPress: () {
-              showModalBottomSheet(
-                context: context,
-                builder: (context) => Column(
-                  mainAxisSize: MainAxisSize.min,
+          Column(
+            crossAxisAlignment: (chat.actorId == user.username)
+                ? CrossAxisAlignment.end
+                : CrossAxisAlignment.start,
+            children: [
+              GestureDetector(
+                onLongPress: () {
+                  showModalBottomSheet(
+                    context: context,
+                    builder: (context) => Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ListTile(
+                          leading: Icon(Icons.reply),
+                          title: Text('Trả lời'),
+                          onTap: () {
+                            pickChat(chat);
+                            Navigator.pop(context);
+                          },
+                        ),
+                        // ListTile(
+                        //   leading: Icon(Icons.forward),
+                        //   title: Text('Chuyển tiếp'),
+                        // ),
+                        ListTile(
+                          leading: Icon(Icons.copy),
+                          title: Text('Sao chép'),
+                          onTap: () {
+                            Clipboard.setData(
+                                ClipboardData(text: chat.message!));
+                          },
+                        ),
+                        // (!chat.timestamp!.isBefore(
+                        //             DateTime.now().subtract(Duration(hours: 5))) &&
+                        //         chat.actorId == user.username)
+                        //     ? ListTile(
+                        //         leading: Icon(Icons.edit),
+                        //         title: Text('Edit message'),
+                        //       )
+                        //     : Container(),
+                        (!chat.timestamp!.isBefore(DateTime.now()
+                                    .subtract(Duration(hours: 5))) &&
+                                chat.actorId == user.username)
+                            ? ListTile(
+                                leading: Icon(Icons.delete),
+                                title: Text('Delete message'),
+                                onTap: () async {
+                                  final newChat = await ChatService()
+                                      .deleteMessage(token, chat.id.toString());
+                                  chat = newChat;
+                                },
+                              )
+                            : Container()
+                      ],
+                    ),
+                  );
+                },
+                child: Row(
                   children: [
-                    ListTile(
-                      leading: Icon(Icons.reply),
-                      title: Text('Trả lời'),
-                      onTap: () {
-                        pickChat(chat);
-                        Navigator.pop(context);
-                      },
-                    ),
-                    // ListTile(
-                    //   leading: Icon(Icons.forward),
-                    //   title: Text('Chuyển tiếp'),
-                    // ),
-                    ListTile(
-                      leading: Icon(Icons.copy),
-                      title: Text('Sao chép'),
-                      onTap: () {
-                        Clipboard.setData(ClipboardData(text: chat.message!));
-                      },
-                    ),
-                    // (!chat.timestamp!.isBefore(
-                    //             DateTime.now().subtract(Duration(hours: 5))) &&
-                    //         chat.actorId == user.username)
-                    //     ? ListTile(
-                    //         leading: Icon(Icons.edit),
-                    //         title: Text('Edit message'),
-                    //       )
-                    //     : Container(),
-                    (!chat.timestamp!.isBefore(
-                                DateTime.now().subtract(Duration(hours: 5))) &&
-                            chat.actorId == user.username)
-                        ? ListTile(
-                            leading: Icon(Icons.delete),
-                            title: Text('Delete message'),
-                            onTap: () async {
-                              final newChat = await ChatService()
-                                  .deleteMessage(token, chat.id.toString());
-                              chat = newChat;
-                            },
+                    (chat.actorId == user.username)
+                        ? Container(
+                            margin: EdgeInsets.only(right: 10),
+                            child: Text(
+                              DateFormat('HH:mm').format(chat.timestamp!),
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.black.withOpacity(0.7)),
+                            ),
                           )
-                        : Container()
+                        : Container(),
+                    Builder(
+                      builder: (context) {
+                        if (containsOnlyEmojis(chat.message.toString())) {
+                          return Container(
+                            constraints: BoxConstraints(maxWidth: 300),
+                            margin: (index == 0)
+                                ? EdgeInsets.only(
+                                    left: 2, right: 2, top: 2, bottom: 10)
+                                : EdgeInsets.symmetric(vertical: 2),
+                            // padding:
+                            //     EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+                            child: Column(
+                              crossAxisAlignment:
+                                  (chat.actorId == user.username)
+                                      ? CrossAxisAlignment.end
+                                      : CrossAxisAlignment.start,
+                              children: [
+                                (chat.parent != null)
+                                    ? Container(
+                                        decoration: BoxDecoration(
+                                          border: Border(
+                                            left: BorderSide(
+                                                color: Colors.blue
+                                                    .withOpacity(0.5),
+                                                width: 2),
+                                          ),
+                                        ),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Container(
+                                                padding: EdgeInsets.only(
+                                                    left: 5, bottom: 3, top: 1),
+                                                child: Text(
+                                                  chat.parent!.actorDisplayName
+                                                      .toString(),
+                                                  style: TextStyle(
+                                                      color: Colors.black
+                                                          .withOpacity(0.6)),
+                                                )),
+                                            Container(
+                                                padding: EdgeInsets.only(
+                                                    left: 5, top: 3, bottom: 1),
+                                                child: Text(
+                                                  chat.parent!.message
+                                                      .toString(),
+                                                  maxLines: 5,
+                                                )),
+                                          ],
+                                        ))
+                                    : Container(
+                                        width: 0,
+                                      ),
+                                Text(
+                                  chat.message.toString(),
+                                  style: TextStyle(fontSize: 30),
+                                ),
+                              ],
+                            ),
+                          );
+                        } else if (isUrl(chat.message.toString())) {
+                          return Container(
+                            constraints: BoxConstraints(maxWidth: 300),
+                            margin: (index == 0)
+                                ? EdgeInsets.only(
+                                    left: 2, right: 2, top: 2, bottom: 10)
+                                : EdgeInsets.symmetric(vertical: 2),
+                            // padding:
+                            //     EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+                            child: Column(
+                              crossAxisAlignment:
+                                  (chat.actorId == user.username)
+                                      ? CrossAxisAlignment.end
+                                      : CrossAxisAlignment.start,
+                              children: [
+                                (chat.parent != null)
+                                    ? Container(
+                                        decoration: BoxDecoration(
+                                          border: Border(
+                                            left: BorderSide(
+                                                color: Colors.blue
+                                                    .withOpacity(0.5),
+                                                width: 2),
+                                          ),
+                                        ),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Container(
+                                                padding: EdgeInsets.only(
+                                                    left: 5, bottom: 3, top: 1),
+                                                child: Text(
+                                                  chat.parent!.actorDisplayName
+                                                      .toString(),
+                                                  style: TextStyle(
+                                                      color: Colors.black
+                                                          .withOpacity(0.6)),
+                                                )),
+                                            Container(
+                                                padding: EdgeInsets.only(
+                                                    left: 5, top: 3, bottom: 1),
+                                                child: Text(
+                                                  chat.parent!.message
+                                                      .toString(),
+                                                  maxLines: 5,
+                                                )),
+                                          ],
+                                        ))
+                                    : Container(
+                                        width: 0,
+                                      ),
+                                AnyLinkPreview(link: chat.message.toString())
+                              ],
+                            ),
+                          );
+                        } else {
+                          return Container(
+                            // alignment: (chat.actorId == user.username)
+                            //     ? Alignment.centerRight
+                            //     : Alignment.centerLeft,
+                            child: Container(
+                              constraints: BoxConstraints(maxWidth: 300),
+                              margin: (index == 0)
+                                  ? EdgeInsets.only(
+                                      left: 2, right: 2, top: 2, bottom: 10)
+                                  : EdgeInsets.symmetric(vertical: 2),
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 15, vertical: 8),
+                              decoration: (chat.actorId == user.username)
+                                  ? BoxDecoration(
+                                      color: Colors.blue.withOpacity(0.2),
+                                      borderRadius: BorderRadius.only(
+                                        bottomLeft: Radius.circular(20),
+                                        bottomRight: isLastMess
+                                            ? Radius.circular(20)
+                                            : Radius.circular(5),
+                                        topLeft: Radius.circular(20),
+                                        topRight: isFirstMess
+                                            ? Radius.circular(20)
+                                            : Radius.circular(5),
+                                      ),
+                                    )
+                                  : BoxDecoration(
+                                      color: Colors.grey.withOpacity(0.2),
+                                      borderRadius: BorderRadius.only(
+                                        bottomLeft: isLastMess
+                                            ? Radius.circular(20)
+                                            : Radius.circular(2),
+                                        bottomRight: Radius.circular(20),
+                                        topRight: Radius.circular(20),
+                                        topLeft: isFirstMess
+                                            ? Radius.circular(20)
+                                            : Radius.circular(2),
+                                      ),
+                                    ),
+                              child:
+                                  // Column(
+                                  //   children: [
+                                  Column(
+                                crossAxisAlignment:
+                                    (chat.actorId == user.username)
+                                        ? CrossAxisAlignment.end
+                                        : CrossAxisAlignment.start,
+                                children: [
+                                  (chat.parent != null)
+                                      ? Container(
+                                          decoration: BoxDecoration(
+                                            border: Border(
+                                              left: BorderSide(
+                                                  color: Colors.blue
+                                                      .withOpacity(0.5),
+                                                  width: 2),
+                                            ),
+                                          ),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Container(
+                                                  padding: EdgeInsets.only(
+                                                      left: 5,
+                                                      bottom: 3,
+                                                      top: 1),
+                                                  child: Text(
+                                                    chat.parent!
+                                                        .actorDisplayName
+                                                        .toString(),
+                                                    style: TextStyle(
+                                                        color: Colors.black
+                                                            .withOpacity(0.6)),
+                                                  )),
+                                              Container(
+                                                  padding: EdgeInsets.only(
+                                                      left: 5,
+                                                      top: 3,
+                                                      bottom: 1),
+                                                  child: Text(
+                                                    chat.parent!.message
+                                                        .toString(),
+                                                    maxLines: 5,
+                                                  )),
+                                            ],
+                                          ))
+                                      : Container(
+                                          width: 0,
+                                        ),
+                                  Text(
+                                    // EncryptionDecryption.decryptMessage(
+                                    //     encrypt.Encrypted.fromBase64(
+                                    //         chat.message.toString())),
+                                    // EncryptionDecryption().decryptMessage(token, chat.message.toString()),
+                                    chat.message.toString(),
+                                    style: TextStyle(fontSize: 18),
+                                    maxLines: 10,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                    (chat.actorId != user.username)
+                        ? Container(
+                            margin: EdgeInsets.only(left: 10),
+                            child: Text(
+                              DateFormat('HH:mm').format(chat.timestamp!),
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.black.withOpacity(0.7)),
+                            ),
+                          )
+                        : Container(),
                   ],
                 ),
-              );
-            },
-            child: Row(
-              children: [
-                (chat.actorId == user.username)
-                    ? Container(
-                        margin: EdgeInsets.only(right: 10),
-                        child: Text(
-                          DateFormat('HH:mm').format(chat.timestamp!),
-                          style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.black.withOpacity(0.7)),
-                        ),
-                      )
-                    : Container(),
-                Builder(
-                  builder: (context) {
-                    if (containsOnlyEmojis(chat.message.toString())) {
-                      return Container(
-                        constraints: BoxConstraints(maxWidth: 300),
-                        margin: (index == 0)
-                            ? EdgeInsets.only(
-                                left: 2, right: 2, top: 2, bottom: 10)
-                            : EdgeInsets.symmetric(vertical: 2),
-                        // padding:
-                        //     EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-                        child: Column(
-                          crossAxisAlignment: (chat.actorId == user.username)
-                              ? CrossAxisAlignment.end
-                              : CrossAxisAlignment.start,
-                          children: [
-                            (chat.parent != null)
-                                ? Container(
-                                    decoration: BoxDecoration(
-                                      border: Border(
-                                        left: BorderSide(
-                                            color: Colors.blue.withOpacity(0.5),
-                                            width: 2),
-                                      ),
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Container(
-                                            padding: EdgeInsets.only(
-                                                left: 5, bottom: 3, top: 1),
-                                            child: Text(
-                                              chat.parent!.actorDisplayName
-                                                  .toString(),
-                                              style: TextStyle(
-                                                  color: Colors.black
-                                                      .withOpacity(0.6)),
-                                            )),
-                                        Container(
-                                            padding: EdgeInsets.only(
-                                                left: 5, top: 3, bottom: 1),
-                                            child: Text(
-                                              chat.parent!.message.toString(),
-                                              maxLines: 5,
-                                            )),
-                                      ],
-                                    ))
-                                : Container(
-                                    width: 0,
-                                  ),
-                            Text(
-                              chat.message.toString(),
-                              style: TextStyle(fontSize: 30),
-                            ),
-                          ],
-                        ),
-                      );
-                    } else if (isUrl(chat.message.toString())) {
-                      return Container(
-                        constraints: BoxConstraints(maxWidth: 300),
-                        margin: (index == 0)
-                            ? EdgeInsets.only(
-                                left: 2, right: 2, top: 2, bottom: 10)
-                            : EdgeInsets.symmetric(vertical: 2),
-                        // padding:
-                        //     EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-                        child: Column(
-                          crossAxisAlignment: (chat.actorId == user.username)
-                              ? CrossAxisAlignment.end
-                              : CrossAxisAlignment.start,
-                          children: [
-                            (chat.parent != null)
-                                ? Container(
-                                    decoration: BoxDecoration(
-                                      border: Border(
-                                        left: BorderSide(
-                                            color: Colors.blue.withOpacity(0.5),
-                                            width: 2),
-                                      ),
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Container(
-                                            padding: EdgeInsets.only(
-                                                left: 5, bottom: 3, top: 1),
-                                            child: Text(
-                                              chat.parent!.actorDisplayName
-                                                  .toString(),
-                                              style: TextStyle(
-                                                  color: Colors.black
-                                                      .withOpacity(0.6)),
-                                            )),
-                                        Container(
-                                            padding: EdgeInsets.only(
-                                                left: 5, top: 3, bottom: 1),
-                                            child: Text(
-                                              chat.parent!.message.toString(),
-                                              maxLines: 5,
-                                            )),
-                                      ],
-                                    ))
-                                : Container(
-                                    width: 0,
-                                  ),
-                            AnyLinkPreview(link: chat.message.toString())
-                          ],
-                        ),
-                      );
-                    } else {
-                      return Container(
-                        // alignment: (chat.actorId == user.username)
-                        //     ? Alignment.centerRight
-                        //     : Alignment.centerLeft,
-                        child: Container(
-                          constraints: BoxConstraints(maxWidth: 300),
-                          margin: (index == 0)
-                              ? EdgeInsets.only(
-                                  left: 2, right: 2, top: 2, bottom: 10)
-                              : EdgeInsets.symmetric(vertical: 2),
-                          padding:
-                              EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-                          decoration: (chat.actorId == user.username)
-                              ? BoxDecoration(
-                                  color: Colors.blue.withOpacity(0.2),
-                                  borderRadius: BorderRadius.only(
-                                    bottomLeft: Radius.circular(20),
-                                    bottomRight: isLastMess
-                                        ? Radius.circular(20)
-                                        : Radius.circular(5),
-                                    topLeft: Radius.circular(20),
-                                    topRight: isFirstMess
-                                        ? Radius.circular(20)
-                                        : Radius.circular(5),
-                                  ),
-                                )
-                              : BoxDecoration(
-                                  color: Colors.grey.withOpacity(0.2),
-                                  borderRadius: BorderRadius.only(
-                                    bottomLeft: isLastMess
-                                        ? Radius.circular(20)
-                                        : Radius.circular(2),
-                                    bottomRight: Radius.circular(20),
-                                    topRight: Radius.circular(20),
-                                    topLeft: isFirstMess
-                                        ? Radius.circular(20)
-                                        : Radius.circular(2),
-                                  ),
-                                ),
-                          child:
-                              // Column(
-                              //   children: [
-                              Column(
-                            crossAxisAlignment: (chat.actorId == user.username)
-                                ? CrossAxisAlignment.end
-                                : CrossAxisAlignment.start,
-                            children: [
-                              (chat.parent != null)
-                                  ? Container(
-                                      decoration: BoxDecoration(
-                                        border: Border(
-                                          left: BorderSide(
-                                              color:
-                                                  Colors.blue.withOpacity(0.5),
-                                              width: 2),
-                                        ),
-                                      ),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Container(
-                                              padding: EdgeInsets.only(
-                                                  left: 5, bottom: 3, top: 1),
-                                              child: Text(
-                                                chat.parent!.actorDisplayName
-                                                    .toString(),
-                                                style: TextStyle(
-                                                    color: Colors.black
-                                                        .withOpacity(0.6)),
-                                              )),
-                                          Container(
-                                              padding: EdgeInsets.only(
-                                                  left: 5, top: 3, bottom: 1),
-                                              child: Text(
-                                                chat.parent!.message.toString(),
-                                                maxLines: 5,
-                                              )),
-                                        ],
-                                      ))
-                                  : Container(
-                                      width: 0,
-                                    ),
-                              Text(
-                                // EncryptionDecryption.decryptMessage(
-                                //     encrypt.Encrypted.fromBase64(
-                                //         chat.message.toString())),
-                                // EncryptionDecryption().decryptMessage(token, chat.message.toString()),
-                                chat.message.toString(),
-                                style: TextStyle(fontSize: 18),
-                                maxLines: 10,
-                              ),
-                            ],
-                          ),
-                          //     (chat
-                          //                 .reactions !=
-                          //             {})
-                          //         ? Row(
-                          //             mainAxisAlignment:
-                          //                 MainAxisAlignment
-                          //                     .start,
-                          //             mainAxisSize:
-                          //                 MainAxisSize.min,
-                          //             children: state
-                          //                 .listChat![
-                          //                     reversedIndex]
-                          //                 .reactions!
-                          //                 .entries
-                          //                 .map((entries) {
-                          //               return Container(
-                          //                 // decoration: BoxDecoration(
-                          //                 //     color:
-                          //                 //         Colors.amber,
-                          //                 //     borderRadius:
-                          //                 //         BorderRadius
-                          //                 //             .circular(
-                          //                 //                 20)),
-                          //                 child: Row(
-                          //                     mainAxisSize:
-                          //                         MainAxisSize
-                          //                             .min,
-                          //                     children: [
-                          //                       Text(entries
-                          //                           .key),
-                          //                       Text(entries
-                          //                           .value
-                          //                           .toString())
-                          //                     ]),
-                          //               );
-                          //             }).toList(),
-                          //           )
-                          //         : Container(),
-                          //   ],
-                          // ),
-                        ),
-                      );
-                    }
-                  },
-                ),
-                // (containsOnlyEmojis(chat.message.toString()))
-                //     ? Container(
-                //         constraints: BoxConstraints(maxWidth: 300),
-                //         margin: (index == 0)
-                //             ? EdgeInsets.only(
-                //                 left: 2, right: 2, top: 2, bottom: 10)
-                //             : EdgeInsets.symmetric(vertical: 2),
-                //         // padding:
-                //         //     EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-                //         child: Column(
-                //           crossAxisAlignment: (chat.actorId == user.username)
-                //               ? CrossAxisAlignment.end
-                //               : CrossAxisAlignment.start,
-                //           children: [
-                //             (chat.parent != null)
-                //                 ? Container(
-                //                     decoration: BoxDecoration(
-                //                       border: Border(
-                //                         left: BorderSide(
-                //                             color:
-                //                                 Colors.blue.withOpacity(0.5),
-                //                             width: 2),
-                //                       ),
-                //                     ),
-                //                     child: Column(
-                //                       crossAxisAlignment:
-                //                           CrossAxisAlignment.start,
-                //                       children: [
-                //                         Container(
-                //                             padding: EdgeInsets.only(
-                //                                 left: 5, bottom: 3, top: 1),
-                //                             child: Text(
-                //                               chat.parent!.actorDisplayName
-                //                                   .toString(),
-                //                               style: TextStyle(
-                //                                   color: Colors.black
-                //                                       .withOpacity(0.6)),
-                //                             )),
-                //                         Container(
-                //                             padding: EdgeInsets.only(
-                //                                 left: 5, top: 3, bottom: 1),
-                //                             child: Text(
-                //                               chat.parent!.message.toString(),
-                //                               maxLines: 5,
-                //                             )),
-                //                       ],
-                //                     ))
-                //                 : Container(
-                //                     width: 0,
-                //                   ),
-                //             Text(
-                //               chat.message.toString(),
-                //               style: TextStyle(fontSize: 30),
-                //             ),
-                //           ],
-                //         ),
-                //       )
-                //     : Container(
-                //         // alignment: (chat.actorId == user.username)
-                //         //     ? Alignment.centerRight
-                //         //     : Alignment.centerLeft,
-                //         child: Container(
-                //           constraints: BoxConstraints(maxWidth: 300),
-                //           margin: (index == 0)
-                //               ? EdgeInsets.only(
-                //                   left: 2, right: 2, top: 2, bottom: 10)
-                //               : EdgeInsets.symmetric(vertical: 2),
-                //           padding:
-                //               EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-                //           decoration: (chat.actorId == user.username)
-                //               ? BoxDecoration(
-                //                   color: Colors.blue.withOpacity(0.2),
-                //                   borderRadius: BorderRadius.only(
-                //                     bottomLeft: Radius.circular(20),
-                //                     bottomRight: isLastMess
-                //                         ? Radius.circular(20)
-                //                         : Radius.circular(5),
-                //                     topLeft: Radius.circular(20),
-                //                     topRight: isFirstMess
-                //                         ? Radius.circular(20)
-                //                         : Radius.circular(5),
-                //                   ),
-                //                 )
-                //               : BoxDecoration(
-                //                   color: Colors.grey.withOpacity(0.2),
-                //                   borderRadius: BorderRadius.only(
-                //                     bottomLeft: isLastMess
-                //                         ? Radius.circular(20)
-                //                         : Radius.circular(2),
-                //                     bottomRight: Radius.circular(20),
-                //                     topRight: Radius.circular(20),
-                //                     topLeft: isFirstMess
-                //                         ? Radius.circular(20)
-                //                         : Radius.circular(2),
-                //                   ),
-                //                 ),
-                //           child:
-                //               // Column(
-                //               //   children: [
-                //               Column(
-                //             crossAxisAlignment: (chat.actorId == user.username)
-                //                 ? CrossAxisAlignment.end
-                //                 : CrossAxisAlignment.start,
-                //             children: [
-                //               (chat.parent != null)
-                //                   ? Container(
-                //                       decoration: BoxDecoration(
-                //                         border: Border(
-                //                           left: BorderSide(
-                //                               color:
-                //                                   Colors.blue.withOpacity(0.5),
-                //                               width: 2),
-                //                         ),
-                //                       ),
-                //                       child: Column(
-                //                         crossAxisAlignment:
-                //                             CrossAxisAlignment.start,
-                //                         children: [
-                //                           Container(
-                //                               padding: EdgeInsets.only(
-                //                                   left: 5, bottom: 3, top: 1),
-                //                               child: Text(
-                //                                 chat.parent!.actorDisplayName
-                //                                     .toString(),
-                //                                 style: TextStyle(
-                //                                     color: Colors.black
-                //                                         .withOpacity(0.6)),
-                //                               )),
-                //                           Container(
-                //                               padding: EdgeInsets.only(
-                //                                   left: 5, top: 3, bottom: 1),
-                //                               child: Text(
-                //                                 chat.parent!.message.toString(),
-                //                                 maxLines: 5,
-                //                               )),
-                //                         ],
-                //                       ))
-                //                   : Container(
-                //                       width: 0,
-                //                     ),
-                //               (isUrl(chat.message.toString()))
-                //                   ? AnyLinkPreview(
-                //                       link: chat.message.toString())
-                //                   : Text(
-                //                       chat.message.toString(),
-                //                       style: TextStyle(fontSize: 18),
-                //                     ),
-                //             ],
-                //           ),
-                //           //     (chat
-                //           //                 .reactions !=
-                //           //             {})
-                //           //         ? Row(
-                //           //             mainAxisAlignment:
-                //           //                 MainAxisAlignment
-                //           //                     .start,
-                //           //             mainAxisSize:
-                //           //                 MainAxisSize.min,
-                //           //             children: state
-                //           //                 .listChat![
-                //           //                     reversedIndex]
-                //           //                 .reactions!
-                //           //                 .entries
-                //           //                 .map((entries) {
-                //           //               return Container(
-                //           //                 // decoration: BoxDecoration(
-                //           //                 //     color:
-                //           //                 //         Colors.amber,
-                //           //                 //     borderRadius:
-                //           //                 //         BorderRadius
-                //           //                 //             .circular(
-                //           //                 //                 20)),
-                //           //                 child: Row(
-                //           //                     mainAxisSize:
-                //           //                         MainAxisSize
-                //           //                             .min,
-                //           //                     children: [
-                //           //                       Text(entries
-                //           //                           .key),
-                //           //                       Text(entries
-                //           //                           .value
-                //           //                           .toString())
-                //           //                     ]),
-                //           //               );
-                //           //             }).toList(),
-                //           //           )
-                //           //         : Container(),
-                //           //   ],
-                //           // ),
-                //         ),
-                //       ),
-                (chat.actorId != user.username)
-                    ? Container(
-                        margin: EdgeInsets.only(left: 10),
-                        child: Text(
-                          DateFormat('HH:mm').format(chat.timestamp!),
-                          style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.black.withOpacity(0.7)),
-                        ),
-                      )
-                    : Container(),
-              ],
-            ),
+              ),
+              // (chat.reactions != {})
+              //     ? Row(
+              //         children: chat.reactions!.keys.map((key) {
+              //           final value = chat.reactions![
+              //               key]; // Accessing value corresponding to the key
+              //           return Container(
+              //             padding:
+              //                 EdgeInsets.symmetric(horizontal: 3, vertical: 2),
+              //             margin: EdgeInsets.symmetric(horizontal: 2),
+              //             decoration: BoxDecoration(
+              //               borderRadius: BorderRadius.circular(30),
+              //               color: Colors.grey.withOpacity(0.2),
+              //             ),
+              //             child: Text('$key $value'),
+              //           );
+              //         }).toList(),
+              //       )
+              //     : Container(),
+            ],
           ),
         ],
       ),
@@ -1171,16 +954,39 @@ Widget ObjectChatWidget(
                         //     httpHeaders: requestHeaders,
                         //   );
                         // }),
-                        FutureBuilder(
-                            future: ConversationService().getConversationAvatar(
-                                token, chat.actorId!, '', 64),
-                            builder: (context, snapshot) {
-                              if (snapshot.hasData) {
-                                return snapshot.data ?? Container();
-                              } else {
-                                return CircularProgressIndicator();
-                              }
-                            }),
+                        Builder(builder: (context) {
+                      if (type == 4) {
+                        return SvgPicture.network(
+                          'http://${host}:8080//ocs/v2.php/apps/spreed/api/v1/room/${token!}/avatar',
+                          headers: requestHeaders,
+                        );
+                      } else if (type == 6) {
+                        return Container(
+                            color: Color(0xFF0082c9),
+                            child: Center(child: Text('📝')));
+                      } else {
+                        return CachedNetworkImage(
+                          imageUrl:
+                              'http://${host}:8080/avatar/${chat.actorId!}/64?v=0',
+                          placeholder: (context, url) =>
+                              CircularProgressIndicator(),
+                          errorWidget: (context, url, error) {
+                            return Container();
+                          },
+                          httpHeaders: requestHeaders,
+                        );
+                      }
+                    }),
+                    // FutureBuilder(
+                    //     future: ConversationService().getConversationAvatar(
+                    //         token, chat.actorId!, '', 64),
+                    //     builder: (context, snapshot) {
+                    //       if (snapshot.hasData) {
+                    //         return snapshot.data ?? Container();
+                    //       } else {
+                    //         return CircularProgressIndicator();
+                    //       }
+                    //     }),
                   ),
                 )
               : Container(
@@ -1364,46 +1170,6 @@ Widget ObjectChatWidget(
                               // ),
                             ],
                           ),
-                          //     (chat
-                          //                 .reactions !=
-                          //             {})
-                          //         ? Row(
-                          //             mainAxisAlignment:
-                          //                 MainAxisAlignment
-                          //                     .start,
-                          //             mainAxisSize:
-                          //                 MainAxisSize.min,
-                          //             children: state
-                          //                 .listChat![
-                          //                     reversedIndex]
-                          //                 .reactions!
-                          //                 .entries
-                          //                 .map((entries) {
-                          //               return Container(
-                          //                 // decoration: BoxDecoration(
-                          //                 //     color:
-                          //                 //         Colors.amber,
-                          //                 //     borderRadius:
-                          //                 //         BorderRadius
-                          //                 //             .circular(
-                          //                 //                 20)),
-                          //                 child: Row(
-                          //                     mainAxisSize:
-                          //                         MainAxisSize
-                          //                             .min,
-                          //                     children: [
-                          //                       Text(entries
-                          //                           .key),
-                          //                       Text(entries
-                          //                           .value
-                          //                           .toString())
-                          //                     ]),
-                          //               );
-                          //             }).toList(),
-                          //           )
-                          //         : Container(),
-                          //   ],
-                          // ),
                         ),
                       ),
                 (chat.actorId != user.username)

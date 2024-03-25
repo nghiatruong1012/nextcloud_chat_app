@@ -96,6 +96,9 @@ bool isUrl(String string) {
 }
 
 class Utils {
+  static int appId = 834139992;
+  static String appSignin =
+      "fd07646c89be06a8b19db880c9508805423ce1d4d2b8691fa37d1b51765d20a4";
   void showToast(String message) => Fluttertoast.showToast(
         msg: message,
         toastLength: Toast.LENGTH_SHORT,

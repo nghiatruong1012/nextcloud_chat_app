@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:nextcloud_chat_app/authentication/bloc/authentication_bloc.dart';
 import 'package:nextcloud_chat_app/repositories/authentication_repository.dart';
 import 'package:nextcloud_chat_app/repositories/user_repository.dart';
+import 'package:nextcloud_chat_app/screen/addParticipants/bloc/add_participants_bloc.dart';
 import 'package:nextcloud_chat_app/screen/chat/bloc/chat_bloc.dart';
 import 'package:nextcloud_chat_app/screen/createConversation/bloc/create_conversation_bloc.dart';
 import 'package:nextcloud_chat_app/screen/home/bloc/home_bloc.dart';
@@ -36,6 +37,9 @@ class MyApp extends StatelessWidget {
           ),
           BlocProvider(
             create: (context) => CreateConversationBloc(),
+          ),
+          BlocProvider(
+            create: (context) => AddParticipantsBloc(),
           ),
           // BlocProvider(
           //   create: (context) => ChatBloc(),
