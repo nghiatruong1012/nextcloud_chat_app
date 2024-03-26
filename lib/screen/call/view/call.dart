@@ -100,9 +100,53 @@ class _CallPageState extends State<CallPage> {
       "sessionId": localSessionId,
     });
     _peerConnection!.setLocalDescription(description);
+    print('join call');
+
+    // Delay before sending data
+    // Future.delayed(Duration(seconds: 7), () {
+    //   print("data: " + data.toString());
+    //   Clipboard.setData(ClipboardData(
+    //     text: jsonEncode({
+    //       "messages": jsonEncode(data),
+    //     }),
+    //   ));
+    //   SignalingService().postSignal(token, {
+    //     "messages": jsonEncode(data),
+    //   });
+    //   print('send data');
+
+    //   // Delay before turning on camera and microphone
+    //   Future.delayed(Duration(seconds: 2), () {
+    //     SignalingService().postSignal(token, {
+    //       "messages": jsonEncode([
+    //         {
+    //           "ev": "message",
+    //           "fn": jsonEncode({
+    //             "to": remoteSessionId,
+    //             "roomType": "video",
+    //             "type": "unmute",
+    //             "payload": {"name": "video"}
+    //           }),
+    //           "sessionId": localSessionId,
+    //         },
+    //         {
+    //           "ev": "message",
+    //           "fn": jsonEncode({
+    //             "to": remoteSessionId,
+    //             "roomType": "video",
+    //             "type": "unmute",
+    //             "payload": {"name": "audio"}
+    //           }),
+    //           "sessionId": localSessionId,
+    //         }
+    //       ]),
+    //     });
+    //     print('turn on camera');
+    //   });
+    // });
   }
 
-  Future<void> getSignal() async {
+  getSignal() async {
     Map<String, String> requestHeaders = await HTTPService().authHeader();
 
     try {
@@ -138,14 +182,16 @@ class _CallPageState extends State<CallPage> {
                   ["data"][0]["sessionId"];
               remoteSessionId = jsonDecode(response.body)["ocs"]["data"][0]
                   ["data"][1]["sessionId"];
+              // joinCall();
+            } else {
+              localSessionId = jsonDecode(response.body)["ocs"]["data"][0]
+                  ["data"][1]["sessionId"];
+              remoteSessionId = jsonDecode(response.body)["ocs"]["data"][0]
+                  ["data"][0]["sessionId"];
+              // joinCall();
             }
             print("sid" + localSessionId);
             print("sid" + remoteSessionId);
-          } else {
-            localSessionId = jsonDecode(response.body)["ocs"]["data"][0]["data"]
-                [1]["sessionId"];
-            remoteSessionId = jsonDecode(response.body)["ocs"]["data"][0]
-                ["data"][0]["sessionId"];
           }
         } else if (jsonDecode(response.body)["ocs"]["data"][0]["type"]
                 .toString() ==
@@ -250,9 +296,9 @@ class _CallPageState extends State<CallPage> {
         // }
       }
     };
+
     pc.onAddStream = (stream) {
-      print('addStream: ' + stream.toString());
-      print(stream.active);
+      print('addStream: ' + stream.id.toString());
       setState(() {
         _remoteRenderer.srcObject = stream;
       });
@@ -336,16 +382,20 @@ class _CallPageState extends State<CallPage> {
           child: Column(
             // alignment: Alignment.topRight,
             children: [
-              Container(
-                child: Expanded(
-                  child: RTCVideoView(_remoteRenderer),
-                ),
+              Flexible(
+                child: new Container(
+                    key: new Key("local"),
+                    margin: new EdgeInsets.fromLTRB(5.0, 5.0, 5.0, 5.0),
+                    decoration: new BoxDecoration(color: Colors.black),
+                    child: new RTCVideoView(_localRenderer)),
               ),
-              Container(
-                child: Expanded(
-                  child: RTCVideoView(_localRenderer),
-                ),
-              ),
+              Flexible(
+                child: new Container(
+                    key: new Key("remote"),
+                    margin: new EdgeInsets.fromLTRB(5.0, 5.0, 5.0, 5.0),
+                    decoration: new BoxDecoration(color: Colors.black),
+                    child: new RTCVideoView(_remoteRenderer)),
+              )
             ],
           ),
         ),
