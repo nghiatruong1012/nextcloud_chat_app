@@ -37,6 +37,13 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       ));
       fetchApi();
     });
+    // on<ChangeMessage>((event, emit) {
+    //   emit(state.copyWith(
+    //       listChat: state.listChat!
+    //           .map((e) =>
+    //               e.id == event.chat.parent!.id ? event.chat.parent as Chat : e)
+    //           .toList()));
+    // });
 
     // on<ReceiveMessage>((event, emit) async {
     //   print(state.lastKnownMessageId);
@@ -133,6 +140,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       if (response.statusCode == 200) {
         List<dynamic> data = jsonDecode(response.body)["ocs"]["data"];
         List<Chat> listChat = data.map((item) => Chat.fromJson(item)).toList();
+
         state.listChat!.addAll(listChat);
         emit(state.copyWith(
             lastKnownMessageId:

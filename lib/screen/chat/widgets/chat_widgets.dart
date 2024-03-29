@@ -20,16 +20,17 @@ import 'package:voice_message_package/voice_message_package.dart';
 import 'package:encrypt/encrypt.dart' as encrypt;
 
 Widget MessageWidget(
-    Chat chat,
-    User user,
-    BuildContext context,
-    String token,
-    int index,
-    Map<String, String> requestHeaders,
-    int type,
-    bool isFirstMess,
-    bool isLastMess,
-    void pickChat(Chat chat)) {
+  Chat chat,
+  User user,
+  BuildContext context,
+  String token,
+  int index,
+  Map<String, String> requestHeaders,
+  int type,
+  bool isFirstMess,
+  bool isLastMess,
+  void pickChat(Chat chat),
+) {
   return Builder(
     builder: (context) {
       if (chat.systemMessage == '') {

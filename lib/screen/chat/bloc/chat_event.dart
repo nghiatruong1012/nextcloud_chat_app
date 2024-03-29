@@ -22,4 +22,11 @@ class SendMessage extends ChatEvent {
   );
 }
 
+// class ChangeMessage extends ChatEvent {
+//   Chat chat;
+//   ChangeMessage({
+//     required this.chat,
+//   });
+// }
+
 class LoadOlderMessage extends ChatEvent {}

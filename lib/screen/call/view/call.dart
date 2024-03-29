@@ -10,7 +10,7 @@ import 'package:http/http.dart' as http;
 import 'package:nextcloud_chat_app/service/signaling_service.dart';
 
 final Map<String, dynamic> constraints = {
-  'audio': true,
+  'audio': false,
   'video': true,
 };
 
@@ -34,6 +34,7 @@ class CallPage extends StatefulWidget {
 class _CallPageState extends State<CallPage> {
   final String token;
   final String user;
+  bool inCall = false;
 
   MediaStream? _localStream;
   RTCPeerConnection? _peerConnection;
@@ -69,6 +70,17 @@ class _CallPageState extends State<CallPage> {
         _peerConnection = pc;
       });
     });
+
+    // Future.delayed(Duration.zero, () async {
+    //   while (localSessionId == null || remoteSessionId == null) {
+    //     // Đợi 1 giây trước khi kiểm tra lại
+    //     await Future.delayed(Duration(seconds: 1));
+    //   }
+
+    //   // Khi cả hai biến đã có giá trị, gọi hàm joinCall()
+    //   joinCall();
+    // });
+
     super.initState();
   }
 
@@ -103,47 +115,47 @@ class _CallPageState extends State<CallPage> {
     print('join call');
 
     // Delay before sending data
-    // Future.delayed(Duration(seconds: 7), () {
-    //   print("data: " + data.toString());
-    //   Clipboard.setData(ClipboardData(
-    //     text: jsonEncode({
-    //       "messages": jsonEncode(data),
-    //     }),
-    //   ));
-    //   SignalingService().postSignal(token, {
-    //     "messages": jsonEncode(data),
-    //   });
-    //   print('send data');
+    Future.delayed(Duration(seconds: 5), () {
+      print("data: " + data.toString());
+      Clipboard.setData(ClipboardData(
+        text: jsonEncode({
+          "messages": jsonEncode(data),
+        }),
+      ));
+      SignalingService().postSignal(token, {
+        "messages": jsonEncode(data),
+      });
+      print('send data');
 
-    //   // Delay before turning on camera and microphone
-    //   Future.delayed(Duration(seconds: 2), () {
-    //     SignalingService().postSignal(token, {
-    //       "messages": jsonEncode([
-    //         {
-    //           "ev": "message",
-    //           "fn": jsonEncode({
-    //             "to": remoteSessionId,
-    //             "roomType": "video",
-    //             "type": "unmute",
-    //             "payload": {"name": "video"}
-    //           }),
-    //           "sessionId": localSessionId,
-    //         },
-    //         {
-    //           "ev": "message",
-    //           "fn": jsonEncode({
-    //             "to": remoteSessionId,
-    //             "roomType": "video",
-    //             "type": "unmute",
-    //             "payload": {"name": "audio"}
-    //           }),
-    //           "sessionId": localSessionId,
-    //         }
-    //       ]),
-    //     });
-    //     print('turn on camera');
-    //   });
-    // });
+      // Delay before turning on camera and microphone
+      Future.delayed(Duration(seconds: 5), () {
+        SignalingService().postSignal(token, {
+          "messages": jsonEncode([
+            {
+              "ev": "message",
+              "fn": jsonEncode({
+                "to": remoteSessionId,
+                "roomType": "video",
+                "type": "unmute",
+                "payload": {"name": "video"}
+              }),
+              "sessionId": localSessionId,
+            },
+            {
+              "ev": "message",
+              "fn": jsonEncode({
+                "to": remoteSessionId,
+                "roomType": "video",
+                "type": "unmute",
+                "payload": {"name": "audio"}
+              }),
+              "sessionId": localSessionId,
+            }
+          ]),
+        });
+        print('turn on camera');
+      });
+    });
   }
 
   getSignal() async {
@@ -182,13 +194,20 @@ class _CallPageState extends State<CallPage> {
                   ["data"][0]["sessionId"];
               remoteSessionId = jsonDecode(response.body)["ocs"]["data"][0]
                   ["data"][1]["sessionId"];
-              // joinCall();
+              if (!inCall) {
+                joinCall();
+                inCall = true;
+              }
             } else {
               localSessionId = jsonDecode(response.body)["ocs"]["data"][0]
                   ["data"][1]["sessionId"];
               remoteSessionId = jsonDecode(response.body)["ocs"]["data"][0]
                   ["data"][0]["sessionId"];
               // joinCall();
+              if (!inCall) {
+                joinCall();
+                inCall = true;
+              }
             }
             print("sid" + localSessionId);
             print("sid" + remoteSessionId);
@@ -309,32 +328,33 @@ class _CallPageState extends State<CallPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          FloatingActionButton(
-            onPressed: () {
-              joinCall();
-            },
-            heroTag: 'join_call',
-            child: Icon(Icons.call),
-            backgroundColor: Colors.green,
-          ),
-          FloatingActionButton(
-            heroTag: 'data',
-            onPressed: () {
-              print("data: " + data.toString());
-              Clipboard.setData(ClipboardData(
-                  text: jsonEncode({
-                "messages": jsonEncode(data),
-              })));
-              SignalingService().postSignal(token, {
-                "messages": jsonEncode(data),
-              });
-            },
-            child: Icon(Icons.call_made_outlined),
-            backgroundColor: Colors.yellow,
-          ),
+          // FloatingActionButton(
+          //   onPressed: () {
+          //     joinCall();
+          //   },
+          //   heroTag: 'join_call',
+          //   child: Icon(Icons.call),
+          //   backgroundColor: Colors.green,
+          // ),
+          // FloatingActionButton(
+          //   heroTag: 'data',
+          //   onPressed: () {
+          //     print("data: " + data.toString());
+          //     Clipboard.setData(ClipboardData(
+          //         text: jsonEncode({
+          //       "messages": jsonEncode(data),
+          //     })));
+          //     SignalingService().postSignal(token, {
+          //       "messages": jsonEncode(data),
+          //     });
+          //   },
+          //   child: Icon(Icons.call_made_outlined),
+          //   backgroundColor: Colors.yellow,
+          // ),
           FloatingActionButton(
             child: Icon(Icons.camera),
             heroTag: 'camera',
@@ -351,16 +371,16 @@ class _CallPageState extends State<CallPage> {
                     }),
                     "sessionId": localSessionId,
                   },
-                  {
-                    "ev": "message",
-                    "fn": jsonEncode({
-                      "to": remoteSessionId,
-                      "roomType": "video",
-                      "type": "unmute",
-                      "payload": {"name": "audio"}
-                    }),
-                    "sessionId": localSessionId,
-                  }
+                  // {
+                  //   "ev": "message",
+                  //   "fn": jsonEncode({
+                  //     "to": remoteSessionId,
+                  //     "roomType": "video",
+                  //     "type": "unmute",
+                  //     "payload": {"name": "audio"}
+                  //   }),
+                  //   "sessionId": localSessionId,
+                  // }
                 ]),
               });
             },
@@ -375,27 +395,49 @@ class _CallPageState extends State<CallPage> {
             child: Icon(Icons.call_end),
             backgroundColor: Colors.red,
           ),
+          FloatingActionButton(
+            child: Icon(Icons.mic),
+            heroTag: 'mic',
+            onPressed: () {
+              SignalingService().postSignal(token, {
+                "messages": jsonEncode([
+                  {
+                    "ev": "message",
+                    "fn": jsonEncode({
+                      "to": remoteSessionId,
+                      "roomType": "video",
+                      "type": "unmute",
+                      "payload": {"name": "audio"}
+                    }),
+                    "sessionId": localSessionId,
+                  }
+                ]),
+              });
+            },
+          ),
         ],
       ),
       body: SafeArea(
         child: Container(
-          child: Column(
-            // alignment: Alignment.topRight,
+          child: Stack(
+            alignment: Alignment.topRight,
             children: [
-              Flexible(
-                child: new Container(
-                    key: new Key("local"),
-                    margin: new EdgeInsets.fromLTRB(5.0, 5.0, 5.0, 5.0),
-                    decoration: new BoxDecoration(color: Colors.black),
-                    child: new RTCVideoView(_localRenderer)),
-              ),
               Flexible(
                 child: new Container(
                     key: new Key("remote"),
                     margin: new EdgeInsets.fromLTRB(5.0, 5.0, 5.0, 5.0),
                     decoration: new BoxDecoration(color: Colors.black),
                     child: new RTCVideoView(_remoteRenderer)),
-              )
+              ),
+              Flexible(
+                child: new Container(
+                    key: new Key("local"),
+                    width: 150,
+                    height: 300,
+                    margin: new EdgeInsets.fromLTRB(5.0, 5.0, 5.0, 5.0),
+                    decoration: new BoxDecoration(color: Colors.black),
+                    child: new RTCVideoView(_localRenderer)),
+              ),
             ],
           ),
         ),

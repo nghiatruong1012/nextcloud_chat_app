@@ -138,6 +138,18 @@ class _ChatPageState extends State<ChatPage> {
     });
   }
 
+  // void PickChatToChange(Chat chat) {
+  //   setState(() {
+  //     context.read<ChatBloc>().add(ChangeMessage(chat: chat));
+  //   });
+  // }
+
+  void RefreshChat(int id) {
+    setState(() {
+      context.read<ChatBloc>().add(LoadInitialChat(token, id));
+    });
+  }
+
   void CancelReply() {
     setState(() {
       isReplying = false;
