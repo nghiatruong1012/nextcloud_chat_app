@@ -7,7 +7,7 @@ Widget ListLoading() {
       highlightColor: Colors.grey.shade100,
       enabled: true,
       child: SingleChildScrollView(
-        physics: NeverScrollableScrollPhysics(),
+        physics: const NeverScrollableScrollPhysics(),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.max,

@@ -1,6 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:nextcloud_chat_app/models/conversations.dart';
@@ -47,30 +46,30 @@ class _ConversationInfoState extends State<ConversationInfo> {
         bottomOpacity: 0.0,
         elevation: 0.0,
         leading: Container(
-          margin: EdgeInsets.all(0),
-          padding: EdgeInsets.all(0),
+          margin: const EdgeInsets.all(0),
+          padding: const EdgeInsets.all(0),
           child: IconButton(
-            icon: Icon(Icons.arrow_back_outlined, color: Colors.black),
+            icon: const Icon(Icons.arrow_back_outlined, color: Colors.black),
             onPressed: () {
               Navigator.pop(context);
             },
           ),
         ),
-        title: Text(
+        title: const Text(
           'Conversation info',
           style: TextStyle(color: Colors.black),
         ),
       ),
       body: SingleChildScrollView(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          SizedBox(
+          const SizedBox(
             height: 50,
           ),
           Center(
             child: Container(
               width: 150,
               height: 150,
-              padding: EdgeInsets.all(0),
+              padding: const EdgeInsets.all(0),
               child: ClipRRect(
                   borderRadius: BorderRadius.circular(100),
                   child: FutureBuilder(
@@ -80,9 +79,9 @@ class _ConversationInfoState extends State<ConversationInfo> {
                         if (conversations.type == 1) {
                           return CachedNetworkImage(
                             imageUrl:
-                                'http://${host}:8080/ocs/v2.php/apps/spreed/api/v1/room/${conversations.token!}/avatar',
+                                'http://$host:8080/ocs/v2.php/apps/spreed/api/v1/room/${conversations.token!}/avatar',
                             placeholder: (context, url) =>
-                                CircularProgressIndicator(),
+                                const CircularProgressIndicator(),
                             errorWidget: (context, url, error) {
                               return Container();
                             },
@@ -90,11 +89,11 @@ class _ConversationInfoState extends State<ConversationInfo> {
                           );
                         } else if (conversations.type == 6) {
                           return Container(
-                              color: Color(0xFF0082c9),
-                              child: Center(child: Text('📝')));
+                              color: const Color(0xFF0082c9),
+                              child: const Center(child: Text('📝')));
                         } else {
                           return SvgPicture.network(
-                            'http://${host}:8080//ocs/v2.php/apps/spreed/api/v1/room/${conversations.token!}/avatar',
+                            'http://$host:8080//ocs/v2.php/apps/spreed/api/v1/room/${conversations.token!}/avatar',
                             headers: snapshot.data,
                           );
                         }
@@ -137,17 +136,17 @@ class _ConversationInfoState extends State<ConversationInfo> {
             ),
           ),
           Container(
-            margin: EdgeInsets.symmetric(vertical: 20),
+            margin: const EdgeInsets.symmetric(vertical: 20),
             child: Center(
               child: Text(
                 conversations.displayName!,
-                style: TextStyle(fontSize: 16),
+                style: const TextStyle(fontSize: 16),
               ),
             ),
           ),
           Container(
-            margin: EdgeInsets.symmetric(horizontal: 15, vertical: 5),
-            child: Text(
+            margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+            child: const Text(
               'Cài đặt thông báo',
               style: TextStyle(
                   fontSize: 16,
@@ -156,21 +155,21 @@ class _ConversationInfoState extends State<ConversationInfo> {
             ),
           ),
           Container(
-            margin: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
             child: DropdownButtonFormField2(
               value: conversations.notificationLevel,
-              items: [
+              items: const [
                 DropdownMenuItem(
-                  child: Text('Always notify'),
                   value: 1,
+                  child: Text('Always notify'),
                 ),
                 DropdownMenuItem(
-                  child: Text('Notify on mention'),
                   value: 2,
+                  child: Text('Notify on mention'),
                 ),
                 DropdownMenuItem(
-                  child: Text('Never notify'),
                   value: 3,
+                  child: Text('Never notify'),
                 ),
               ],
               onChanged: (value) {
@@ -181,7 +180,7 @@ class _ConversationInfoState extends State<ConversationInfo> {
                       .joinConversation(conversations.token!);
                 });
               },
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Thông điệp',
                 border: OutlineInputBorder(),
                 contentPadding:
@@ -190,7 +189,7 @@ class _ConversationInfoState extends State<ConversationInfo> {
             ),
           ),
           SwitchListTile(
-            title: Text('Call notifications'),
+            title: const Text('Call notifications'),
             value: conversations.notificationCalls == 1,
             onChanged: (value) {
               ConversationService().setCallNotificationLevel(
@@ -202,8 +201,8 @@ class _ConversationInfoState extends State<ConversationInfo> {
             },
           ),
           Container(
-            margin: EdgeInsets.symmetric(horizontal: 15, vertical: 5),
-            child: Text(
+            margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+            child: const Text(
               'Shared items',
               style: TextStyle(
                   fontSize: 16,
@@ -222,13 +221,13 @@ class _ConversationInfoState extends State<ConversationInfo> {
                       ),
                     ));
               },
-              title: Text('Images, files, voice messages ...'),
-              leading: Icon(
+              title: const Text('Images, files, voice messages ...'),
+              leading: const Icon(
                 Icons.folder_copy_outlined,
               )),
           Container(
-            margin: EdgeInsets.symmetric(horizontal: 15, vertical: 5),
-            child: Text(
+            margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+            child: const Text(
               'Người tham gia',
               style: TextStyle(
                   fontSize: 16,
@@ -246,8 +245,8 @@ class _ConversationInfoState extends State<ConversationInfo> {
                               AddParticipant(token: conversations.token!),
                         ));
                   },
-                  title: Text('Add participant'),
-                  leading: Icon(
+                  title: const Text('Add participant'),
+                  leading: const Icon(
                     Icons.person_add_alt_outlined,
                   ))
               : Container(),
@@ -264,7 +263,7 @@ class _ConversationInfoState extends State<ConversationInfo> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Container(
-                                  padding: EdgeInsets.symmetric(
+                                  padding: const EdgeInsets.symmetric(
                                       horizontal: 20, vertical: 10),
                                   child: Text(
                                     e.displayName.toString(),
@@ -278,8 +277,8 @@ class _ConversationInfoState extends State<ConversationInfo> {
                                     if (e.participantType == 3 ||
                                         e.participantType == 4) {
                                       return ListTile(
-                                        leading: Icon(Icons.edit),
-                                        title: Text('Promote to moderator'),
+                                        leading: const Icon(Icons.edit),
+                                        title: const Text('Promote to moderator'),
                                         onTap: () {
                                           ParticipantsService()
                                               .promoteModerator(
@@ -289,8 +288,8 @@ class _ConversationInfoState extends State<ConversationInfo> {
                                       );
                                     } else if (e.participantType == 1) {
                                       return ListTile(
-                                        leading: Icon(Icons.edit),
-                                        title: Text('Demote to moderator'),
+                                        leading: const Icon(Icons.edit),
+                                        title: const Text('Demote to moderator'),
                                         onTap: () {
                                           ParticipantsService().deleteModerator(
                                               conversations.token!,
@@ -302,7 +301,7 @@ class _ConversationInfoState extends State<ConversationInfo> {
                                     }
                                   },
                                 ),
-                                ListTile(
+                                const ListTile(
                                   leading: Icon(Icons.delete),
                                   title: Text('Remove participant'),
                                 ),
@@ -314,7 +313,7 @@ class _ConversationInfoState extends State<ConversationInfo> {
                       leading: Container(
                         width: 40,
                         height: 40,
-                        padding: EdgeInsets.all(0),
+                        padding: const EdgeInsets.all(0),
                         child: ClipRRect(
                             borderRadius: BorderRadius.circular(100),
                             child: FutureBuilder(
@@ -322,7 +321,7 @@ class _ConversationInfoState extends State<ConversationInfo> {
                                     .getConversationAvatar(
                                         conversations.token!,
                                         e.actorId!,
-                                        conversations!.lastMessage!.actorType!,
+                                        conversations.lastMessage!.actorType!,
                                         64),
                                 builder: (context, snapshot) {
                                   if (snapshot.hasData) {
@@ -332,14 +331,13 @@ class _ConversationInfoState extends State<ConversationInfo> {
                                   }
                                 })),
                       ),
-                      title: Text(e.displayName.toString() +
-                          " (${participantType[e.participantType!]})"),
+                      title: Text("${e.displayName} (${participantType[e.participantType!]})"),
                     ))
                 .toList(),
           ),
           Container(
-            margin: EdgeInsets.symmetric(horizontal: 15, vertical: 5),
-            child: Text(
+            margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+            child: const Text(
               'Danger Zone',
               style: TextStyle(
                   fontSize: 16,
@@ -353,17 +351,17 @@ class _ConversationInfoState extends State<ConversationInfo> {
                     ParticipantsService()
                         .deleteConversation(conversations.token!);
                   },
-                  title: Text(
+                  title: const Text(
                     'Rời khỏi cuộc đàm thoại',
                     style: TextStyle(color: Color.fromARGB(255, 178, 39, 29)),
                   ),
-                  leading: Icon(
+                  leading: const Icon(
                     Icons.logout,
                     color: Color.fromARGB(255, 178, 39, 29),
                   ))
               : Container(),
           conversations.canDeleteConversation!
-              ? ListTile(
+              ? const ListTile(
                   title: Text(
                     'Xóa đàm thoại',
                     style: TextStyle(color: Color.fromARGB(255, 178, 39, 29)),

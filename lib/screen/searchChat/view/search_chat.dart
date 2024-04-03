@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class SearchChat extends StatefulWidget {
@@ -11,6 +10,6 @@ class SearchChat extends StatefulWidget {
 class _SearchChatState extends State<SearchChat> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold();
+    return const Scaffold();
   }
 }

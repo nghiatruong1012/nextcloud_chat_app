@@ -6,7 +6,7 @@ class Chat {
   final String? message;
   final String? systemMessage;
   final DateTime? timestamp;
-  final dynamic? messageParameters;
+  final dynamic messageParameters;
   final Map? reactions;
   final ParentChat? parent;
 
@@ -63,7 +63,7 @@ class ParentChat {
   final String? message;
   final String? systemMessage;
   final DateTime? timestamp;
-  final dynamic? messageParameters;
+  final dynamic messageParameters;
   final Map? reactions;
   final Map<String, dynamic>? parent;
 

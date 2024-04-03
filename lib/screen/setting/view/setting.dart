@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nextcloud_chat_app/authentication/bloc/authentication_bloc.dart';
@@ -28,16 +27,16 @@ class _SettingScreenState extends State<SettingScreen> {
           bottomOpacity: 0.0,
           elevation: 0.0,
           leading: Container(
-            margin: EdgeInsets.all(0),
-            padding: EdgeInsets.all(0),
+            margin: const EdgeInsets.all(0),
+            padding: const EdgeInsets.all(0),
             child: IconButton(
-              icon: Icon(Icons.arrow_back_outlined, color: Colors.black),
+              icon: const Icon(Icons.arrow_back_outlined, color: Colors.black),
               onPressed: () {
                 Navigator.pop(context);
               },
             ),
           ),
-          title: Text(
+          title: const Text(
             'Setting',
             style: TextStyle(color: Colors.black),
           )),
@@ -60,7 +59,7 @@ class _SettingScreenState extends State<SettingScreen> {
                           ));
                     },
                     child: Container(
-                      padding: EdgeInsets.symmetric(vertical: 30),
+                      padding: const EdgeInsets.symmetric(vertical: 30),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
@@ -81,32 +80,32 @@ class _SettingScreenState extends State<SettingScreen> {
                                       builder: (context, snapshot) {
                                         if (snapshot.hasData) {
                                           return snapshot.data ??
-                                              Icon(Icons.person);
+                                              const Icon(Icons.person);
                                         } else {
-                                          return Icon(Icons.person);
+                                          return const Icon(Icons.person);
                                         }
                                       });
                                 }),
                               ),
                             ),
                           ),
-                          SizedBox(
+                          const SizedBox(
                             height: 20,
                           ),
                           Text(
                             snapshot.data!.displayname.toString(),
-                            style: TextStyle(fontSize: 20),
+                            style: const TextStyle(fontSize: 20),
                           ),
                         ],
                       ),
                     ),
                   );
                 } else if (snapshot.hasError) {
-                  return Center(
+                  return const Center(
                     child: Text('error'),
                   );
                 } else {
-                  return Center(
+                  return const Center(
                     child: CircularProgressIndicator(),
                   );
                 }
@@ -118,8 +117,8 @@ class _SettingScreenState extends State<SettingScreen> {
                     .read<AuthenticationBloc>()
                     .add(AuthenticationLogoutRequested());
               },
-              leading: Icon(Icons.logout),
-              title: Text('Đăng xuất'),
+              leading: const Icon(Icons.logout),
+              title: const Text('Đăng xuất'),
             ),
           ],
         )),

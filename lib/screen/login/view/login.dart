@@ -1,4 +1,3 @@
-import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -6,12 +5,11 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:nextcloud_chat_app/repositories/authentication_repository.dart';
 import 'package:nextcloud_chat_app/screen/login/bloc/login_bloc.dart';
 import 'package:nextcloud_chat_app/utils.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
   static Route route() {
-    return MaterialPageRoute<void>(builder: (_) => LoginPage());
+    return MaterialPageRoute<void>(builder: (_) => const LoginPage());
   }
 
   @override
@@ -80,7 +78,7 @@ class _LoginPageState extends State<LoginPage> {
           create: (context) => LoginBloc(
               authenticationRepository:
                   RepositoryProvider.of<AuthenticationRepository>(context)),
-          child: LoginWebView()),
+          child: const LoginWebView()),
     );
   }
 }

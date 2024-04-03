@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
@@ -38,8 +37,8 @@ class _CallPageState extends State<CallPage> {
 
   MediaStream? _localStream;
   RTCPeerConnection? _peerConnection;
-  RTCVideoRenderer _localRenderer = new RTCVideoRenderer();
-  RTCVideoRenderer _remoteRenderer = new RTCVideoRenderer();
+  final RTCVideoRenderer _localRenderer = RTCVideoRenderer();
+  final RTCVideoRenderer _remoteRenderer = RTCVideoRenderer();
   late String localSessionId;
   late String remoteSessionId;
   late String sid;
@@ -65,7 +64,7 @@ class _CallPageState extends State<CallPage> {
     CallService().joinCall({"flags": '7', "silent": false}, token);
     getSignal();
     _createPeerConnecion().then((pc) {
-      print("pc: " + pc.toString());
+      print("pc: $pc");
       setState(() {
         _peerConnection = pc;
       });
@@ -115,8 +114,8 @@ class _CallPageState extends State<CallPage> {
     print('join call');
 
     // Delay before sending data
-    Future.delayed(Duration(seconds: 5), () {
-      print("data: " + data.toString());
+    Future.delayed(const Duration(seconds: 5), () {
+      print("data: $data");
       Clipboard.setData(ClipboardData(
         text: jsonEncode({
           "messages": jsonEncode(data),
@@ -128,7 +127,7 @@ class _CallPageState extends State<CallPage> {
       print('send data');
 
       // Delay before turning on camera and microphone
-      Future.delayed(Duration(seconds: 5), () {
+      Future.delayed(const Duration(seconds: 5), () {
         SignalingService().postSignal(token, {
           "messages": jsonEncode([
             {
@@ -167,13 +166,13 @@ class _CallPageState extends State<CallPage> {
           scheme: 'http',
           host: host,
           port: 8080,
-          path: '/ocs/v2.php/apps/spreed/api/v3/signaling/${token}',
+          path: '/ocs/v2.php/apps/spreed/api/v3/signaling/$token',
         ),
         headers: requestHeaders,
         // body: jsonEncode(params ?? {}),
       );
       if (response.statusCode == 200) {
-        print("signaling" + jsonDecode(response.body)["ocs"].toString());
+        print("signaling${jsonDecode(response.body)["ocs"]}");
 
         if (jsonDecode(response.body)["ocs"]["data"][0]["type"].toString() ==
             "usersInRoom") {
@@ -209,8 +208,8 @@ class _CallPageState extends State<CallPage> {
                 inCall = true;
               }
             }
-            print("sid" + localSessionId);
-            print("sid" + remoteSessionId);
+            print("sid$localSessionId");
+            print("sid$remoteSessionId");
           }
         } else if (jsonDecode(response.body)["ocs"]["data"][0]["type"]
                 .toString() ==
@@ -230,9 +229,9 @@ class _CallPageState extends State<CallPage> {
                 candicate["sdpMLineIndex"]));
           }
 
-          print("sdp: " + sdp.toString());
+          print("sdp: $sdp");
 
-          print("candicate: " + candicate.toString());
+          print("candicate: $candicate");
         }
 
         print("signaling" + jsonDecode(response.body)["ocs"]["data"]);
@@ -272,12 +271,12 @@ class _CallPageState extends State<CallPage> {
         await createPeerConnection(configuration, _offerAnswerConstraints);
     // pc.addStream(_localStream!);
     _localStream?.getTracks().forEach((track) {
-      pc?.addTrack(track, _localStream!);
+      pc.addTrack(track, _localStream!);
     });
     pc.onIceCandidate = (e) async {
       if (e.candidate != null) {
         // Map<String, String> requestHeaders = await HTTPService().authHeader();
-        print("candidate:" + e.candidate.toString());
+        print("candidate:${e.candidate}");
         data.add({
           "ev": "message",
           "fn": jsonEncode({
@@ -317,7 +316,7 @@ class _CallPageState extends State<CallPage> {
     };
 
     pc.onAddStream = (stream) {
-      print('addStream: ' + stream.id.toString());
+      print('addStream: ${stream.id}');
       setState(() {
         _remoteRenderer.srcObject = stream;
       });
@@ -356,7 +355,6 @@ class _CallPageState extends State<CallPage> {
           //   backgroundColor: Colors.yellow,
           // ),
           FloatingActionButton(
-            child: Icon(Icons.camera),
             heroTag: 'camera',
             onPressed: () {
               SignalingService().postSignal(token, {
@@ -384,6 +382,7 @@ class _CallPageState extends State<CallPage> {
                 ]),
               });
             },
+            child: const Icon(Icons.camera),
           ),
           FloatingActionButton(
             heroTag: 'end',
@@ -392,11 +391,10 @@ class _CallPageState extends State<CallPage> {
               dispose();
               Navigator.pop(context);
             },
-            child: Icon(Icons.call_end),
             backgroundColor: Colors.red,
+            child: const Icon(Icons.call_end),
           ),
           FloatingActionButton(
-            child: Icon(Icons.mic),
             heroTag: 'mic',
             onPressed: () {
               SignalingService().postSignal(token, {
@@ -414,6 +412,7 @@ class _CallPageState extends State<CallPage> {
                 ]),
               });
             },
+            child: const Icon(Icons.mic),
           ),
         ],
       ),
@@ -423,20 +422,20 @@ class _CallPageState extends State<CallPage> {
             alignment: Alignment.topRight,
             children: [
               Flexible(
-                child: new Container(
-                    key: new Key("remote"),
-                    margin: new EdgeInsets.fromLTRB(5.0, 5.0, 5.0, 5.0),
-                    decoration: new BoxDecoration(color: Colors.black),
-                    child: new RTCVideoView(_remoteRenderer)),
+                child: Container(
+                    key: const Key("remote"),
+                    margin: const EdgeInsets.fromLTRB(5.0, 5.0, 5.0, 5.0),
+                    decoration: const BoxDecoration(color: Colors.black),
+                    child: RTCVideoView(_remoteRenderer)),
               ),
               Flexible(
-                child: new Container(
-                    key: new Key("local"),
+                child: Container(
+                    key: const Key("local"),
                     width: 150,
                     height: 300,
-                    margin: new EdgeInsets.fromLTRB(5.0, 5.0, 5.0, 5.0),
-                    decoration: new BoxDecoration(color: Colors.black),
-                    child: new RTCVideoView(_localRenderer)),
+                    margin: const EdgeInsets.fromLTRB(5.0, 5.0, 5.0, 5.0),
+                    decoration: const BoxDecoration(color: Colors.black),
+                    child: RTCVideoView(_localRenderer)),
               ),
             ],
           ),

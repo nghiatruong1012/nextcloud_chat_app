@@ -53,16 +53,16 @@ class _UserInfoState extends State<UserInfo> {
         bottomOpacity: 0.0,
         elevation: 0.0,
         leading: Container(
-          margin: EdgeInsets.all(0),
-          padding: EdgeInsets.all(0),
+          margin: const EdgeInsets.all(0),
+          padding: const EdgeInsets.all(0),
           child: IconButton(
-            icon: Icon(Icons.arrow_back_outlined, color: Colors.black),
+            icon: const Icon(Icons.arrow_back_outlined, color: Colors.black),
             onPressed: () {
               Navigator.pop(context);
             },
           ),
         ),
-        title: Text(
+        title: const Text(
           'Personal Info',
           style: TextStyle(color: Colors.black),
         ),
@@ -103,7 +103,7 @@ class _UserInfoState extends State<UserInfo> {
                       });
                     });
                   },
-                  icon: Icon(
+                  icon: const Icon(
                     Icons.check,
                     color: Colors.black,
                   ),
@@ -114,7 +114,7 @@ class _UserInfoState extends State<UserInfo> {
                       isEditing = true;
                     });
                   },
-                  icon: Icon(
+                  icon: const Icon(
                     Icons.edit,
                     color: Colors.black,
                   )),
@@ -126,7 +126,7 @@ class _UserInfoState extends State<UserInfo> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Container(
-              padding: EdgeInsets.symmetric(vertical: 30),
+              padding: const EdgeInsets.symmetric(vertical: 30),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -143,21 +143,21 @@ class _UserInfoState extends State<UserInfo> {
                                       widget.userData.id.toString(), '', 128),
                               builder: (context, snapshot) {
                                 if (snapshot.hasData) {
-                                  return snapshot.data ?? Icon(Icons.person);
+                                  return snapshot.data ?? const Icon(Icons.person);
                                 } else {
-                                  return Icon(Icons.person);
+                                  return const Icon(Icons.person);
                                 }
                               });
                         }),
                       ),
                     ),
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 20,
                   ),
                   Text(
                     widget.userData.displayname.toString(),
-                    style: TextStyle(fontSize: 20),
+                    style: const TextStyle(fontSize: 20),
                   ),
                 ],
               ),
@@ -165,7 +165,7 @@ class _UserInfoState extends State<UserInfo> {
             (isEditing)
                 ? Container(
                     height: 50,
-                    margin: EdgeInsets.only(bottom: 20),
+                    margin: const EdgeInsets.only(bottom: 20),
                     child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.center,
@@ -182,9 +182,9 @@ class _UserInfoState extends State<UserInfo> {
                                   );
                                   if (result != null) {
                                     PlatformFile file = result.files.first;
-                                    File _file =
+                                    File file0 =
                                         File(result.files.single.path!);
-                                    UserService().changeAvatar(_file);
+                                    UserService().changeAvatar(file0);
                                     // ChatService().uploadAndSharedFile(
                                     //     user.username.toString(),
                                     //     file.path.toString(),
@@ -197,12 +197,12 @@ class _UserInfoState extends State<UserInfo> {
                                     print('error');
                                   }
                                 },
-                                icon: Icon(
+                                icon: const Icon(
                                   Icons.upload,
                                   color: Colors.black,
                                 )),
                           ),
-                          SizedBox(width: 20),
+                          const SizedBox(width: 20),
                           CircleAvatar(
                             radius: 30,
                             backgroundColor: Colors.green.withOpacity(0.3),
@@ -211,7 +211,7 @@ class _UserInfoState extends State<UserInfo> {
                                 UserService().deleteAvatar();
                                 setState(() {});
                               },
-                              icon: Icon(
+                              icon: const Icon(
                                 Icons.delete,
                                 color: Colors.black,
                               ),
@@ -224,26 +224,26 @@ class _UserInfoState extends State<UserInfo> {
                   ),
             (widget.userData.displayname.toString().isNotEmpty || isEditing)
                 ? Container(
-                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
                     child: Row(
                       children: [
                         Container(
-                          margin: EdgeInsets.all(10),
+                          margin: const EdgeInsets.all(10),
                           width: 20,
-                          child: FaIcon(
+                          child: const FaIcon(
                             FontAwesomeIcons.solidUser,
                             size: 20,
                             color: Colors.black,
                           ),
                         ),
-                        SizedBox(
+                        const SizedBox(
                           width: 10,
                         ),
                         Expanded(
                           child: TextField(
                             controller: displayname,
                             enabled: isEditing,
-                            decoration: InputDecoration(
+                            decoration: const InputDecoration(
                                 border: OutlineInputBorder(),
                                 label: Text('Tên đầy đủ'),
                                 floatingLabelBehavior:
@@ -256,22 +256,22 @@ class _UserInfoState extends State<UserInfo> {
                 : Container(),
             (widget.userData.phone.toString().isNotEmpty || isEditing)
                 ? Container(
-                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                     child: Row(
                       children: [
                         Container(
-                          margin: EdgeInsets.all(10),
+                          margin: const EdgeInsets.all(10),
                           width: 20,
-                          child: FaIcon(FontAwesomeIcons.phone, size: 20),
+                          child: const FaIcon(FontAwesomeIcons.phone, size: 20),
                         ),
-                        SizedBox(
+                        const SizedBox(
                           width: 10,
                         ),
                         Expanded(
                           child: TextField(
                             enabled: isEditing,
                             controller: phone,
-                            decoration: InputDecoration(
+                            decoration: const InputDecoration(
                                 border: OutlineInputBorder(),
                                 label: Text('Số điện thoại'),
                                 floatingLabelBehavior:
@@ -286,23 +286,23 @@ class _UserInfoState extends State<UserInfo> {
                     isEditing ||
                     widget.userData.email != null)
                 ? Container(
-                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                     child: Row(
                       children: [
                         Container(
-                          margin: EdgeInsets.all(10),
+                          margin: const EdgeInsets.all(10),
                           width: 20,
                           child:
-                              FaIcon(FontAwesomeIcons.solidEnvelope, size: 20),
+                              const FaIcon(FontAwesomeIcons.solidEnvelope, size: 20),
                         ),
-                        SizedBox(
+                        const SizedBox(
                           width: 10,
                         ),
                         Expanded(
                           child: TextField(
                             controller: email,
                             enabled: isEditing,
-                            decoration: InputDecoration(
+                            decoration: const InputDecoration(
                                 border: OutlineInputBorder(),
                                 label: Text('Email'),
                                 floatingLabelBehavior:
@@ -315,22 +315,22 @@ class _UserInfoState extends State<UserInfo> {
                 : Container(),
             (widget.userData.address.toString().isNotEmpty || isEditing)
                 ? Container(
-                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                     child: Row(
                       children: [
                         Container(
-                          margin: EdgeInsets.all(10),
+                          margin: const EdgeInsets.all(10),
                           width: 20,
-                          child: FaIcon(FontAwesomeIcons.locationDot, size: 20),
+                          child: const FaIcon(FontAwesomeIcons.locationDot, size: 20),
                         ),
-                        SizedBox(
+                        const SizedBox(
                           width: 10,
                         ),
                         Expanded(
                           child: TextField(
                             controller: address,
                             enabled: isEditing,
-                            decoration: InputDecoration(
+                            decoration: const InputDecoration(
                                 border: OutlineInputBorder(),
                                 label: Text('Địa chỉ'),
                                 floatingLabelBehavior:
@@ -343,22 +343,22 @@ class _UserInfoState extends State<UserInfo> {
                 : Container(),
             (widget.userData.website.toString().isNotEmpty || isEditing)
                 ? Container(
-                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                     child: Row(
                       children: [
                         Container(
-                          margin: EdgeInsets.all(10),
+                          margin: const EdgeInsets.all(10),
                           width: 20,
-                          child: FaIcon(FontAwesomeIcons.globe, size: 20),
+                          child: const FaIcon(FontAwesomeIcons.globe, size: 20),
                         ),
-                        SizedBox(
+                        const SizedBox(
                           width: 10,
                         ),
                         Expanded(
                           child: TextField(
                             enabled: isEditing,
                             controller: website,
-                            decoration: InputDecoration(
+                            decoration: const InputDecoration(
                                 border: OutlineInputBorder(),
                                 label: Text('Website'),
                                 floatingLabelBehavior:
@@ -371,22 +371,22 @@ class _UserInfoState extends State<UserInfo> {
                 : Container(),
             (widget.userData.twitter.toString().isNotEmpty || isEditing)
                 ? Container(
-                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
                     child: Row(
                       children: [
                         Container(
-                          margin: EdgeInsets.all(10),
+                          margin: const EdgeInsets.all(10),
                           width: 20,
-                          child: FaIcon(FontAwesomeIcons.twitter, size: 20),
+                          child: const FaIcon(FontAwesomeIcons.twitter, size: 20),
                         ),
-                        SizedBox(
+                        const SizedBox(
                           width: 10,
                         ),
                         Expanded(
                           child: TextField(
                             enabled: isEditing,
                             controller: twitter,
-                            decoration: InputDecoration(
+                            decoration: const InputDecoration(
                                 border: OutlineInputBorder(),
                                 label: Text('Twitter'),
                                 floatingLabelBehavior:

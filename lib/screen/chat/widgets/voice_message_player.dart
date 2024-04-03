@@ -5,7 +5,7 @@ class AudioPlayerWidget extends StatefulWidget {
   final String audioUrl;
   final Map<String, String> header;
 
-  AudioPlayerWidget({required this.audioUrl, required this.header});
+  const AudioPlayerWidget({super.key, required this.audioUrl, required this.header});
 
   @override
   _AudioPlayerWidgetState createState() =>
@@ -88,7 +88,7 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         mainAxisSize: MainAxisSize.min,
@@ -96,9 +96,9 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
           IconButton(
             icon: Icon(_isPlaying ? Icons.pause : Icons.play_arrow),
             onPressed: _togglePlayer,
-            padding: EdgeInsets.all(0),
+            padding: const EdgeInsets.all(0),
           ),
-          Container(
+          SizedBox(
             width: 150,
             child: Slider(
               value: _currentProgress,

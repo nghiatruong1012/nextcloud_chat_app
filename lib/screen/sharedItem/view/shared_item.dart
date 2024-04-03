@@ -5,7 +5,6 @@ import 'package:full_screen_image/full_screen_image.dart';
 import 'package:intl/intl.dart';
 import 'package:nextcloud_chat_app/authentication/bloc/authentication_bloc.dart';
 
-import 'package:nextcloud_chat_app/models/chats.dart';
 import 'package:nextcloud_chat_app/models/user.dart';
 import 'package:nextcloud_chat_app/service/chat_service.dart';
 import 'package:nextcloud_chat_app/service/request.dart';
@@ -25,7 +24,7 @@ class SharedItem extends StatefulWidget {
 }
 
 class _SharedItemState extends State<SharedItem> {
-  PageController _pageController = PageController();
+  final PageController _pageController = PageController();
   int _currentIndex = 0;
   final String token;
   final String name;
@@ -68,10 +67,10 @@ class _SharedItemState extends State<SharedItem> {
         bottomOpacity: 0.0,
         elevation: 0.0,
         leading: Container(
-          margin: EdgeInsets.all(0),
-          padding: EdgeInsets.all(0),
+          margin: const EdgeInsets.all(0),
+          padding: const EdgeInsets.all(0),
           child: IconButton(
-            icon: Icon(Icons.arrow_back_outlined, color: Colors.black),
+            icon: const Icon(Icons.arrow_back_outlined, color: Colors.black),
             onPressed: () {
               Navigator.pop(context);
             },
@@ -79,7 +78,7 @@ class _SharedItemState extends State<SharedItem> {
         ),
         title: Text(
           name,
-          style: TextStyle(color: Colors.black),
+          style: const TextStyle(color: Colors.black),
         ),
       ),
       body: Column(
@@ -123,7 +122,7 @@ class _SharedItemState extends State<SharedItem> {
             crossAxisCount: 4,
             children: snapshot.data!.entries.map<Widget>((e) {
               return Container(
-                margin: EdgeInsets.all(5),
+                margin: const EdgeInsets.all(5),
                 child: Builder(builder: (context) {
                   if (e.value['messageParameters']['file']['mimetype']
                       .toString()
@@ -132,11 +131,11 @@ class _SharedItemState extends State<SharedItem> {
                       disposeLevel: DisposeLevel.High,
                       child: CachedNetworkImage(
                         imageUrl:
-                            'http://${host}:8080/core/preview?x=480&y=480&fileId=${e.value['messageParameters']['file']['id']}',
+                            'http://$host:8080/core/preview?x=480&y=480&fileId=${e.value['messageParameters']['file']['id']}',
                         placeholder: (context, url) =>
-                            CircularProgressIndicator(),
+                            const CircularProgressIndicator(),
                         errorWidget: (context, url, error) {
-                          return Icon(Icons.error);
+                          return const Icon(Icons.error);
                         },
                         httpHeaders: requestHeaders,
                       ),
@@ -154,7 +153,7 @@ class _SharedItemState extends State<SharedItem> {
                       },
                       child: Container(
                         color: Colors.black,
-                        child: Icon(
+                        child: const Icon(
                           Icons.video_collection_outlined,
                           color: Colors.white,
                         ),
@@ -172,7 +171,7 @@ class _SharedItemState extends State<SharedItem> {
             'Error: ${snapshot.error}',
           );
         }
-        return Center(child: CircularProgressIndicator());
+        return const Center(child: CircularProgressIndicator());
       },
     );
   }
@@ -196,7 +195,7 @@ class _SharedItemState extends State<SharedItem> {
                   e.value['messageParameters']['file']['name'],
                   maxLines: 1,
                 ),
-                leading: Container(
+                leading: SizedBox(
                   width: 50,
                   child: Builder(
                     builder: (context) {
@@ -236,13 +235,10 @@ class _SharedItemState extends State<SharedItem> {
                     },
                   ),
                 ),
-                subtitle: Text(formatFileSize(
-                        e.value['messageParameters']['file']['size']) +
-                    " | " +
-                    DateFormat('yyyy-MM-dd HH:mm:ss').format(
+                subtitle: Text("${formatFileSize(
+                        e.value['messageParameters']['file']['size'])} | ${DateFormat('yyyy-MM-dd HH:mm:ss').format(
                         DateTime.fromMillisecondsSinceEpoch(
-                            e.value['timestamp'] * 1000)) +
-                    " | " +
+                            e.value['timestamp'] * 1000))} | " +
                     e.value['actorId']),
               );
             }).toList(),
@@ -250,7 +246,7 @@ class _SharedItemState extends State<SharedItem> {
         } else if (snapshot.hasError) {
           return Text('Error: ${snapshot.error}');
         }
-        return Center(
+        return const Center(
           child: CircularProgressIndicator(),
         );
       },
@@ -276,15 +272,12 @@ class _SharedItemState extends State<SharedItem> {
                   e.value['messageParameters']['file']['name'],
                   maxLines: 1,
                 ),
-                leading: Container(
+                leading: const SizedBox(
                     width: 50, child: Icon(Icons.audio_file_outlined)),
-                subtitle: Text(formatFileSize(
-                        e.value['messageParameters']['file']['size']) +
-                    " | " +
-                    DateFormat('yyyy-MM-dd HH:mm:ss').format(
+                subtitle: Text("${formatFileSize(
+                        e.value['messageParameters']['file']['size'])} | ${DateFormat('yyyy-MM-dd HH:mm:ss').format(
                         DateTime.fromMillisecondsSinceEpoch(
-                            e.value['timestamp'] * 1000)) +
-                    " | " +
+                            e.value['timestamp'] * 1000))} | " +
                     e.value['actorId']),
               );
             }).toList(),
@@ -292,7 +285,7 @@ class _SharedItemState extends State<SharedItem> {
         } else if (snapshot.hasError) {
           return Text('Error: ${snapshot.error}');
         }
-        return Center(
+        return const Center(
           child: CircularProgressIndicator(),
         );
       },
@@ -304,13 +297,22 @@ class _SharedItemState extends State<SharedItem> {
       onTap: () {
         _pageController.animateToPage(
           index,
-          duration: Duration(milliseconds: 300),
+          duration: const Duration(milliseconds: 300),
           curve: Curves.easeInOut,
         );
       },
       child: Container(
-        margin: EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+        decoration: _currentIndex == index
+            ? const BoxDecoration(
+                border: Border(
+                    bottom: BorderSide(
+                color: Colors.blue,
+                style: BorderStyle.solid,
+                width: 3,
+              )))
+            : null,
         // color: _currentIndex == index ? Colors.blue : Colors.transparent,
         child: Text(
           title,
@@ -320,15 +322,6 @@ class _SharedItemState extends State<SharedItem> {
             fontSize: 16,
           ),
         ),
-        decoration: _currentIndex == index
-            ? BoxDecoration(
-                border: Border(
-                    bottom: BorderSide(
-                color: Colors.blue,
-                style: BorderStyle.solid,
-                width: 3,
-              )))
-            : null,
       ),
     );
   }

@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:nextcloud_chat_app/models/chats.dart';
 import 'package:nextcloud_chat_app/service/request.dart';
 import 'package:http/http.dart' as http;
@@ -110,7 +109,7 @@ class ChatService {
       headers: requestHeaders,
       // body: jsonEncode(params ?? {}),
     );
-    print("receive mess" + response.body);
+    print("receive mess${response.body}");
 
     return response;
     // if (response.statusCode == 200) {
@@ -189,7 +188,7 @@ class ChatService {
     if (response.statusCode == 200) {
       return Chat.fromJson(jsonDecode(response.body)["ocs"]["data"]);
     } else {
-      print("receive" + response.statusCode.toString());
+      print("receive${response.statusCode}");
       return Chat.empty;
     }
   }
@@ -209,7 +208,7 @@ class ChatService {
     if (response.statusCode == 200) {
       print('Success');
     } else {
-      print("fail" + response.statusCode.toString());
+      print("fail${response.statusCode}");
     }
   }
 
@@ -230,7 +229,7 @@ class ChatService {
     if (response.statusCode == 200) {
       print('Success');
     } else {
-      print("fail" + response.statusCode.toString());
+      print("fail${response.statusCode}");
     }
   }
 
@@ -248,7 +247,7 @@ class ChatService {
         scheme: 'http',
         host: host,
         port: 8080,
-        path: '/remote.php/dav/files/${user}/${filePath}',
+        path: '/remote.php/dav/files/$user/$filePath',
       ),
 
       headers: requestHeaders,
@@ -278,8 +277,7 @@ class ChatService {
         print('Error opening file: $e');
       }
     } else {
-      throw Exception(
-          'Failed to download file' + response.statusCode.toString());
+      throw Exception('Failed to download file${response.statusCode}');
     }
   }
 
@@ -314,13 +312,15 @@ class ChatService {
         scheme: 'http',
         host: host,
         port: 8080,
-        path: '/remote.php/dav/files/${user}/Talk/${fileName}',
+        path: '/remote.php/dav/files/$user/Talk/$fileName',
       ),
       headers: requestHeaders,
       body: fileByte,
     );
 
-    if (response.statusCode == 200 || response.statusCode == 201) {
+    if (response.statusCode == 200 ||
+        response.statusCode == 201 ||
+        response.statusCode == 204) {
       final rp = await http.post(
           Uri(
               scheme: 'http',
@@ -330,7 +330,7 @@ class ChatService {
           headers: requestHeaders2,
           body: jsonEncode({
             "shareType": 10,
-            "path": "//Talk/${fileName}",
+            "path": "//Talk/$fileName",
             "shareWith": token,
             "referenceId": generateRandomStringWithSha256(64),
             "talkMetaData": "{\"messageType\":\"$messageType\"}"
@@ -338,10 +338,10 @@ class ChatService {
       if (rp.statusCode == 200) {
         print('Shared sucsess');
       } else {
-        print('shared fail' + rp.statusCode.toString());
+        print('shared fail${rp.statusCode}');
       }
     } else {
-      throw Exception('Failed to upload file' + response.statusCode.toString());
+      throw Exception('Failed to upload file${response.statusCode}');
     }
   }
 }

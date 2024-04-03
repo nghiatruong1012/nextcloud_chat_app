@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -9,7 +8,7 @@ class AuthenticationRepository {
   final _controller = StreamController<AuthenticationStatus>();
 
   Stream<AuthenticationStatus> get status async* {
-    await Future<void>.delayed(Duration(seconds: 1));
+    await Future<void>.delayed(const Duration(seconds: 1));
     SharedPreferences sharedUser = await SharedPreferences.getInstance();
     String server = sharedUser.getString("server") ?? '';
     String username = sharedUser.getString("username") ?? '';
@@ -29,11 +28,11 @@ class AuthenticationRepository {
       required String username,
       required String password}) async {
     try {
-      SharedPreferences shared_User = await SharedPreferences.getInstance();
+      SharedPreferences sharedUser = await SharedPreferences.getInstance();
       // String userDataJson = jsonEncode();
-      shared_User.setString('server', server);
-      shared_User.setString('username', username);
-      shared_User.setString('password', password);
+      sharedUser.setString('server', server);
+      sharedUser.setString('username', username);
+      sharedUser.setString('password', password);
       _controller.add(AuthenticationStatus.authenticated);
     } catch (e) {
       _controller.add(AuthenticationStatus.unauthenticated);
@@ -43,10 +42,10 @@ class AuthenticationRepository {
   }
 
   Future<void> logOut() async {
-    SharedPreferences shared_User = await SharedPreferences.getInstance();
-    shared_User.remove('server');
-    shared_User.remove('username');
-    shared_User.remove('password');
+    SharedPreferences sharedUser = await SharedPreferences.getInstance();
+    sharedUser.remove('server');
+    sharedUser.remove('username');
+    sharedUser.remove('password');
     _controller.add(AuthenticationStatus.unauthenticated);
   }
 

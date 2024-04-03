@@ -6,11 +6,11 @@ class HomeState extends Equatable {
   final List<Conversations>? listConversations;
   final List<Conversations>? searchList;
 
-  HomeState({this.listConversations, this.searchList});
+  const HomeState({this.listConversations, this.searchList});
 
   @override
   // TODO: implement props
-  List<Object?> get props => [this.listConversations, this.searchList];
+  List<Object?> get props => [listConversations, searchList];
 
   HomeState copyWith({
     List<Conversations>? listConversations,

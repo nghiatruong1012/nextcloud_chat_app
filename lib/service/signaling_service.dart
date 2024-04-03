@@ -13,7 +13,7 @@ class SignalingService {
           scheme: 'http',
           host: host,
           port: 8080,
-          path: '/ocs/v2.php/apps/spreed/api/v3/signaling/${token}',
+          path: '/ocs/v2.php/apps/spreed/api/v3/signaling/$token',
         ),
         headers: requestHeaders,
         body: jsonEncode(params ?? {}),
@@ -21,7 +21,7 @@ class SignalingService {
       if (response.statusCode == 200) {
         print("post signal sucsess");
       } else {
-        print("post signal error" + response.statusCode.toString());
+        print("post signal error${response.statusCode}");
       }
     } catch (e) {
       print(e);

@@ -1,17 +1,15 @@
-import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 import 'package:nextcloud_chat_app/models/conversations.dart';
-import 'package:nextcloud_chat_app/models/participants.dart';
 import 'package:nextcloud_chat_app/service/conversation_service.dart';
 
 part 'home_event.dart';
 part 'home_state.dart';
 
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
-  HomeBloc() : super(HomeState()) {
+  HomeBloc() : super(const HomeState()) {
     on<HomeEvent>((event, emit) {
       // TODO: implement event handler
     });

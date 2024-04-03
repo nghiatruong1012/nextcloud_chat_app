@@ -1,10 +1,7 @@
 import 'package:any_link_preview/any_link_preview.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_html/flutter_html.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:full_screen_image/full_screen_image.dart';
 import 'package:intl/intl.dart';
@@ -12,12 +9,9 @@ import 'package:nextcloud_chat_app/models/chats.dart';
 import 'package:nextcloud_chat_app/models/user.dart';
 import 'package:nextcloud_chat_app/screen/chat/widgets/voice_message_player.dart';
 import 'package:nextcloud_chat_app/service/chat_service.dart';
-import 'package:nextcloud_chat_app/service/conversation_service.dart';
 import 'package:nextcloud_chat_app/service/encrypt.dart';
 import 'package:nextcloud_chat_app/service/request.dart';
 import 'package:nextcloud_chat_app/utils.dart';
-import 'package:voice_message_package/voice_message_package.dart';
-import 'package:encrypt/encrypt.dart' as encrypt;
 
 Widget MessageWidget(
   Chat chat,
@@ -29,7 +23,7 @@ Widget MessageWidget(
   int type,
   bool isFirstMess,
   bool isLastMess,
-  void pickChat(Chat chat),
+  void Function(Chat chat) pickChat,
 ) {
   return Builder(
     builder: (context) {
@@ -55,7 +49,7 @@ Widget SystemMessageWiget(Chat chat) {
   } else {
     return Container(
       alignment: Alignment.center,
-      padding: EdgeInsets.symmetric(vertical: 20),
+      padding: const EdgeInsets.symmetric(vertical: 20),
       child: Text('${chat.message}'),
     );
   }
@@ -71,7 +65,7 @@ Widget ChatMessageWidget(
     int type,
     bool isFirstMess,
     bool isLastMess,
-    void pickChat(Chat chat)) {
+    void Function(Chat chat) pickChat) {
   return Builder(
     builder: (context) {
       if (chat.messageParameters is Map &&
@@ -100,16 +94,16 @@ Widget FileChatWidget(
     int type,
     bool isFirstMess,
     bool isLastMess,
-    void pickChat(Chat chat)) {
+    void Function(Chat chat) pickChat) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       (chat.actorId != user.username && isFirstMess)
           ? Container(
-              margin: EdgeInsets.symmetric(horizontal: 50),
+              margin: const EdgeInsets.symmetric(horizontal: 50),
               child: Text(
                 chat.actorDisplayName.toString(),
-                style: TextStyle(fontSize: 12),
+                style: const TextStyle(fontSize: 12),
               ))
           : Container(),
       Row(
@@ -122,7 +116,7 @@ Widget FileChatWidget(
               ? Container(
                   width: 30,
                   height: 30,
-                  margin: EdgeInsets.only(right: 5),
+                  margin: const EdgeInsets.only(right: 5),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(100),
                     child:
@@ -141,19 +135,19 @@ Widget FileChatWidget(
                         Builder(builder: (context) {
                       if (type == 4) {
                         return SvgPicture.network(
-                          'http://${host}:8080//ocs/v2.php/apps/spreed/api/v1/room/${token!}/avatar',
+                          'http://$host:8080//ocs/v2.php/apps/spreed/api/v1/room/$token/avatar',
                           headers: requestHeaders,
                         );
                       } else if (type == 6) {
                         return Container(
-                            color: Color(0xFF0082c9),
-                            child: Center(child: Text('📝')));
+                            color: const Color(0xFF0082c9),
+                            child: const Center(child: Text('📝')));
                       } else {
                         return CachedNetworkImage(
                           imageUrl:
-                              'http://${host}:8080/avatar/${chat.actorId!}/64?v=0',
+                              'http://$host:8080/avatar/${chat.actorId!}/64?v=0',
                           placeholder: (context, url) =>
-                              CircularProgressIndicator(),
+                              const CircularProgressIndicator(),
                           errorWidget: (context, url, error) {
                             return Container();
                           },
@@ -176,7 +170,7 @@ Widget FileChatWidget(
               : Container(
                   width: 30,
                   height: 30,
-                  margin: EdgeInsets.only(right: 5),
+                  margin: const EdgeInsets.only(right: 5),
                 ),
           Container(
             alignment: (chat.actorId == user.username)
@@ -191,7 +185,7 @@ Widget FileChatWidget(
                     chat.messageParameters['file']['name']);
               },
               onLongPress: () {
-                bool _emojiReactOpen = false;
+                bool emojiReactOpen = false;
                 showModalBottomSheet(
                   context: context,
                   builder: (context) => Column(
@@ -287,8 +281,8 @@ Widget FileChatWidget(
                       //   ),
                       // ),
                       ListTile(
-                        leading: Icon(Icons.reply),
-                        title: Text('Trả lời'),
+                        leading: const Icon(Icons.reply),
+                        title: const Text('Trả lời'),
                         onTap: () {
                           pickChat(chat);
                           Navigator.pop(context);
@@ -299,11 +293,11 @@ Widget FileChatWidget(
                       //   title: Text('Chuyển tiếp'),
                       // ),
                       (!chat.timestamp!.isBefore(DateTime.now()
-                                  .subtract(Duration(hours: 5))) &&
+                                  .subtract(const Duration(hours: 5))) &&
                               chat.actorId == user.username)
                           ? ListTile(
-                              leading: Icon(Icons.delete),
-                              title: Text('Delete message'),
+                              leading: const Icon(Icons.delete),
+                              title: const Text('Delete message'),
                               onTap: () async {
                                 final newChat = await ChatService()
                                     .deleteMessage(token, chat.id.toString());
@@ -322,7 +316,7 @@ Widget FileChatWidget(
                 children: [
                   (chat.actorId == user.username)
                       ? Container(
-                          margin: EdgeInsets.only(right: 10),
+                          margin: const EdgeInsets.only(right: 10),
                           child: Text(
                             DateFormat('HH:mm').format(chat.timestamp!),
                             style: TextStyle(
@@ -332,37 +326,38 @@ Widget FileChatWidget(
                         )
                       : Container(),
                   Container(
-                    constraints: BoxConstraints(maxWidth: 300),
+                    constraints: const BoxConstraints(maxWidth: 300),
                     margin: (index == 0)
-                        ? EdgeInsets.only(left: 2, right: 2, top: 2, bottom: 10)
-                        : EdgeInsets.symmetric(vertical: 2),
+                        ? const EdgeInsets.only(
+                            left: 2, right: 2, top: 2, bottom: 10)
+                        : const EdgeInsets.symmetric(vertical: 2),
                     // padding: EdgeInsets.symmetric(
                     //     horizontal: 20, vertical: 10),
                     decoration: (chat.actorId == user.username)
                         ? BoxDecoration(
                             color: Colors.blue.withOpacity(0.2),
                             borderRadius: BorderRadius.only(
-                              bottomLeft: Radius.circular(20),
+                              bottomLeft: const Radius.circular(20),
                               bottomRight: isLastMess
-                                  ? Radius.circular(20)
-                                  : Radius.circular(5),
-                              topLeft: Radius.circular(20),
+                                  ? const Radius.circular(20)
+                                  : const Radius.circular(5),
+                              topLeft: const Radius.circular(20),
                               topRight: isFirstMess
-                                  ? Radius.circular(20)
-                                  : Radius.circular(5),
+                                  ? const Radius.circular(20)
+                                  : const Radius.circular(5),
                             ),
                           )
                         : BoxDecoration(
                             color: Colors.grey.withOpacity(0.2),
                             borderRadius: BorderRadius.only(
                               bottomLeft: isLastMess
-                                  ? Radius.circular(20)
-                                  : Radius.circular(2),
-                              bottomRight: Radius.circular(20),
-                              topRight: Radius.circular(20),
+                                  ? const Radius.circular(20)
+                                  : const Radius.circular(2),
+                              bottomRight: const Radius.circular(20),
+                              topRight: const Radius.circular(20),
                               topLeft: isFirstMess
-                                  ? Radius.circular(20)
-                                  : Radius.circular(2),
+                                  ? const Radius.circular(20)
+                                  : const Radius.circular(2),
                             )),
                     child: (chat.messageParameters['file']
                                     ['preview-available'] ==
@@ -376,11 +371,11 @@ Widget FileChatWidget(
                                 disposeLevel: DisposeLevel.High,
                                 child: CachedNetworkImage(
                                   imageUrl:
-                                      'http://${host}:8080/core/preview?x=-1&y=480&a=1&fileId=${chat.messageParameters['file']['id']}',
+                                      'http://$host:8080/core/preview?x=-1&y=480&a=1&fileId=${chat.messageParameters['file']['id']}',
                                   placeholder: (context, url) =>
-                                      CircularProgressIndicator(),
+                                      const CircularProgressIndicator(),
                                   errorWidget: (context, url, error) {
-                                    return Icon(Icons.error);
+                                    return const Icon(Icons.error);
                                   },
                                   httpHeaders: requestHeaders,
                                 ),
@@ -396,9 +391,9 @@ Widget FileChatWidget(
                                     'http://$host:8080/remote.php/dav/files/${user.username}/${chat.messageParameters['file']['path']}',
                                 header: requestHeaders,
                               );
-                            } else
+                            } else {
                               return ListTile(
-                                leading: Container(
+                                leading: SizedBox(
                                   width: 40,
                                   height: 40,
                                   child: Builder(
@@ -450,7 +445,7 @@ Widget FileChatWidget(
                                 ),
                                 title: Text(
                                   chat.message.toString(),
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                       fontSize: 14,
                                       decoration: TextDecoration.underline,
                                       fontWeight: FontWeight.w600),
@@ -459,11 +454,12 @@ Widget FileChatWidget(
                                 subtitle: Text(formatFileSize(
                                     chat.messageParameters["file"]["size"])),
                               );
+                            }
                           }),
                   ),
                   (chat.actorId != user.username)
                       ? Container(
-                          margin: EdgeInsets.only(left: 10),
+                          margin: const EdgeInsets.only(left: 10),
                           child: Text(
                             DateFormat('HH:mm').format(chat.timestamp!),
                             style: TextStyle(
@@ -492,17 +488,17 @@ Widget TextChatWidget(
     int type,
     bool isFirstMess,
     bool isLastMess,
-    void pickChat(Chat chat)) {
+    void Function(Chat chat) pickChat) {
   print(isFirstMess);
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       (chat.actorId != user.username && isFirstMess)
           ? Container(
-              margin: EdgeInsets.symmetric(horizontal: 50),
+              margin: const EdgeInsets.symmetric(horizontal: 50),
               child: Text(
                 chat.actorDisplayName.toString(),
-                style: TextStyle(fontSize: 12),
+                style: const TextStyle(fontSize: 12),
               ))
           : Container(),
       Row(
@@ -516,7 +512,7 @@ Widget TextChatWidget(
               ? Container(
                   width: 30,
                   height: 30,
-                  margin: EdgeInsets.only(right: 5),
+                  margin: const EdgeInsets.only(right: 5),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(100),
                     child:
@@ -535,19 +531,19 @@ Widget TextChatWidget(
                         Builder(builder: (context) {
                       if (type == 4) {
                         return SvgPicture.network(
-                          'http://${host}:8080//ocs/v2.php/apps/spreed/api/v1/room/${token!}/avatar',
+                          'http://$host:8080//ocs/v2.php/apps/spreed/api/v1/room/$token/avatar',
                           headers: requestHeaders,
                         );
                       } else if (type == 6) {
                         return Container(
-                            color: Color(0xFF0082c9),
-                            child: Center(child: Text('📝')));
+                            color: const Color(0xFF0082c9),
+                            child: const Center(child: Text('📝')));
                       } else {
                         return CachedNetworkImage(
                           imageUrl:
-                              'http://${host}:8080/avatar/${chat.actorId!}/64?v=0',
+                              'http://$host:8080/avatar/${chat.actorId!}/64?v=0',
                           placeholder: (context, url) =>
-                              CircularProgressIndicator(),
+                              const CircularProgressIndicator(),
                           errorWidget: (context, url, error) {
                             return Container();
                           },
@@ -570,7 +566,7 @@ Widget TextChatWidget(
               : Container(
                   width: 30,
                   height: 30,
-                  margin: EdgeInsets.only(right: 5),
+                  margin: const EdgeInsets.only(right: 5),
                 ),
           Column(
             crossAxisAlignment: (chat.actorId == user.username)
@@ -585,8 +581,8 @@ Widget TextChatWidget(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         ListTile(
-                          leading: Icon(Icons.reply),
-                          title: Text('Trả lời'),
+                          leading: const Icon(Icons.reply),
+                          title: const Text('Trả lời'),
                           onTap: () {
                             pickChat(chat);
                             Navigator.pop(context);
@@ -597,8 +593,8 @@ Widget TextChatWidget(
                         //   title: Text('Chuyển tiếp'),
                         // ),
                         ListTile(
-                          leading: Icon(Icons.copy),
-                          title: Text('Sao chép'),
+                          leading: const Icon(Icons.copy),
+                          title: const Text('Sao chép'),
                           onTap: () {
                             Clipboard.setData(
                                 ClipboardData(text: chat.message!));
@@ -613,11 +609,11 @@ Widget TextChatWidget(
                         //       )
                         //     : Container(),
                         (!chat.timestamp!.isBefore(DateTime.now()
-                                    .subtract(Duration(hours: 5))) &&
+                                    .subtract(const Duration(hours: 5))) &&
                                 chat.actorId == user.username)
                             ? ListTile(
-                                leading: Icon(Icons.delete),
-                                title: Text('Delete message'),
+                                leading: const Icon(Icons.delete),
+                                title: const Text('Delete message'),
                                 onTap: () async {
                                   final newChat = await ChatService()
                                       .deleteMessage(token, chat.id.toString());
@@ -633,7 +629,7 @@ Widget TextChatWidget(
                   children: [
                     (chat.actorId == user.username)
                         ? Container(
-                            margin: EdgeInsets.only(right: 10),
+                            margin: const EdgeInsets.only(right: 10),
                             child: Text(
                               DateFormat('HH:mm').format(chat.timestamp!),
                               style: TextStyle(
@@ -646,11 +642,11 @@ Widget TextChatWidget(
                       builder: (context) {
                         if (containsOnlyEmojis(chat.message.toString())) {
                           return Container(
-                            constraints: BoxConstraints(maxWidth: 300),
+                            constraints: const BoxConstraints(maxWidth: 300),
                             margin: (index == 0)
-                                ? EdgeInsets.only(
+                                ? const EdgeInsets.only(
                                     left: 2, right: 2, top: 2, bottom: 10)
-                                : EdgeInsets.symmetric(vertical: 2),
+                                : const EdgeInsets.symmetric(vertical: 2),
                             // padding:
                             //     EdgeInsets.symmetric(horizontal: 15, vertical: 8),
                             child: Column(
@@ -674,7 +670,7 @@ Widget TextChatWidget(
                                               CrossAxisAlignment.start,
                                           children: [
                                             Container(
-                                                padding: EdgeInsets.only(
+                                                padding: const EdgeInsets.only(
                                                     left: 5, bottom: 3, top: 1),
                                                 child: Text(
                                                   chat.parent!.actorDisplayName
@@ -684,7 +680,7 @@ Widget TextChatWidget(
                                                           .withOpacity(0.6)),
                                                 )),
                                             Container(
-                                                padding: EdgeInsets.only(
+                                                padding: const EdgeInsets.only(
                                                     left: 5, top: 3, bottom: 1),
                                                 child: Text(
                                                   chat.parent!.message
@@ -698,18 +694,18 @@ Widget TextChatWidget(
                                       ),
                                 Text(
                                   chat.message.toString(),
-                                  style: TextStyle(fontSize: 30),
+                                  style: const TextStyle(fontSize: 30),
                                 ),
                               ],
                             ),
                           );
                         } else if (isUrl(chat.message.toString())) {
                           return Container(
-                            constraints: BoxConstraints(maxWidth: 300),
+                            constraints: const BoxConstraints(maxWidth: 300),
                             margin: (index == 0)
-                                ? EdgeInsets.only(
+                                ? const EdgeInsets.only(
                                     left: 2, right: 2, top: 2, bottom: 10)
-                                : EdgeInsets.symmetric(vertical: 2),
+                                : const EdgeInsets.symmetric(vertical: 2),
                             // padding:
                             //     EdgeInsets.symmetric(horizontal: 15, vertical: 8),
                             child: Column(
@@ -733,7 +729,7 @@ Widget TextChatWidget(
                                               CrossAxisAlignment.start,
                                           children: [
                                             Container(
-                                                padding: EdgeInsets.only(
+                                                padding: const EdgeInsets.only(
                                                     left: 5, bottom: 3, top: 1),
                                                 child: Text(
                                                   chat.parent!.actorDisplayName
@@ -743,7 +739,7 @@ Widget TextChatWidget(
                                                           .withOpacity(0.6)),
                                                 )),
                                             Container(
-                                                padding: EdgeInsets.only(
+                                                padding: const EdgeInsets.only(
                                                     left: 5, top: 3, bottom: 1),
                                                 child: Text(
                                                   chat.parent!.message
@@ -765,38 +761,38 @@ Widget TextChatWidget(
                             //     ? Alignment.centerRight
                             //     : Alignment.centerLeft,
                             child: Container(
-                              constraints: BoxConstraints(maxWidth: 300),
+                              constraints: const BoxConstraints(maxWidth: 300),
                               margin: (index == 0)
-                                  ? EdgeInsets.only(
+                                  ? const EdgeInsets.only(
                                       left: 2, right: 2, top: 2, bottom: 10)
-                                  : EdgeInsets.symmetric(vertical: 2),
-                              padding: EdgeInsets.symmetric(
+                                  : const EdgeInsets.symmetric(vertical: 2),
+                              padding: const EdgeInsets.symmetric(
                                   horizontal: 15, vertical: 8),
                               decoration: (chat.actorId == user.username)
                                   ? BoxDecoration(
                                       color: Colors.blue.withOpacity(0.2),
                                       borderRadius: BorderRadius.only(
-                                        bottomLeft: Radius.circular(20),
+                                        bottomLeft: const Radius.circular(20),
                                         bottomRight: isLastMess
-                                            ? Radius.circular(20)
-                                            : Radius.circular(5),
-                                        topLeft: Radius.circular(20),
+                                            ? const Radius.circular(20)
+                                            : const Radius.circular(5),
+                                        topLeft: const Radius.circular(20),
                                         topRight: isFirstMess
-                                            ? Radius.circular(20)
-                                            : Radius.circular(5),
+                                            ? const Radius.circular(20)
+                                            : const Radius.circular(5),
                                       ),
                                     )
                                   : BoxDecoration(
                                       color: Colors.grey.withOpacity(0.2),
                                       borderRadius: BorderRadius.only(
                                         bottomLeft: isLastMess
-                                            ? Radius.circular(20)
-                                            : Radius.circular(2),
-                                        bottomRight: Radius.circular(20),
-                                        topRight: Radius.circular(20),
+                                            ? const Radius.circular(20)
+                                            : const Radius.circular(2),
+                                        bottomRight: const Radius.circular(20),
+                                        topRight: const Radius.circular(20),
                                         topLeft: isFirstMess
-                                            ? Radius.circular(20)
-                                            : Radius.circular(2),
+                                            ? const Radius.circular(20)
+                                            : const Radius.circular(2),
                                       ),
                                     ),
                               child:
@@ -823,10 +819,11 @@ Widget TextChatWidget(
                                                 CrossAxisAlignment.start,
                                             children: [
                                               Container(
-                                                  padding: EdgeInsets.only(
-                                                      left: 5,
-                                                      bottom: 3,
-                                                      top: 1),
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                          left: 5,
+                                                          bottom: 3,
+                                                          top: 1),
                                                   child: Text(
                                                     chat.parent!
                                                         .actorDisplayName
@@ -836,10 +833,11 @@ Widget TextChatWidget(
                                                             .withOpacity(0.6)),
                                                   )),
                                               Container(
-                                                  padding: EdgeInsets.only(
-                                                      left: 5,
-                                                      top: 3,
-                                                      bottom: 1),
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                          left: 5,
+                                                          top: 3,
+                                                          bottom: 1),
                                                   child: Text(
                                                     chat.parent!.message
                                                         .toString(),
@@ -855,8 +853,10 @@ Widget TextChatWidget(
                                     //     encrypt.Encrypted.fromBase64(
                                     //         chat.message.toString())),
                                     // EncryptionDecryption().decryptMessage(token, chat.message.toString()),
-                                    chat.message.toString(),
-                                    style: TextStyle(fontSize: 18),
+                                    // chat.message.toString(),
+                                    EncryptionDecryption()
+                                        .decryptString(chat.message.toString()),
+                                    style: const TextStyle(fontSize: 18),
                                     maxLines: 10,
                                   ),
                                 ],
@@ -868,7 +868,7 @@ Widget TextChatWidget(
                     ),
                     (chat.actorId != user.username)
                         ? Container(
-                            margin: EdgeInsets.only(left: 10),
+                            margin: const EdgeInsets.only(left: 10),
                             child: Text(
                               DateFormat('HH:mm').format(chat.timestamp!),
                               style: TextStyle(
@@ -916,16 +916,16 @@ Widget ObjectChatWidget(
     int type,
     bool isFirstMess,
     bool isLastMess,
-    void pickChat(Chat chat)) {
+    void Function(Chat chat) pickChat) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       (chat.actorId != user.username && isFirstMess)
           ? Container(
-              margin: EdgeInsets.symmetric(horizontal: 50),
+              margin: const EdgeInsets.symmetric(horizontal: 50),
               child: Text(
                 chat.actorDisplayName.toString(),
-                style: TextStyle(fontSize: 12),
+                style: const TextStyle(fontSize: 12),
               ))
           : Container(),
       Row(
@@ -939,7 +939,7 @@ Widget ObjectChatWidget(
               ? Container(
                   width: 30,
                   height: 30,
-                  margin: EdgeInsets.only(right: 5),
+                  margin: const EdgeInsets.only(right: 5),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(100),
                     child:
@@ -958,19 +958,19 @@ Widget ObjectChatWidget(
                         Builder(builder: (context) {
                       if (type == 4) {
                         return SvgPicture.network(
-                          'http://${host}:8080//ocs/v2.php/apps/spreed/api/v1/room/${token!}/avatar',
+                          'http://$host:8080//ocs/v2.php/apps/spreed/api/v1/room/$token/avatar',
                           headers: requestHeaders,
                         );
                       } else if (type == 6) {
                         return Container(
-                            color: Color(0xFF0082c9),
-                            child: Center(child: Text('📝')));
+                            color: const Color(0xFF0082c9),
+                            child: const Center(child: Text('📝')));
                       } else {
                         return CachedNetworkImage(
                           imageUrl:
-                              'http://${host}:8080/avatar/${chat.actorId!}/64?v=0',
+                              'http://$host:8080/avatar/${chat.actorId!}/64?v=0',
                           placeholder: (context, url) =>
-                              CircularProgressIndicator(),
+                              const CircularProgressIndicator(),
                           errorWidget: (context, url, error) {
                             return Container();
                           },
@@ -993,7 +993,7 @@ Widget ObjectChatWidget(
               : Container(
                   width: 30,
                   height: 30,
-                  margin: EdgeInsets.only(right: 5),
+                  margin: const EdgeInsets.only(right: 5),
                 ),
           GestureDetector(
             onLongPress: () {
@@ -1003,8 +1003,8 @@ Widget ObjectChatWidget(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     ListTile(
-                      leading: Icon(Icons.reply),
-                      title: Text('Trả lời'),
+                      leading: const Icon(Icons.reply),
+                      title: const Text('Trả lời'),
                       onTap: () {
                         pickChat(chat);
                         Navigator.pop(context);
@@ -1014,7 +1014,7 @@ Widget ObjectChatWidget(
                     //   leading: Icon(Icons.forward),
                     //   title: Text('Chuyển tiếp'),
                     // ),
-                    ListTile(
+                    const ListTile(
                       leading: Icon(Icons.copy),
                       title: Text('Sao chép'),
                     ),
@@ -1026,7 +1026,7 @@ Widget ObjectChatWidget(
               children: [
                 (chat.actorId == user.username)
                     ? Container(
-                        margin: EdgeInsets.only(right: 10),
+                        margin: const EdgeInsets.only(right: 10),
                         child: Text(
                           DateFormat('HH:mm').format(chat.timestamp!),
                           style: TextStyle(
@@ -1037,11 +1037,11 @@ Widget ObjectChatWidget(
                     : Container(),
                 (containsOnlyEmojis(chat.message.toString()))
                     ? Container(
-                        constraints: BoxConstraints(maxWidth: 300),
+                        constraints: const BoxConstraints(maxWidth: 300),
                         margin: (index == 0)
-                            ? EdgeInsets.only(
+                            ? const EdgeInsets.only(
                                 left: 2, right: 2, top: 2, bottom: 10)
-                            : EdgeInsets.symmetric(vertical: 2),
+                            : const EdgeInsets.symmetric(vertical: 2),
                         // padding:
                         //     EdgeInsets.symmetric(horizontal: 15, vertical: 8),
                         child: Column(
@@ -1063,7 +1063,7 @@ Widget ObjectChatWidget(
                                           CrossAxisAlignment.start,
                                       children: [
                                         Container(
-                                            padding: EdgeInsets.only(
+                                            padding: const EdgeInsets.only(
                                                 left: 5, bottom: 3, top: 1),
                                             child: Text(
                                               chat.parent!.actorDisplayName
@@ -1073,7 +1073,7 @@ Widget ObjectChatWidget(
                                                       .withOpacity(0.6)),
                                             )),
                                         Container(
-                                            padding: EdgeInsets.only(
+                                            padding: const EdgeInsets.only(
                                                 left: 5, top: 3, bottom: 1),
                                             child: Text(
                                               chat.parent!.message.toString(),
@@ -1086,7 +1086,7 @@ Widget ObjectChatWidget(
                                   ),
                             Text(
                               chat.message.toString(),
-                              style: TextStyle(fontSize: 30),
+                              style: const TextStyle(fontSize: 30),
                             ),
                           ],
                         ),
@@ -1096,11 +1096,11 @@ Widget ObjectChatWidget(
                         //     ? Alignment.centerRight
                         //     : Alignment.centerLeft,
                         child: Container(
-                          constraints: BoxConstraints(maxWidth: 300),
+                          constraints: const BoxConstraints(maxWidth: 300),
                           margin: (index == 0)
-                              ? EdgeInsets.only(
+                              ? const EdgeInsets.only(
                                   left: 2, right: 2, top: 2, bottom: 10)
-                              : EdgeInsets.symmetric(vertical: 2),
+                              : const EdgeInsets.symmetric(vertical: 2),
                           // padding:
                           //     EdgeInsets.symmetric(horizontal: 15, vertical: 8),
 
@@ -1127,7 +1127,7 @@ Widget ObjectChatWidget(
                                             CrossAxisAlignment.start,
                                         children: [
                                           Container(
-                                              padding: EdgeInsets.only(
+                                              padding: const EdgeInsets.only(
                                                   left: 5, bottom: 3, top: 1),
                                               child: Text(
                                                 chat.parent!.actorDisplayName
@@ -1137,7 +1137,7 @@ Widget ObjectChatWidget(
                                                         .withOpacity(0.6)),
                                               )),
                                           Container(
-                                              padding: EdgeInsets.only(
+                                              padding: const EdgeInsets.only(
                                                   left: 5, top: 3, bottom: 1),
                                               child: Text(
                                                 chat.parent!.message.toString(),
@@ -1158,11 +1158,11 @@ Widget ObjectChatWidget(
                                 showMultimedia: true,
                                 errorTitle: chat.message.toString(),
                                 errorBody: chat.message.toString(),
-                                cache: Duration(hours: 1),
+                                cache: const Duration(hours: 1),
                                 backgroundColor: Colors.grey[200],
                                 errorWidget: Container(
                                   color: Colors.grey[300],
-                                  child: Text('Oops!'),
+                                  child: const Text('Oops!'),
                                 ),
                               ),
                               // Text(
@@ -1175,7 +1175,7 @@ Widget ObjectChatWidget(
                       ),
                 (chat.actorId != user.username)
                     ? Container(
-                        margin: EdgeInsets.only(left: 10),
+                        margin: const EdgeInsets.only(left: 10),
                         child: Text(
                           DateFormat('HH:mm').format(chat.timestamp!),
                           style: TextStyle(

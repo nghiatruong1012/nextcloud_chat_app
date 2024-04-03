@@ -31,7 +31,7 @@ class _LocationState extends State<Location> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(title: Text('Share location')),
+        appBar: AppBar(title: const Text('Share location')),
         body: FutureBuilder(
           future: position,
           builder: (context, snapshot) {
@@ -64,11 +64,11 @@ class _LocationState extends State<Location> {
                     Navigator.pop(context);
                   });
             } else if (snapshot.hasError) {
-              return Center(
+              return const Center(
                 child: Text('Error'),
               );
             } else {
-              return Center(
+              return const Center(
                 child: CircularProgressIndicator(),
               );
             }

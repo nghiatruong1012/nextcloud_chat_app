@@ -1,37 +1,47 @@
+import 'dart:convert';
+
 import 'package:encrypt/encrypt.dart' as encrypt;
-import 'package:encrypt/encrypt.dart';
 
 class EncryptionDecryption {
-  // static final key=encrypt.Key.fromLength(32);
-  // static final iv=encrypt.IV.fromLength(16);
-  // static final encrypter=encrypt.Encrypter(encrypt.AES(key));
-
-  // static encryptMessage(String plainMessageText){
-  //   final encrypted=encrypter.encrypt(plainMessageText,iv: iv);
-  //   return encrypted.base64;
-  // }
-  // static decryptMessage(encryptedMessageText){
-  //   return encrypter.decrypt(encryptedMessageText,iv:iv);
-  // }
-
-  // Hàm mã hóa tin nhắn với khóa được chỉ định
-  String encryptMessage(String keyString, String message) {
-    final key = Key.fromUtf8(keyString);
-    final iv = IV.fromLength(16); // Độ dài của iv phải là 16 cho AES
-    final encrypter = Encrypter(AES(key));
-
-    final encryptedText = encrypter.encrypt(message, iv: iv);
-    return encryptedText.base64;
+  bool isEncrypted(String text) {
+    try {
+      // Giải mã chuỗi, nếu không có lỗi, đây là chuỗi đã được mã hóa
+      final decode = base64.decode(text);
+      return true;
+    } catch (e) {
+      // Nếu có lỗi, đây không phải là chuỗi đã được mã hóa
+      return false;
+    }
   }
 
-// Hàm giải mã tin nhắn với khóa được chỉ định
-  String decryptMessage(String keyString, String encryptedMessage) {
-    final key = Key.fromUtf8(keyString);
-    final iv = IV.fromLength(16); // Độ dài của iv phải là 16 cho AES
-    final encrypter = Encrypter(AES(key));
+// Hàm mã hóa chuỗi
+  String encryptString(String plainText) {
+    final keyString = 'my32lengthsupersecretnooneknows1';
+    final ivString = 'my32lengthsupers';
+    final key = encrypt.Key.fromUtf8(keyString);
+    final iv = encrypt.IV.fromUtf8(ivString);
+    final encrypter = encrypt.Encrypter(encrypt.AES(key));
+    final encrypted = encrypter.encrypt(plainText, iv: iv);
+    return encrypted.base64;
+  }
 
-    final encrypted = Encrypted.fromBase64(encryptedMessage);
-    final decryptedText = encrypter.decrypt(encrypted, iv: iv);
-    return decryptedText;
+// Hàm giải mã chuỗi
+  String decryptString(String encryptedText) {
+    final keyString = 'my32lengthsupersecretnooneknows1';
+    final ivString = 'my32lengthsupers';
+    if (isEncrypted(encryptedText)) {
+      final key = encrypt.Key.fromUtf8(keyString);
+      final iv = encrypt.IV.fromUtf8(ivString);
+      final encrypter = encrypt.Encrypter(encrypt.AES(key));
+      try {
+        final decrypted = encrypter.decrypt64(encryptedText, iv: iv);
+        // print("decrypt" + decrypted);
+        return decrypted;
+      } catch (e) {
+        return encryptedText;
+      }
+    } else {
+      return encryptedText;
+    }
   }
 }

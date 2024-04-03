@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "674664663305",
+    "project_id": "end-to-end-talk",
+    "storage_bucket": "end-to-end-talk.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:674664663305:android:d9b5c1ef11d21b11006bd8",
+        "android_client_info": {
+          "package_name": "com.example.nextcloud_chat_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBjhCHv-VnqAvIbv9p8Y1v_goGDxSyc0Xo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

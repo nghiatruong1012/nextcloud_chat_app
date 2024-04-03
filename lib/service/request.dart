@@ -1,11 +1,11 @@
 import 'dart:convert';
 
-import 'package:nextcloud_chat_app/utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
 // const String host = '192.168.0.178';
-const String host = '192.168.1.21';
+const String host = '192.168.1.27';
+// const String host = '192.168.43.165';
 
 class HTTPService {
   // String? cookie;
@@ -20,9 +20,9 @@ class HTTPService {
     String? cookie = prefs.getString("cookie");
 
     String basicAuth =
-        'Basic ' + base64Encode(utf8.encode('$username:$password'));
+        'Basic ${base64Encode(utf8.encode('$username:$password'))}';
 
-    Map<String, String> requestHeaders = new Map();
+    Map<String, String> requestHeaders = {};
 
     requestHeaders["Accept"] = "application/json";
     requestHeaders["Content-type"] = "application/json";
@@ -44,9 +44,9 @@ class HTTPService {
     String? password = prefs.getString("password");
     String? cookie = prefs.getString("cookie");
     String basicAuth =
-        'Basic ' + base64Encode(utf8.encode('$username:$password'));
+        'Basic ${base64Encode(utf8.encode('$username:$password'))}';
 
-    Map<String, String> requestHeaders = new Map();
+    Map<String, String> requestHeaders = {};
     if (cookie != null) {
       requestHeaders["Cookie"] = cookie;
     }
@@ -115,7 +115,7 @@ class HTTPService {
       token = userMap["token"];
       domain = userMap["store"]["domain"];
     }
-    Map<String, String> requestHeaders = new Map();
+    Map<String, String> requestHeaders = {};
 
     requestHeaders["x-access-token"] = token ?? "";
     requestHeaders["x-shop-domain"] = domain ?? "";

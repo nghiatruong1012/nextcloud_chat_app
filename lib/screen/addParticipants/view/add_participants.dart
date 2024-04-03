@@ -1,12 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:nextcloud_chat_app/models/chats.dart';
 import 'package:nextcloud_chat_app/models/list_user.dart';
 import 'package:nextcloud_chat_app/screen/addParticipants/bloc/add_participants_bloc.dart';
-import 'package:nextcloud_chat_app/screen/chat/view/chat.dart';
 
-import 'package:nextcloud_chat_app/service/conversation_service.dart';
 import 'package:nextcloud_chat_app/service/participants_service.dart';
 import 'package:nextcloud_chat_app/service/request.dart';
 
@@ -50,12 +47,12 @@ class _AddParticipantState extends State<AddParticipant> {
                 onPressed: () {
                   Navigator.pop(context);
                 },
-                icon: Icon(
+                icon: const Icon(
                   Icons.arrow_back,
                   color: Colors.black,
                 ),
               ),
-              title: Text(
+              title: const Text(
                 'Nextcloud Talk',
                 style: TextStyle(color: Colors.black),
               ),
@@ -66,12 +63,12 @@ class _AddParticipantState extends State<AddParticipant> {
                       isSearching = true;
                     });
                   },
-                  icon: Icon(
+                  icon: const Icon(
                     Icons.search,
                     color: Colors.black,
                   ),
                 ),
-                (selectedUser.length > 0)
+                (selectedUser.isNotEmpty)
                     ? IconButton(
                         onPressed: () async {
                           for (var e in selectedUser) {
@@ -160,7 +157,7 @@ class _AddParticipantState extends State<AddParticipant> {
                           //   );
                           // }
                         },
-                        icon: Icon(
+                        icon: const Icon(
                           Icons.check,
                           color: Colors.black,
                         ))
@@ -179,13 +176,13 @@ class _AddParticipantState extends State<AddParticipant> {
                         .add(ChangedQueryEvent('', token));
                   });
                 },
-                icon: Icon(
+                icon: const Icon(
                   Icons.arrow_back,
                   color: Colors.black,
                 ),
               ),
               title: TextField(
-                decoration: new InputDecoration.collapsed(hintText: 'Tìm kiếm'),
+                decoration: const InputDecoration.collapsed(hintText: 'Tìm kiếm'),
                 onChanged: (value) {
                   setState(() {
                     context
@@ -203,15 +200,15 @@ class _AddParticipantState extends State<AddParticipant> {
                           .add(ChangedQueryEvent('', token));
                     });
                   },
-                  icon: Icon(
+                  icon: const Icon(
                     Icons.clear,
                     color: Colors.black,
                   ),
                 ),
-                (selectedUser.length > 0)
+                (selectedUser.isNotEmpty)
                     ? IconButton(
                         onPressed: () {},
-                        icon: Icon(
+                        icon: const Icon(
                           Icons.check,
                           color: Colors.black,
                         ))
@@ -227,18 +224,18 @@ class _AddParticipantState extends State<AddParticipant> {
                   itemCount: state.users!.length,
                   itemBuilder: (context, index) {
                     return ListTile(
-                      leading: Container(
+                      leading: SizedBox(
                         width: 40,
                         height: 40,
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(100),
                           child: CachedNetworkImage(
                             imageUrl:
-                                'http://${host}:8080/avatar/${state.users![index].id}/64',
+                                'http://$host:8080/avatar/${state.users![index].id}/64',
                             placeholder: (context, url) =>
-                                CircularProgressIndicator(),
+                                const CircularProgressIndicator(),
                             errorWidget: (context, url, error) {
-                              return Icon(Icons.error);
+                              return const Icon(Icons.error);
                             },
                             httpHeaders: requestHeaders,
                           ),
@@ -251,7 +248,7 @@ class _AddParticipantState extends State<AddParticipant> {
                               .map((e) => e.id)
                               .toList()
                               .contains(state.users![index].id))
-                          ? Icon(Icons.check)
+                          ? const Icon(Icons.check)
                           : null,
                       onTap: () async {
                         setState(() {
@@ -308,7 +305,7 @@ class _AddParticipantState extends State<AddParticipant> {
               //     : Container(),
             ]);
           } else {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
         },
       ),

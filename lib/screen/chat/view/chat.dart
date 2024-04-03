@@ -1,19 +1,13 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
-import 'package:emoji_picker_flutter/emoji_picker_flutter.dart' as category;
 
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_osm_plugin/flutter_osm_plugin.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:nextcloud_chat_app/authentication/bloc/authentication_bloc.dart';
@@ -24,19 +18,14 @@ import 'package:nextcloud_chat_app/screen/chat/bloc/chat_bloc.dart';
 import 'package:nextcloud_chat_app/screen/chat/widgets/chat_widgets.dart';
 import 'package:nextcloud_chat_app/screen/conversationInfo/view/conversation_info.dart';
 import 'package:nextcloud_chat_app/screen/location/view/location.dart';
-import 'package:nextcloud_chat_app/screen/searchChat/view/search_chat.dart';
 import 'package:nextcloud_chat_app/screen/sharedItem/view/shared_item.dart';
-import 'package:nextcloud_chat_app/screen/zegoCall/zego_call.dart';
-import 'package:nextcloud_chat_app/service/call_service.dart';
 import 'package:nextcloud_chat_app/service/chat_service.dart';
 import 'package:nextcloud_chat_app/service/conversation_service.dart';
 import 'package:nextcloud_chat_app/service/encrypt.dart';
 import 'package:nextcloud_chat_app/service/participants_service.dart';
 import 'package:nextcloud_chat_app/service/request.dart';
-import 'package:nextcloud_chat_app/utils.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
-import 'package:voice_message_package/voice_message_package.dart';
 
 const _platform = MethodChannel('emoji_picker_flutter');
 
@@ -84,7 +73,7 @@ class ChatProvider extends StatelessWidget {
 }
 
 class ChatPage extends StatefulWidget {
-  ChatPage({super.key, required this.token, required this.messageId});
+  const ChatPage({super.key, required this.token, required this.messageId});
 
   final String token;
   final int messageId;
@@ -199,14 +188,16 @@ class _ChatPageState extends State<ChatPage> {
             appBar: chatAppBar(context, state, user),
             body: Column(
               children: [
-                (state.isLoading!) ? CircularProgressIndicator() : Container(),
+                (state.isLoading!)
+                    ? const CircularProgressIndicator()
+                    : Container(),
                 Flexible(
                   child: ListView.builder(
                       controller: scrollController,
                       reverse: true,
                       itemCount: state.listChat!.length,
                       itemBuilder: (context, index) {
-                        int itemCount = state?.listChat?.length ?? 0;
+                        int itemCount = state.listChat?.length ?? 0;
                         int reversedIndex = itemCount - 1 - index;
                         final message = state.listChat![reversedIndex];
                         final previousMessage = reversedIndex > 0
@@ -236,7 +227,8 @@ class _ChatPageState extends State<ChatPage> {
                                 ? TimestampChat(message: message)
                                 : Container(),
                             Container(
-                              margin: EdgeInsets.symmetric(horizontal: 10),
+                              margin:
+                                  const EdgeInsets.symmetric(horizontal: 10),
                               child: MessageWidget(
                                 state.listChat![reversedIndex],
                                 user,
@@ -258,7 +250,7 @@ class _ChatPageState extends State<ChatPage> {
                   children: [
                     (isReplying && chatRep != null)
                         ? Container(
-                            padding: EdgeInsets.symmetric(
+                            padding: const EdgeInsets.symmetric(
                                 horizontal: 20, vertical: 20),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -278,7 +270,7 @@ class _ChatPageState extends State<ChatPage> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Container(
-                                            padding: EdgeInsets.only(
+                                            padding: const EdgeInsets.only(
                                                 left: 5, bottom: 3, top: 1),
                                             child: Text(
                                               chatRep!.actorId.toString(),
@@ -287,7 +279,7 @@ class _ChatPageState extends State<ChatPage> {
                                                       .withOpacity(0.6)),
                                             )),
                                         Container(
-                                            padding: EdgeInsets.only(
+                                            padding: const EdgeInsets.only(
                                                 left: 5, top: 3, bottom: 1),
                                             child: Text(
                                               chatRep!.message.toString(),
@@ -299,7 +291,7 @@ class _ChatPageState extends State<ChatPage> {
                                     onPressed: () {
                                       CancelReply();
                                     },
-                                    icon: Icon(Icons.close))
+                                    icon: const Icon(Icons.close))
                               ],
                             ),
                           )
@@ -308,8 +300,8 @@ class _ChatPageState extends State<ChatPage> {
                           ),
                     Container(
                       // height: 50,
-                      padding: EdgeInsets.symmetric(vertical: 10),
-                      decoration: BoxDecoration(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      decoration: const BoxDecoration(
                         color: Colors.white,
                         // border: Border(
                         //     top: BorderSide(
@@ -328,7 +320,7 @@ class _ChatPageState extends State<ChatPage> {
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Container(
-                                        padding: EdgeInsets.symmetric(
+                                        padding: const EdgeInsets.symmetric(
                                             horizontal: 20, vertical: 10),
                                         child: Text(
                                           'Upload to chat',
@@ -339,8 +331,8 @@ class _ChatPageState extends State<ChatPage> {
                                         ),
                                       ),
                                       ListTile(
-                                        leading: Icon(Icons.file_upload),
-                                        title: Text('Upload file'),
+                                        leading: const Icon(Icons.file_upload),
+                                        title: const Text('Upload file'),
                                         onTap: () async {
                                           FilePickerResult? result =
                                               await FilePicker.platform
@@ -348,13 +340,13 @@ class _ChatPageState extends State<ChatPage> {
                                           if (result != null) {
                                             PlatformFile file =
                                                 result.files.first;
-                                            File _file =
+                                            File file0 =
                                                 File(result.files.single.path!);
                                             ChatService().uploadAndSharedFile(
                                                 user.username.toString(),
                                                 file.path.toString(),
                                                 file.name,
-                                                _file,
+                                                file0,
                                                 token,
                                                 '');
                                           } else {
@@ -363,8 +355,8 @@ class _ChatPageState extends State<ChatPage> {
                                         },
                                       ),
                                       ListTile(
-                                        leading: Icon(Icons.image),
-                                        title: Text('Upload image'),
+                                        leading: const Icon(Icons.image),
+                                        title: const Text('Upload image'),
                                         onTap: () async {
                                           // final image = await ImagePicker()
                                           //     .pickImage(
@@ -378,56 +370,57 @@ class _ChatPageState extends State<ChatPage> {
                                           if (result != null) {
                                             PlatformFile image =
                                                 result.files.first;
-                                            File _file =
+                                            File file0 =
                                                 File(result.files.single.path!);
                                             ChatService().uploadAndSharedFile(
                                                 user.username.toString(),
                                                 image.path.toString(),
                                                 image.name,
-                                                _file,
+                                                file0,
                                                 token,
                                                 '');
                                           }
                                         },
                                       ),
                                       ListTile(
-                                        leading:
-                                            Icon(Icons.camera_alt_outlined),
-                                        title: Text('Take picture'),
+                                        leading: const Icon(
+                                            Icons.camera_alt_outlined),
+                                        title: const Text('Take picture'),
                                         onTap: () async {
-                                          XFile? _xfile = await ImagePicker()
+                                          XFile? xfile = await ImagePicker()
                                               .pickImage(
                                                   source: ImageSource.camera);
-                                          File _file = File(_xfile!.path!);
+                                          File file0 = File(xfile!.path);
                                           ChatService().uploadAndSharedFile(
                                               user.username.toString(),
-                                              _file.path.toString(),
-                                              _xfile.name,
-                                              _file,
+                                              file0.path.toString(),
+                                              xfile.name,
+                                              file0,
                                               token,
                                               '');
                                         },
                                       ),
                                       ListTile(
-                                        leading: Icon(Icons.videocam_outlined),
-                                        title: Text('Take video'),
+                                        leading:
+                                            const Icon(Icons.videocam_outlined),
+                                        title: const Text('Take video'),
                                         onTap: () async {
-                                          XFile? _xfile = await ImagePicker()
+                                          XFile? xfile = await ImagePicker()
                                               .pickVideo(
                                                   source: ImageSource.camera);
-                                          File _file = File(_xfile!.path!);
+                                          File file0 = File(xfile!.path);
                                           ChatService().uploadAndSharedFile(
                                               user.username.toString(),
-                                              _file.path.toString(),
-                                              _xfile.name,
-                                              _file,
+                                              file0.path.toString(),
+                                              xfile.name,
+                                              file0,
                                               token,
                                               '');
                                         },
                                       ),
                                       ListTile(
-                                        leading: Icon(Icons.location_on),
-                                        title: Text('Shared location'),
+                                        leading: const Icon(Icons.location_on),
+                                        title: const Text('Shared location'),
                                         onTap: () async {
                                           Navigator.push(
                                               context,
@@ -442,7 +435,7 @@ class _ChatPageState extends State<ChatPage> {
                                   ),
                                 );
                               },
-                              icon: Icon(Icons.attach_file)),
+                              icon: const Icon(Icons.attach_file)),
                           // IconButton(
                           //     onPressed: () {
                           //       toogleEmoji();
@@ -455,7 +448,7 @@ class _ChatPageState extends State<ChatPage> {
                                 // Utils().showToast("Hold to record");
                                 ScaffoldMessenger.of(context)
                                     .showSnackBar(SnackBar(
-                                  content: Text("Hold to record"),
+                                  content: const Text("Hold to record"),
                                   backgroundColor: Colors.grey.withOpacity(0.3),
                                   action: SnackBarAction(
                                     label: 'Ok',
@@ -471,7 +464,8 @@ class _ChatPageState extends State<ChatPage> {
                                 final String filePath = '$dir/$recordFileName';
 
                                 await audioRecord.start(
-                                    RecordConfig(encoder: AudioEncoder.wav),
+                                    const RecordConfig(
+                                        encoder: AudioEncoder.wav),
                                     path: filePath);
 
                                 setState(() {
@@ -500,14 +494,14 @@ class _ChatPageState extends State<ChatPage> {
                                   // Utils().showToast("Hold to record");
                                   ScaffoldMessenger.of(context)
                                       .showSnackBar(SnackBar(
-                                    content: Text("Hold to record"),
+                                    content: const Text("Hold to record"),
                                     action: SnackBarAction(
                                       label: 'Ok',
                                       onPressed: () {},
                                     ),
                                   ));
                                 },
-                                icon: Icon(Icons.mic),
+                                icon: const Icon(Icons.mic),
                               )),
                           Flexible(
                             child: Container(
@@ -520,7 +514,7 @@ class _ChatPageState extends State<ChatPage> {
                                 minLines: 1,
                                 keyboardType: TextInputType.multiline,
                                 decoration: InputDecoration(
-                                    contentPadding: EdgeInsets.symmetric(
+                                    contentPadding: const EdgeInsets.symmetric(
                                         vertical: 5, horizontal: 15),
                                     hintText: (!isRecording)
                                         ? "Enter a message ..."
@@ -538,7 +532,9 @@ class _ChatPageState extends State<ChatPage> {
                                         // EncryptionDecryption.encryptMessage(
                                         //     messController.text),
                                         // EncryptionDecryption().encryptMessage(token, messController.text),
-                                        messController.text,
+                                        EncryptionDecryption()
+                                            .encryptString(messController.text),
+                                        // messController.text,
                                         user.username.toString(),
                                         (isReplying && chatRep != null)
                                             ? chatRep!.id.toString()
@@ -551,7 +547,7 @@ class _ChatPageState extends State<ChatPage> {
                                 // Unfocus the current focus node to close the keyboard
                                 FocusScope.of(context).unfocus();
                               },
-                              icon: Icon(Icons.send)),
+                              icon: const Icon(Icons.send)),
                         ],
                       ),
                     ),
@@ -573,7 +569,7 @@ class _ChatPageState extends State<ChatPage> {
             ),
           );
         } else {
-          return Scaffold();
+          return const Scaffold();
         }
       },
     );
@@ -585,10 +581,10 @@ class _ChatPageState extends State<ChatPage> {
       bottomOpacity: 0.0,
       elevation: 0.0,
       leading: Container(
-        margin: EdgeInsets.all(0),
-        padding: EdgeInsets.all(0),
+        margin: const EdgeInsets.all(0),
+        padding: const EdgeInsets.all(0),
         child: IconButton(
-          icon: Icon(Icons.arrow_back_outlined, color: Colors.black),
+          icon: const Icon(Icons.arrow_back_outlined, color: Colors.black),
           onPressed: () {
             ParticipantsService().leaveConversation(token);
             Navigator.pop(context);
@@ -600,7 +596,7 @@ class _ChatPageState extends State<ChatPage> {
           Container(
             width: 40,
             height: 40,
-            padding: EdgeInsets.all(0),
+            padding: const EdgeInsets.all(0),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(100),
               child: Builder(
@@ -621,11 +617,11 @@ class _ChatPageState extends State<ChatPage> {
                         });
                   } else if (state.conversations!.type! == 6) {
                     return Container(
-                        color: Color(0xFF0082c9),
-                        child: Center(child: Text('📝')));
+                        color: const Color(0xFF0082c9),
+                        child: const Center(child: Text('📝')));
                   } else {
                     return SvgPicture.network(
-                      'http://${host}:8080//ocs/v2.php/apps/spreed/api/v1/room/${token}/avatar',
+                      'http://$host:8080//ocs/v2.php/apps/spreed/api/v1/room/$token/avatar',
                       headers: requestHeaders,
                     );
                   }
@@ -633,14 +629,14 @@ class _ChatPageState extends State<ChatPage> {
               ),
             ),
           ),
-          SizedBox(
+          const SizedBox(
             width: 10,
           ),
           ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: 100),
+            constraints: const BoxConstraints(maxWidth: 100),
             child: Text(
               state.conversations!.displayName.toString(),
-              style: TextStyle(
+              style: const TextStyle(
                   color: Colors.black,
                   fontSize: 18,
                   fontWeight: FontWeight.normal),
@@ -651,7 +647,7 @@ class _ChatPageState extends State<ChatPage> {
       actions: [
         IconButton(
             onPressed: () {},
-            icon: Icon(
+            icon: const Icon(
               Icons.phone,
               color: Colors.black,
             )),
@@ -679,12 +675,12 @@ class _ChatPageState extends State<ChatPage> {
               //           JoinScreen(),
               //     ));
             },
-            icon: Icon(
+            icon: const Icon(
               Icons.videocam,
               color: Colors.black,
             )),
         PopupMenuButton(
-          icon: Icon(
+          icon: const Icon(
             Icons.menu,
             color: Colors.black,
           ),
@@ -701,7 +697,7 @@ class _ChatPageState extends State<ChatPage> {
             //   },
             // ),
             PopupMenuItem(
-              child: Text('Conversation info'),
+              child: const Text('Conversation info'),
               onTap: () {
                 Navigator.push(
                     context,
@@ -713,7 +709,7 @@ class _ChatPageState extends State<ChatPage> {
               },
             ),
             PopupMenuItem(
-              child: Text('Shared items'),
+              child: const Text('Shared items'),
               onTap: () {
                 Navigator.push(
                     context,

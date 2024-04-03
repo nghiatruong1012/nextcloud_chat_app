@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:nextcloud_chat_app/models/conversations.dart';
@@ -32,7 +31,7 @@ class ConversationService {
       );
       if (response.statusCode == 200) {
         print('Success');
-        print("conversation_room" + response.body);
+        print("conversation_room${response.body}");
         List<dynamic> data = jsonDecode(response.body)["ocs"]["data"];
         List<Conversations> listConversation =
             data.map((item) => Conversations.fromJson(item)).toList();
@@ -72,7 +71,7 @@ class ConversationService {
       );
       if (response.statusCode == 200 || response.statusCode == 201) {
         print('Create Success');
-        print("conversation_room" + response.body);
+        print("conversation_room${response.body}");
         // List<dynamic> data = jsonDecode(response.body)["ocs"]["data"];
         // List<Conversations> listConversation =
         //     data.map((item) => Conversations.fromJson(item)).toList();
@@ -83,7 +82,7 @@ class ConversationService {
         return Conversations.empty;
       }
     } catch (e) {
-      print("create error:" + e.toString());
+      print("create error:$e");
       return Conversations.empty;
     }
   }

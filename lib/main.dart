@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 
+// import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:nextcloud_chat_app/my_app.dart';
@@ -16,18 +18,24 @@ final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // try {
+  //   await Firebase.initializeApp();
+  // } on FirebaseException catch (e) {
+  //   print(e.toString());
+  // }
   final service = FlutterBackgroundService();
+
   List<dynamic> currentNoti = [];
 
   // Initialization settings
-  final AndroidInitializationSettings initializationSettingsAndroid =
+  const AndroidInitializationSettings initializationSettingsAndroid =
       AndroidInitializationSettings('@mipmap/ic_launcher');
   // final IOSInitializationSettings initializationSettingsIOS =
   //     IOSInitializationSettings(
   //   onDidReceiveLocalNotification: onDidReceiveLocalNotification,
   // );
 
-  final InitializationSettings initializationSettings = InitializationSettings(
+  const InitializationSettings initializationSettings = InitializationSettings(
     android: initializationSettingsAndroid,
     // iOS: initializationSettingsIOS,
   );
@@ -73,19 +81,19 @@ void onStart(ServiceInstance service) {
   DartPluginRegistrant.ensureInitialized();
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
-  Timer.periodic(Duration(seconds: 5), (timer) async {
+  Timer.periodic(const Duration(seconds: 5), (timer) async {
     final listNoti = await NotiService().getNoti();
 
-    listNoti.forEach((element) {
+    for (var element in listNoti) {
       if (element["object_type"] == 'chat') {
         _showNotification(
             element["notification_id"], element["subject"], element["message"]);
       }
-    });
+    }
   });
 }
 
-final Set<int> shownNotificationIds = Set<int>();
+final Set<int> shownNotificationIds = <int>{};
 
 Future<void> _showNotification(int id, String title, String content) async {
   // Check if the notification ID has already been shown

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -14,13 +13,12 @@ import 'package:nextcloud_chat_app/screen/setting/view/setting.dart';
 import 'package:nextcloud_chat_app/service/conversation_service.dart';
 import 'package:nextcloud_chat_app/service/request.dart';
 
-import 'package:nextcloud_chat_app/utils.dart';
 import 'package:nextcloud_chat_app/widgets/loading_widgets.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
   static Route route() {
-    return MaterialPageRoute<void>(builder: (_) => HomePage());
+    return MaterialPageRoute<void>(builder: (_) => const HomePage());
   }
 
   @override
@@ -42,7 +40,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     // _imageHeader();
     // TODO: implement initState
-    _timer = Timer.periodic(Duration(seconds: 15), (timer) {
+    _timer = Timer.periodic(const Duration(seconds: 15), (timer) {
       context.read<HomeBloc>().add(LoadConversationEvent());
     });
   }
@@ -77,7 +75,7 @@ class _HomePageState extends State<HomePage> {
                   Stack(alignment: FractionalOffset.centerRight, children: [
                     Container(
                       padding:
-                          EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                          const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                       child: TextField(
                         focusNode: _focusNode,
                         onChanged: (value) {
@@ -86,14 +84,14 @@ class _HomePageState extends State<HomePage> {
                           // }
                           _debounceTimer?.cancel();
                           _debounceTimer =
-                              Timer(Duration(milliseconds: 500), () {
+                              Timer(const Duration(milliseconds: 500), () {
                             context
                                 .read<HomeBloc>()
                                 .add(SearchConversationEvent(value));
                           });
                         },
                         decoration: InputDecoration(
-                          contentPadding: EdgeInsets.symmetric(
+                          contentPadding: const EdgeInsets.symmetric(
                               horizontal: 20, vertical: 10),
                           hintText: 'Tìm kiếm',
                           border: OutlineInputBorder(
@@ -106,22 +104,22 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     Container(
-                      margin: EdgeInsets.only(right: 15),
+                      margin: const EdgeInsets.only(right: 15),
                       child: ElevatedButton(
                         onPressed: () {
                           Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => SettingScreen(),
+                                builder: (context) => const SettingScreen(),
                               ));
                         },
                         style: ElevatedButton.styleFrom(
-                          shape: CircleBorder(),
-                          padding: EdgeInsets.all(4),
+                          shape: const CircleBorder(),
+                          padding: const EdgeInsets.all(4),
                           backgroundColor: Colors.blue.shade300,
                           foregroundColor: Colors.blue.shade700,
                         ),
-                        child: Container(
+                        child: SizedBox(
                           width: 30,
                           height: 30,
                           child: ClipRRect(
@@ -161,7 +159,7 @@ class _HomePageState extends State<HomePage> {
                                         state.searchList![index].lastMessage!
                                             .id!));
                               },
-                              leading: Container(
+                              leading: SizedBox(
                                 width: 40,
                                 height: 40,
                                 child: ClipRRect(
@@ -170,9 +168,9 @@ class _HomePageState extends State<HomePage> {
                                     if (state.searchList![index].type == 1) {
                                       return CachedNetworkImage(
                                         imageUrl:
-                                            'http://${host}:8080/ocs/v2.php/apps/spreed/api/v1/room/${state.searchList![index].token!}/avatar',
+                                            'http://$host:8080/ocs/v2.php/apps/spreed/api/v1/room/${state.searchList![index].token!}/avatar',
                                         placeholder: (context, url) =>
-                                            CircularProgressIndicator(),
+                                            const CircularProgressIndicator(),
                                         errorWidget: (context, url, error) {
                                           return Container();
                                         },
@@ -181,11 +179,11 @@ class _HomePageState extends State<HomePage> {
                                     } else if (state.searchList![index].type ==
                                         6) {
                                       return Container(
-                                          color: Color(0xFF0082c9),
-                                          child: Center(child: Text('📝')));
+                                          color: const Color(0xFF0082c9),
+                                          child: const Center(child: Text('📝')));
                                     } else {
                                       return SvgPicture.network(
-                                        'http://${host}:8080//ocs/v2.php/apps/spreed/api/v1/room/${state.searchList![index].token!}/avatar',
+                                        'http://$host:8080//ocs/v2.php/apps/spreed/api/v1/room/${state.searchList![index].token!}/avatar',
                                         headers: snapshot.data,
                                       );
                                     }
@@ -229,7 +227,7 @@ class _HomePageState extends State<HomePage> {
                                           .toLocal()
                                           .day ==
                                       DateTime.now()
-                                          .subtract(Duration(days: 1))) {
+                                          .subtract(const Duration(days: 1))) {
                                     return Text(
                                       'Hôm qua',
                                       style: TextStyle(
@@ -261,10 +259,8 @@ class _HomePageState extends State<HomePage> {
                                           .actorId ==
                                       user.username)
                                   ? Text(
-                                      "Bạn: " +
-                                          state.searchList![index].lastMessage!
-                                              .message
-                                              .toString(),
+                                      "Bạn: ${state.searchList![index].lastMessage!
+                                              .message}",
                                       maxLines: 1,
                                     )
                                   : Text(
@@ -284,7 +280,7 @@ class _HomePageState extends State<HomePage> {
                 ],
               );
             } else {
-              return Center(
+              return const Center(
                 child: CircularProgressIndicator(),
               );
             }
@@ -292,17 +288,17 @@ class _HomePageState extends State<HomePage> {
         ),
       )),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: Color(0xFF0082c9),
+        backgroundColor: const Color(0xFF0082c9),
         onPressed: () {
           // Utils().showToast('message');
 
           Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => CreateConversation(),
+                builder: (context) => const CreateConversation(),
               ));
         },
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
       ),
     );
   }

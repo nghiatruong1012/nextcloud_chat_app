@@ -1,7 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:nextcloud_chat_app/models/chats.dart';
 import 'package:nextcloud_chat_app/models/list_user.dart';
 import 'package:nextcloud_chat_app/screen/chat/view/chat.dart';
 import 'package:nextcloud_chat_app/screen/createConversation/bloc/create_conversation_bloc.dart';
@@ -27,7 +26,7 @@ class _CreateConversationState extends State<CreateConversation> {
   void initState() {
     _imageHeader();
     // TODO: implement initState
-    context.read<CreateConversationBloc>().add(ChangedQueryEvent(''));
+    context.read<CreateConversationBloc>().add(const ChangedQueryEvent(''));
   }
 
   _imageHeader() async {
@@ -45,12 +44,12 @@ class _CreateConversationState extends State<CreateConversation> {
                 onPressed: () {
                   Navigator.pop(context);
                 },
-                icon: Icon(
+                icon: const Icon(
                   Icons.arrow_back,
                   color: Colors.black,
                 ),
               ),
-              title: Text(
+              title: const Text(
                 'Nextcloud Talk',
                 style: TextStyle(color: Colors.black),
               ),
@@ -61,12 +60,12 @@ class _CreateConversationState extends State<CreateConversation> {
                       isSearching = true;
                     });
                   },
-                  icon: Icon(
+                  icon: const Icon(
                     Icons.search,
                     color: Colors.black,
                   ),
                 ),
-                (selectedUser.length > 0)
+                (selectedUser.isNotEmpty)
                     ? IconButton(
                         onPressed: () async {
                           if (selectedUser.length == 1) {
@@ -92,10 +91,10 @@ class _CreateConversationState extends State<CreateConversation> {
                             showDialog(
                               context: context,
                               builder: (context) => AlertDialog(
-                                title: Text('Create conversation'),
+                                title: const Text('Create conversation'),
                                 content: TextField(
                                   controller: controller,
-                                  decoration: InputDecoration(
+                                  decoration: const InputDecoration(
                                     hintText: 'Conversation name',
                                     border: OutlineInputBorder(),
                                   ),
@@ -150,7 +149,7 @@ class _CreateConversationState extends State<CreateConversation> {
                             );
                           }
                         },
-                        icon: Icon(
+                        icon: const Icon(
                           Icons.check,
                           color: Colors.black,
                         ))
@@ -166,16 +165,16 @@ class _CreateConversationState extends State<CreateConversation> {
                     isSearching = false;
                     context
                         .read<CreateConversationBloc>()
-                        .add(ChangedQueryEvent(''));
+                        .add(const ChangedQueryEvent(''));
                   });
                 },
-                icon: Icon(
+                icon: const Icon(
                   Icons.arrow_back,
                   color: Colors.black,
                 ),
               ),
               title: TextField(
-                decoration: new InputDecoration.collapsed(hintText: 'Tìm kiếm'),
+                decoration: const InputDecoration.collapsed(hintText: 'Tìm kiếm'),
                 onChanged: (value) {
                   setState(() {
                     context
@@ -190,18 +189,18 @@ class _CreateConversationState extends State<CreateConversation> {
                     setState(() {
                       context
                           .read<CreateConversationBloc>()
-                          .add(ChangedQueryEvent(''));
+                          .add(const ChangedQueryEvent(''));
                     });
                   },
-                  icon: Icon(
+                  icon: const Icon(
                     Icons.clear,
                     color: Colors.black,
                   ),
                 ),
-                (selectedUser.length > 0)
+                (selectedUser.isNotEmpty)
                     ? IconButton(
                         onPressed: () {},
-                        icon: Icon(
+                        icon: const Icon(
                           Icons.check,
                           color: Colors.black,
                         ))
@@ -217,18 +216,18 @@ class _CreateConversationState extends State<CreateConversation> {
                   itemCount: state.users!.length,
                   itemBuilder: (context, index) {
                     return ListTile(
-                      leading: Container(
+                      leading: SizedBox(
                         width: 40,
                         height: 40,
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(100),
                           child: CachedNetworkImage(
                             imageUrl:
-                                'http://${host}:8080/avatar/${state.users![index].id}/64',
+                                'http://$host:8080/avatar/${state.users![index].id}/64',
                             placeholder: (context, url) =>
-                                CircularProgressIndicator(),
+                                const CircularProgressIndicator(),
                             errorWidget: (context, url, error) {
-                              return Icon(Icons.error);
+                              return const Icon(Icons.error);
                             },
                             httpHeaders: requestHeaders,
                           ),
@@ -241,7 +240,7 @@ class _CreateConversationState extends State<CreateConversation> {
                               .map((e) => e.id)
                               .toList()
                               .contains(state.users![index].id))
-                          ? Icon(Icons.check)
+                          ? const Icon(Icons.check)
                           : null,
                       onTap: () async {
                         setState(() {
@@ -298,7 +297,7 @@ class _CreateConversationState extends State<CreateConversation> {
               //     : Container(),
             ]);
           } else {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
         },
       ),
