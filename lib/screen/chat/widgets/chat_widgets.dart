@@ -24,6 +24,7 @@ Widget MessageWidget(
   bool isFirstMess,
   bool isLastMess,
   void Function(Chat chat) pickChat,
+  String? secretKey,
 ) {
   return Builder(
     builder: (context) {
@@ -31,7 +32,7 @@ Widget MessageWidget(
         return Column(
           children: [
             ChatMessageWidget(chat, user, context, token, index, requestHeaders,
-                type, isFirstMess, isLastMess, pickChat),
+                type, isFirstMess, isLastMess, pickChat, secretKey),
           ],
         );
       } else {
@@ -56,16 +57,18 @@ Widget SystemMessageWiget(Chat chat) {
 }
 
 Widget ChatMessageWidget(
-    Chat chat,
-    User user,
-    BuildContext context,
-    String token,
-    int index,
-    Map<String, String> requestHeaders,
-    int type,
-    bool isFirstMess,
-    bool isLastMess,
-    void Function(Chat chat) pickChat) {
+  Chat chat,
+  User user,
+  BuildContext context,
+  String token,
+  int index,
+  Map<String, String> requestHeaders,
+  int type,
+  bool isFirstMess,
+  bool isLastMess,
+  void Function(Chat chat) pickChat,
+  String? secretKey,
+) {
   return Builder(
     builder: (context) {
       if (chat.messageParameters is Map &&
@@ -78,23 +81,24 @@ Widget ChatMessageWidget(
             requestHeaders, type, isFirstMess, isLastMess, pickChat);
       } else {
         return TextChatWidget(chat, user, context, token, index, requestHeaders,
-            type, isFirstMess, isLastMess, pickChat);
+            type, isFirstMess, isLastMess, pickChat, secretKey);
       }
     },
   );
 }
 
 Widget FileChatWidget(
-    Chat chat,
-    User user,
-    BuildContext context,
-    String token,
-    int index,
-    Map<String, String> requestHeaders,
-    int type,
-    bool isFirstMess,
-    bool isLastMess,
-    void Function(Chat chat) pickChat) {
+  Chat chat,
+  User user,
+  BuildContext context,
+  String token,
+  int index,
+  Map<String, String> requestHeaders,
+  int type,
+  bool isFirstMess,
+  bool isLastMess,
+  void Function(Chat chat) pickChat,
+) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
@@ -479,16 +483,18 @@ Widget FileChatWidget(
 }
 
 Widget TextChatWidget(
-    Chat chat,
-    User user,
-    BuildContext context,
-    String token,
-    int index,
-    Map<String, String> requestHeaders,
-    int type,
-    bool isFirstMess,
-    bool isLastMess,
-    void Function(Chat chat) pickChat) {
+  Chat chat,
+  User user,
+  BuildContext context,
+  String token,
+  int index,
+  Map<String, String> requestHeaders,
+  int type,
+  bool isFirstMess,
+  bool isLastMess,
+  void Function(Chat chat) pickChat,
+  String? secretKey,
+) {
   print(isFirstMess);
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
@@ -854,8 +860,10 @@ Widget TextChatWidget(
                                     //         chat.message.toString())),
                                     // EncryptionDecryption().decryptMessage(token, chat.message.toString()),
                                     // chat.message.toString(),
-                                    EncryptionDecryption()
-                                        .decryptString(chat.message.toString()),
+                                    (secretKey != null && secretKey.isNotEmpty)
+                                        ? EncryptionDecryption().decryptString(
+                                            chat.message.toString(), secretKey)
+                                        : chat.message.toString(),
                                     style: const TextStyle(fontSize: 18),
                                     maxLines: 10,
                                   ),

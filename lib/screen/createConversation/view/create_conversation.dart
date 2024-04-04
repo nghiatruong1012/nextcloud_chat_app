@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:nextcloud_chat_app/authentication/bloc/authentication_bloc.dart';
 import 'package:nextcloud_chat_app/models/list_user.dart';
 import 'package:nextcloud_chat_app/screen/chat/view/chat.dart';
 import 'package:nextcloud_chat_app/screen/createConversation/bloc/create_conversation_bloc.dart';
@@ -35,6 +36,8 @@ class _CreateConversationState extends State<CreateConversation> {
 
   @override
   Widget build(BuildContext context) {
+    final user = context.select((AuthenticationBloc bloc) => bloc.state.user);
+
     return Scaffold(
       appBar: (!isSearching)
           ? AppBar(
@@ -82,7 +85,7 @@ class _CreateConversationState extends State<CreateConversation> {
                                     builder: (context) => ChatProvider(
                                         token: conversation.token!,
                                         messageId:
-                                            conversation.lastMessage!.id!)),
+                                            conversation.lastMessage!.id!, conversations: conversation, user: user,)),
                               );
                             }
                           } else {

@@ -4,6 +4,7 @@ import 'dart:ui';
 
 // import 'package:cloud_firestore/cloud_firestore.dart';
 // import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:nextcloud_chat_app/my_app.dart';
@@ -18,11 +19,17 @@ final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // try {
-  //   await Firebase.initializeApp();
-  // } on FirebaseException catch (e) {
-  //   print(e.toString());
-  // }
+  try {
+    await Firebase.initializeApp(
+      options: FirebaseOptions(
+          apiKey: 'AIzaSyBjhCHv-VnqAvIbv9p8Y1v_goGDxSyc0Xo',
+          appId: '1:674664663305:android:d9b5c1ef11d21b11006bd8',
+          messagingSenderId: '674664663305',
+          projectId: 'end-to-end-talk'),
+    );
+  } on FirebaseException catch (e) {
+    print(e.toString());
+  }
   final service = FlutterBackgroundService();
 
   List<dynamic> currentNoti = [];

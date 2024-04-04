@@ -12,6 +12,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:nextcloud_chat_app/authentication/bloc/authentication_bloc.dart';
 import 'package:nextcloud_chat_app/models/chats.dart';
+import 'package:nextcloud_chat_app/models/conversations.dart';
 import 'package:nextcloud_chat_app/models/user.dart';
 import 'package:nextcloud_chat_app/screen/call/view/call.dart';
 import 'package:nextcloud_chat_app/screen/chat/bloc/chat_bloc.dart';
@@ -48,17 +49,27 @@ Future<CategoryEmoji> getCategoryEmojis(
 // }
 
 class ChatProvider extends StatelessWidget {
-  const ChatProvider({super.key, required this.token, required this.messageId});
-  static Route route(String token, int messageId) {
+  const ChatProvider(
+      {super.key,
+      required this.token,
+      required this.messageId,
+      required this.conversations,
+      required this.user});
+  static Route route(
+      String token, int messageId, Conversations conversations, User user) {
     return MaterialPageRoute<void>(
         builder: (_) => ChatProvider(
               token: token,
               messageId: messageId,
+              conversations: conversations,
+              user: user,
             ));
   }
 
   final String token;
   final int messageId;
+  final Conversations conversations;
+  final User user;
 
   @override
   Widget build(BuildContext context) {
@@ -67,27 +78,45 @@ class ChatProvider extends StatelessWidget {
       child: ChatPage(
         token: token,
         messageId: messageId,
+        conversations: conversations,
+        user: user,
       ),
     );
   }
 }
 
 class ChatPage extends StatefulWidget {
-  const ChatPage({super.key, required this.token, required this.messageId});
+  const ChatPage(
+      {super.key,
+      required this.token,
+      required this.messageId,
+      required this.conversations,
+      required this.user});
 
   final String token;
   final int messageId;
+  final Conversations conversations;
+  final User user;
 
   @override
-  State<ChatPage> createState() =>
-      _ChatPageState(token: token, messageId: messageId);
+  State<ChatPage> createState() => _ChatPageState(
+      token: token,
+      messageId: messageId,
+      conversations: conversations,
+      user: user);
 }
 
 class _ChatPageState extends State<ChatPage> {
   final String token;
   final int messageId;
+  final Conversations conversations;
+  final User user;
   bool _emojiOpen = false;
-  _ChatPageState({required this.token, required this.messageId});
+  _ChatPageState(
+      {required this.token,
+      required this.messageId,
+      required this.conversations,
+      required this.user});
   TextEditingController messController = TextEditingController();
   ScrollController scrollController = ScrollController();
   bool isLoading = false;
@@ -95,6 +124,7 @@ class _ChatPageState extends State<ChatPage> {
   Chat? chatRep;
   bool isReplying = false;
   String recordFileName = '';
+  late Future<String> futureSecretKey;
   late AudioRecorder audioRecord;
 
   late Map<String, String> requestHeaders;
@@ -106,10 +136,12 @@ class _ChatPageState extends State<ChatPage> {
   void initState() {
     // TODO: implement initState
     audioRecord = AudioRecorder();
+    // getSecretKey();
     _imageHeader();
     context.read<ChatBloc>().add(LoadInitialChat(token, messageId));
     context.read<ChatBloc>().add(ReceiveMessage());
-
+    futureSecretKey = EncryptionDecryption()
+        .getKeyString(user.username.toString(), conversations.name.toString());
     scrollController.addListener(() {
       if (scrollController.position.pixels ==
           scrollController.position.maxScrollExtent) {
@@ -119,6 +151,20 @@ class _ChatPageState extends State<ChatPage> {
       }
     });
   }
+
+  // Future<void> getSecretKey() async {
+  //   setState(() async {
+  //     secretKey = await EncryptionDecryption().getKeyString(
+  //         user.username.toString(), conversations.name.toString());
+  //   });
+  // }
+
+  // Future<void> getSecretKey(String username, String otherUsername) async {
+  //   setState(() async {
+  //     secretKey =
+  //         await EncryptionDecryption().getKeyString(username, otherUsername);
+  //   });
+  // }
 
   void PickChatToReply(Chat chat) {
     setState(() {
@@ -184,389 +230,460 @@ class _ChatPageState extends State<ChatPage> {
     return BlocBuilder<ChatBloc, ChatState>(
       builder: (context, state) {
         if (state.conversations != null && state.listChat != null) {
-          return Scaffold(
-            appBar: chatAppBar(context, state, user),
-            body: Column(
-              children: [
-                (state.isLoading!)
-                    ? const CircularProgressIndicator()
-                    : Container(),
-                Flexible(
-                  child: ListView.builder(
-                      controller: scrollController,
-                      reverse: true,
-                      itemCount: state.listChat!.length,
-                      itemBuilder: (context, index) {
-                        int itemCount = state.listChat?.length ?? 0;
-                        int reversedIndex = itemCount - 1 - index;
-                        final message = state.listChat![reversedIndex];
-                        final previousMessage = reversedIndex > 0
-                            ? state.listChat![reversedIndex - 1]
-                            : null;
-                        final nextMessage =
-                            reversedIndex < state.listChat!.length - 1
-                                ? state.listChat![reversedIndex + 1]
-                                : null;
-                        // Check if the date has changed
-                        final bool showDate = previousMessage == null ||
-                            message.timestamp!.day !=
-                                previousMessage.timestamp!.day;
-                        final isFirstMess = (previousMessage == null ||
-                            message.actorId != previousMessage.actorId ||
-                            previousMessage.systemMessage != '' ||
-                            message.timestamp!.day !=
-                                previousMessage.timestamp!.day);
-                        final isLastMess = (nextMessage == null ||
-                            message.actorId != nextMessage.actorId ||
-                            nextMessage.systemMessage != '' ||
-                            message.timestamp!.day !=
-                                nextMessage.timestamp!.day);
-                        return Column(
-                          children: [
-                            showDate
-                                ? TimestampChat(message: message)
-                                : Container(),
-                            Container(
-                              margin:
-                                  const EdgeInsets.symmetric(horizontal: 10),
-                              child: MessageWidget(
-                                state.listChat![reversedIndex],
-                                user,
-                                context,
-                                token,
-                                index,
-                                requestHeaders,
-                                state.conversations!.type!,
-                                isFirstMess,
-                                isLastMess,
-                                PickChatToReply,
-                              ),
-                            ),
-                          ],
-                        );
-                      }),
-                ),
-                Column(
-                  children: [
-                    (isReplying && chatRep != null)
-                        ? Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 20),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Container(
-                                    width: 300,
-                                    decoration: BoxDecoration(
-                                      border: Border(
-                                        left: BorderSide(
-                                            color: Colors.blue.withOpacity(0.5),
-                                            width: 2),
-                                      ),
+          return FutureBuilder(
+            future: futureSecretKey,
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                return Scaffold(
+                  appBar: chatAppBar(context, state, user),
+                  body: Column(
+                    children: [
+                      (state.isLoading!)
+                          ? const CircularProgressIndicator()
+                          : Container(),
+                      Flexible(
+                        child: ListView.builder(
+                            controller: scrollController,
+                            reverse: true,
+                            itemCount: state.listChat!.length,
+                            itemBuilder: (context, index) {
+                              int itemCount = state.listChat?.length ?? 0;
+                              int reversedIndex = itemCount - 1 - index;
+                              final message = state.listChat![reversedIndex];
+                              final previousMessage = reversedIndex > 0
+                                  ? state.listChat![reversedIndex - 1]
+                                  : null;
+                              final nextMessage =
+                                  reversedIndex < state.listChat!.length - 1
+                                      ? state.listChat![reversedIndex + 1]
+                                      : null;
+                              // Check if the date has changed
+                              final bool showDate = previousMessage == null ||
+                                  message.timestamp!.day !=
+                                      previousMessage.timestamp!.day;
+                              final isFirstMess = (previousMessage == null ||
+                                  message.actorId != previousMessage.actorId ||
+                                  previousMessage.systemMessage != '' ||
+                                  message.timestamp!.day !=
+                                      previousMessage.timestamp!.day);
+                              final isLastMess = (nextMessage == null ||
+                                  message.actorId != nextMessage.actorId ||
+                                  nextMessage.systemMessage != '' ||
+                                  message.timestamp!.day !=
+                                      nextMessage.timestamp!.day);
+                              return Column(
+                                children: [
+                                  showDate
+                                      ? TimestampChat(message: message)
+                                      : Container(),
+                                  Container(
+                                    margin: const EdgeInsets.symmetric(
+                                        horizontal: 10),
+                                    child: MessageWidget(
+                                      state.listChat![reversedIndex],
+                                      user,
+                                      context,
+                                      token,
+                                      index,
+                                      requestHeaders,
+                                      state.conversations!.type!,
+                                      isFirstMess,
+                                      isLastMess,
+                                      PickChatToReply,
+                                      snapshot.data,
                                     ),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Container(
-                                            padding: const EdgeInsets.only(
-                                                left: 5, bottom: 3, top: 1),
-                                            child: Text(
-                                              chatRep!.actorId.toString(),
-                                              style: TextStyle(
-                                                  color: Colors.black
-                                                      .withOpacity(0.6)),
-                                            )),
-                                        Container(
-                                            padding: const EdgeInsets.only(
-                                                left: 5, top: 3, bottom: 1),
-                                            child: Text(
-                                              chatRep!.message.toString(),
-                                              maxLines: 5,
-                                            )),
-                                      ],
-                                    )),
-                                IconButton(
-                                    onPressed: () {
-                                      CancelReply();
-                                    },
-                                    icon: const Icon(Icons.close))
-                              ],
-                            ),
-                          )
-                        : Container(
-                            width: 0,
-                          ),
-                    Container(
-                      // height: 50,
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        // border: Border(
-                        //     top: BorderSide(
-                        //         color: Colors.black.withOpacity(0.2), width: 0.5)),
+                                  ),
+                                ],
+                              );
+                            }),
                       ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
+                      Column(
                         children: [
-                          IconButton(
-                              onPressed: () async {
-                                showModalBottomSheet(
-                                  context: context,
-                                  builder: (context) => Column(
+                          (isReplying && chatRep != null)
+                              ? Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 20, vertical: 20),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.min,
+                                        CrossAxisAlignment.center,
                                     children: [
                                       Container(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 20, vertical: 10),
-                                        child: Text(
-                                          'Upload to chat',
-                                          style: TextStyle(
-                                              fontSize: 18,
-                                              color: Colors.black
-                                                  .withOpacity(0.5)),
-                                        ),
-                                      ),
-                                      ListTile(
-                                        leading: const Icon(Icons.file_upload),
-                                        title: const Text('Upload file'),
-                                        onTap: () async {
-                                          FilePickerResult? result =
-                                              await FilePicker.platform
-                                                  .pickFiles();
-                                          if (result != null) {
-                                            PlatformFile file =
-                                                result.files.first;
-                                            File file0 =
-                                                File(result.files.single.path!);
-                                            ChatService().uploadAndSharedFile(
-                                                user.username.toString(),
-                                                file.path.toString(),
-                                                file.name,
-                                                file0,
-                                                token,
-                                                '');
-                                          } else {
-                                            print('error');
-                                          }
-                                        },
-                                      ),
-                                      ListTile(
-                                        leading: const Icon(Icons.image),
-                                        title: const Text('Upload image'),
-                                        onTap: () async {
-                                          // final image = await ImagePicker()
-                                          //     .pickImage(
-                                          //         source: ImageSource.gallery);
-                                          // if (image == null) return;
-                                          // final _file = File(image.path);
-                                          FilePickerResult? result =
-                                              await FilePicker.platform
-                                                  .pickFiles(
-                                                      type: FileType.image);
-                                          if (result != null) {
-                                            PlatformFile image =
-                                                result.files.first;
-                                            File file0 =
-                                                File(result.files.single.path!);
-                                            ChatService().uploadAndSharedFile(
-                                                user.username.toString(),
-                                                image.path.toString(),
-                                                image.name,
-                                                file0,
-                                                token,
-                                                '');
-                                          }
-                                        },
-                                      ),
-                                      ListTile(
-                                        leading: const Icon(
-                                            Icons.camera_alt_outlined),
-                                        title: const Text('Take picture'),
-                                        onTap: () async {
-                                          XFile? xfile = await ImagePicker()
-                                              .pickImage(
-                                                  source: ImageSource.camera);
-                                          File file0 = File(xfile!.path);
-                                          ChatService().uploadAndSharedFile(
-                                              user.username.toString(),
-                                              file0.path.toString(),
-                                              xfile.name,
-                                              file0,
-                                              token,
-                                              '');
-                                        },
-                                      ),
-                                      ListTile(
-                                        leading:
-                                            const Icon(Icons.videocam_outlined),
-                                        title: const Text('Take video'),
-                                        onTap: () async {
-                                          XFile? xfile = await ImagePicker()
-                                              .pickVideo(
-                                                  source: ImageSource.camera);
-                                          File file0 = File(xfile!.path);
-                                          ChatService().uploadAndSharedFile(
-                                              user.username.toString(),
-                                              file0.path.toString(),
-                                              xfile.name,
-                                              file0,
-                                              token,
-                                              '');
-                                        },
-                                      ),
-                                      ListTile(
-                                        leading: const Icon(Icons.location_on),
-                                        title: const Text('Shared location'),
-                                        onTap: () async {
-                                          Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) => Location(
-                                                  token: token,
-                                                ),
-                                              ));
-                                        },
-                                      ),
+                                          width: 300,
+                                          decoration: BoxDecoration(
+                                            border: Border(
+                                              left: BorderSide(
+                                                  color: Colors.blue
+                                                      .withOpacity(0.5),
+                                                  width: 2),
+                                            ),
+                                          ),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Container(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                          left: 5,
+                                                          bottom: 3,
+                                                          top: 1),
+                                                  child: Text(
+                                                    chatRep!.actorId.toString(),
+                                                    style: TextStyle(
+                                                        color: Colors.black
+                                                            .withOpacity(0.6)),
+                                                  )),
+                                              Container(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                          left: 5,
+                                                          top: 3,
+                                                          bottom: 1),
+                                                  child: Text(
+                                                    chatRep!.message.toString(),
+                                                    maxLines: 5,
+                                                  )),
+                                            ],
+                                          )),
+                                      IconButton(
+                                          onPressed: () {
+                                            CancelReply();
+                                          },
+                                          icon: const Icon(Icons.close))
                                     ],
                                   ),
-                                );
-                              },
-                              icon: const Icon(Icons.attach_file)),
-                          // IconButton(
-                          //     onPressed: () {
-                          //       toogleEmoji();
-                          //     },
-                          //     icon: Icon(_emojiOpen
-                          //         ? Icons.keyboard
-                          //         : Icons.emoji_emotions_outlined)),
-                          GestureDetector(
-                              onTap: () {
-                                // Utils().showToast("Hold to record");
-                                ScaffoldMessenger.of(context)
-                                    .showSnackBar(SnackBar(
-                                  content: const Text("Hold to record"),
-                                  backgroundColor: Colors.grey.withOpacity(0.3),
-                                  action: SnackBarAction(
-                                    label: 'Ok',
-                                    onPressed: () {},
-                                  ),
-                                ));
-                              },
-                              onLongPressStart: (detail) async {
-                                final String dir =
-                                    (await getExternalStorageDirectory())!.path;
-                                recordFileName =
-                                    'Talk recording from ${DateFormat('yyyy-MM-dd HH-mm-ss').format(DateTime.now())} (${user.username}).wav';
-                                final String filePath = '$dir/$recordFileName';
+                                )
+                              : Container(
+                                  width: 0,
+                                ),
+                          Container(
+                            // height: 50,
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              // border: Border(
+                              //     top: BorderSide(
+                              //         color: Colors.black.withOpacity(0.2), width: 0.5)),
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                IconButton(
+                                    onPressed: () async {
+                                      showModalBottomSheet(
+                                        context: context,
+                                        builder: (context) => Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 20,
+                                                      vertical: 10),
+                                              child: Text(
+                                                'Upload to chat',
+                                                style: TextStyle(
+                                                    fontSize: 18,
+                                                    color: Colors.black
+                                                        .withOpacity(0.5)),
+                                              ),
+                                            ),
+                                            ListTile(
+                                              leading:
+                                                  const Icon(Icons.file_upload),
+                                              title: const Text('Upload file'),
+                                              onTap: () async {
+                                                FilePickerResult? result =
+                                                    await FilePicker.platform
+                                                        .pickFiles();
+                                                if (result != null) {
+                                                  PlatformFile file =
+                                                      result.files.first;
+                                                  File file0 = File(result
+                                                      .files.single.path!);
+                                                  ChatService()
+                                                      .uploadAndSharedFile(
+                                                          user.username
+                                                              .toString(),
+                                                          file.path.toString(),
+                                                          file.name,
+                                                          file0,
+                                                          token,
+                                                          '');
+                                                } else {
+                                                  print('error');
+                                                }
+                                              },
+                                            ),
+                                            ListTile(
+                                              leading: const Icon(Icons.image),
+                                              title: const Text('Upload image'),
+                                              onTap: () async {
+                                                // final image = await ImagePicker()
+                                                //     .pickImage(
+                                                //         source: ImageSource.gallery);
+                                                // if (image == null) return;
+                                                // final _file = File(image.path);
+                                                FilePickerResult? result =
+                                                    await FilePicker.platform
+                                                        .pickFiles(
+                                                            type:
+                                                                FileType.image);
+                                                if (result != null) {
+                                                  PlatformFile image =
+                                                      result.files.first;
+                                                  File file0 = File(result
+                                                      .files.single.path!);
+                                                  ChatService()
+                                                      .uploadAndSharedFile(
+                                                          user.username
+                                                              .toString(),
+                                                          image.path.toString(),
+                                                          image.name,
+                                                          file0,
+                                                          token,
+                                                          '');
+                                                }
+                                              },
+                                            ),
+                                            ListTile(
+                                              leading: const Icon(
+                                                  Icons.camera_alt_outlined),
+                                              title: const Text('Take picture'),
+                                              onTap: () async {
+                                                XFile? xfile =
+                                                    await ImagePicker()
+                                                        .pickImage(
+                                                            source: ImageSource
+                                                                .camera);
+                                                File file0 = File(xfile!.path);
+                                                ChatService()
+                                                    .uploadAndSharedFile(
+                                                        user.username
+                                                            .toString(),
+                                                        file0.path.toString(),
+                                                        xfile.name,
+                                                        file0,
+                                                        token,
+                                                        '');
+                                              },
+                                            ),
+                                            ListTile(
+                                              leading: const Icon(
+                                                  Icons.videocam_outlined),
+                                              title: const Text('Take video'),
+                                              onTap: () async {
+                                                XFile? xfile =
+                                                    await ImagePicker()
+                                                        .pickVideo(
+                                                            source: ImageSource
+                                                                .camera);
+                                                File file0 = File(xfile!.path);
+                                                ChatService()
+                                                    .uploadAndSharedFile(
+                                                        user.username
+                                                            .toString(),
+                                                        file0.path.toString(),
+                                                        xfile.name,
+                                                        file0,
+                                                        token,
+                                                        '');
+                                              },
+                                            ),
+                                            ListTile(
+                                              leading:
+                                                  const Icon(Icons.location_on),
+                                              title:
+                                                  const Text('Shared location'),
+                                              onTap: () async {
+                                                Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          Location(
+                                                        token: token,
+                                                      ),
+                                                    ));
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                    icon: const Icon(Icons.attach_file)),
+                                // IconButton(
+                                //     onPressed: () {
+                                //       toogleEmoji();
+                                //     },
+                                //     icon: Icon(_emojiOpen
+                                //         ? Icons.keyboard
+                                //         : Icons.emoji_emotions_outlined)),
+                                GestureDetector(
+                                    onTap: () {
+                                      // Utils().showToast("Hold to record");
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(SnackBar(
+                                        content: const Text("Hold to record"),
+                                        backgroundColor:
+                                            Colors.grey.withOpacity(0.3),
+                                        action: SnackBarAction(
+                                          label: 'Ok',
+                                          onPressed: () {},
+                                        ),
+                                      ));
+                                    },
+                                    onLongPressStart: (detail) async {
+                                      final String dir =
+                                          (await getExternalStorageDirectory())!
+                                              .path;
+                                      recordFileName =
+                                          'Talk recording from ${DateFormat('yyyy-MM-dd HH-mm-ss').format(DateTime.now())} (${user.username}).wav';
+                                      final String filePath =
+                                          '$dir/$recordFileName';
 
-                                await audioRecord.start(
-                                    const RecordConfig(
-                                        encoder: AudioEncoder.wav),
-                                    path: filePath);
+                                      await audioRecord.start(
+                                          const RecordConfig(
+                                              encoder: AudioEncoder.wav),
+                                          path: filePath);
 
-                                setState(() {
-                                  isRecording = true;
-                                });
-                              },
-                              onLongPressEnd: (detail) async {
-                                final path = await audioRecord.stop();
+                                      setState(() {
+                                        isRecording = true;
+                                      });
+                                    },
+                                    onLongPressEnd: (detail) async {
+                                      final path = await audioRecord.stop();
 
-                                File file = File(path!);
-                                ChatService().uploadAndSharedFile(
-                                  user.username.toString(),
-                                  file.path.toString(),
-                                  recordFileName,
-                                  file,
-                                  token,
-                                  'voice-message',
-                                );
+                                      File file = File(path!);
+                                      ChatService().uploadAndSharedFile(
+                                        user.username.toString(),
+                                        file.path.toString(),
+                                        recordFileName,
+                                        file,
+                                        token,
+                                        'voice-message',
+                                      );
 
-                                setState(() {
-                                  isRecording = false;
-                                });
-                              },
-                              child: IconButton(
-                                onPressed: () {
-                                  // Utils().showToast("Hold to record");
-                                  ScaffoldMessenger.of(context)
-                                      .showSnackBar(SnackBar(
-                                    content: const Text("Hold to record"),
-                                    action: SnackBarAction(
-                                      label: 'Ok',
-                                      onPressed: () {},
+                                      setState(() {
+                                        isRecording = false;
+                                      });
+                                    },
+                                    child: IconButton(
+                                      onPressed: () {
+                                        // Utils().showToast("Hold to record");
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(SnackBar(
+                                          content: const Text("Hold to record"),
+                                          action: SnackBarAction(
+                                            label: 'Ok',
+                                            onPressed: () {},
+                                          ),
+                                        ));
+                                      },
+                                      icon: const Icon(Icons.mic),
+                                    )),
+                                Flexible(
+                                  child: Container(
+                                    child: TextFormField(
+                                      enabled: (state.conversations!
+                                              .lastMessage!.actorType !=
+                                          "bots"),
+                                      controller: messController,
+                                      maxLines: 5,
+                                      minLines: 1,
+                                      keyboardType: TextInputType.multiline,
+                                      decoration: InputDecoration(
+                                          contentPadding:
+                                              const EdgeInsets.symmetric(
+                                                  vertical: 5, horizontal: 15),
+                                          hintText: (!isRecording)
+                                              ? "Enter a message ..."
+                                              : 'Recording ...',
+                                          border: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(20))),
                                     ),
-                                  ));
-                                },
-                                icon: const Icon(Icons.mic),
-                              )),
-                          Flexible(
-                            child: Container(
-                              child: TextFormField(
-                                enabled: (state.conversations!.lastMessage!
-                                        .actorType !=
-                                    "bots"),
-                                controller: messController,
-                                maxLines: 5,
-                                minLines: 1,
-                                keyboardType: TextInputType.multiline,
-                                decoration: InputDecoration(
-                                    contentPadding: const EdgeInsets.symmetric(
-                                        vertical: 5, horizontal: 15),
-                                    hintText: (!isRecording)
-                                        ? "Enter a message ..."
-                                        : 'Recording ...',
-                                    border: OutlineInputBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(20))),
-                              ),
+                                  ),
+                                ),
+                                IconButton(
+                                    onPressed: () {
+                                      if (messController.text.isNotEmpty) {
+                                        print(snapshot.data.toString() +
+                                            'secret');
+                                        if (snapshot.data != null &&
+                                            snapshot.data!.isNotEmpty) {
+                                          context
+                                              .read<ChatBloc>()
+                                              .add(SendMessage(
+                                                EncryptionDecryption()
+                                                    .encryptString(
+                                                        messController.text,
+                                                        snapshot.data!),
+                                                // messController.text,
+                                                user.username.toString(),
+                                                (isReplying && chatRep != null)
+                                                    ? chatRep!.id.toString()
+                                                    : null,
+                                              ));
+                                        } else {
+                                          context
+                                              .read<ChatBloc>()
+                                              .add(SendMessage(
+                                                // EncryptionDecryption().encryptString(
+                                                //     messController.text, secretKey!),
+                                                messController.text,
+                                                user.username.toString(),
+                                                (isReplying && chatRep != null)
+                                                    ? chatRep!.id.toString()
+                                                    : null,
+                                              ));
+                                        }
+                                      }
+                                      messController.clear();
+                                      CancelReply();
+
+                                      // Unfocus the current focus node to close the keyboard
+                                      FocusScope.of(context).unfocus();
+                                    },
+                                    icon: const Icon(Icons.send)),
+                              ],
                             ),
                           ),
-                          IconButton(
-                              onPressed: () {
-                                if (messController.text.isNotEmpty) {
-                                  context.read<ChatBloc>().add(SendMessage(
-                                        // EncryptionDecryption.encryptMessage(
-                                        //     messController.text),
-                                        // EncryptionDecryption().encryptMessage(token, messController.text),
-                                        EncryptionDecryption()
-                                            .encryptString(messController.text),
-                                        // messController.text,
-                                        user.username.toString(),
-                                        (isReplying && chatRep != null)
-                                            ? chatRep!.id.toString()
-                                            : null,
-                                      ));
-                                }
-                                messController.clear();
-                                CancelReply();
-
-                                // Unfocus the current focus node to close the keyboard
-                                FocusScope.of(context).unfocus();
-                              },
-                              icon: const Icon(Icons.send)),
+                          Offstage(
+                            offstage: !_emojiOpen,
+                            child: SizedBox(
+                              height: 300,
+                              child: EmojiPicker(
+                                  textEditingController: messController,
+                                  config: Config(
+                                    columns: 7,
+                                    emojiSizeMax:
+                                        32 * (Platform.isIOS ? 1.30 : 1.0),
+                                  )),
+                            ),
+                          )
                         ],
-                      ),
-                    ),
-                    Offstage(
-                      offstage: !_emojiOpen,
-                      child: SizedBox(
-                        height: 300,
-                        child: EmojiPicker(
-                            textEditingController: messController,
-                            config: Config(
-                              columns: 7,
-                              emojiSizeMax: 32 * (Platform.isIOS ? 1.30 : 1.0),
-                            )),
-                      ),
-                    )
-                  ],
-                )
-              ],
-            ),
+                      )
+                    ],
+                  ),
+                );
+              } else if (snapshot.hasError) {
+                return Scaffold(
+                  body: Center(
+                    child: Text('Get secret key error'),
+                  ),
+                );
+              } else {
+                return Scaffold(
+                  body: Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+              }
+            },
           );
         } else {
           return const Scaffold();

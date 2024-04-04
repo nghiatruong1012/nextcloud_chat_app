@@ -1,19 +1,23 @@
 import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:diffie_hellman/diffie_hellman.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import 'package:nextcloud_chat_app/authentication/bloc/authentication_bloc.dart';
+import 'package:nextcloud_chat_app/models/user.dart';
 import 'package:nextcloud_chat_app/screen/chat/view/chat.dart';
 import 'package:nextcloud_chat_app/screen/createConversation/view/create_conversation.dart';
 import 'package:nextcloud_chat_app/screen/home/bloc/home_bloc.dart';
 import 'package:nextcloud_chat_app/screen/setting/view/setting.dart';
 import 'package:nextcloud_chat_app/service/conversation_service.dart';
+import 'package:nextcloud_chat_app/service/firebase_service.dart';
 import 'package:nextcloud_chat_app/service/request.dart';
 
 import 'package:nextcloud_chat_app/widgets/loading_widgets.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -38,6 +42,9 @@ class _HomePageState extends State<HomePage> {
   // }
   @override
   void initState() {
+    // final user = context.select((AuthenticationBloc bloc) => bloc.state.user);
+
+    // print(user);
     // _imageHeader();
     // TODO: implement initState
     _timer = Timer.periodic(const Duration(seconds: 15), (timer) {
@@ -55,10 +62,28 @@ class _HomePageState extends State<HomePage> {
   // _imageHeader() async {
   //   requestHeaders = await HTTPService().authImgHeader();
   // }
+  Future<void> setUpE2E(User user) async {
+    print(user.toString());
+    SharedPreferences sharedKey = await SharedPreferences.getInstance();
+    String privateKey = sharedKey.getString(user.username.toString()) ?? '';
+    if (privateKey.isNotEmpty) {
+      print("prvkey" + privateKey);
+    } else {
+      print('crtkey');
+      DhPkcs3Engine dhEngine = DhPkcs3Engine.fromGroup(DhGroup.g5);
+      DhKeyPair keyPair = dhEngine.generateKeyPair();
+      privateKey = keyPair.privateKey.toPem();
+      String publicKey = keyPair.publicKey.toPem();
+      sharedKey.setString(user.username.toString(), privateKey);
+      FirebaseService()
+          .createPublicKey(username: user.username.toString(), key: publicKey);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final user = context.select((AuthenticationBloc bloc) => bloc.state.user);
+    setUpE2E(user);
     return Scaffold(
       // appBar: AppBar(title: Text("Home")),
       body: SafeArea(
@@ -74,8 +99,8 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   Stack(alignment: FractionalOffset.centerRight, children: [
                     Container(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 10),
                       child: TextField(
                         focusNode: _focusNode,
                         onChanged: (value) {
@@ -157,7 +182,9 @@ class _HomePageState extends State<HomePage> {
                                     ChatProvider.route(
                                         state.searchList![index].token!,
                                         state.searchList![index].lastMessage!
-                                            .id!));
+                                            .id!,
+                                        state.searchList![index]!,
+                                        user));
                               },
                               leading: SizedBox(
                                 width: 40,
@@ -180,7 +207,8 @@ class _HomePageState extends State<HomePage> {
                                         6) {
                                       return Container(
                                           color: const Color(0xFF0082c9),
-                                          child: const Center(child: Text('📝')));
+                                          child:
+                                              const Center(child: Text('📝')));
                                     } else {
                                       return SvgPicture.network(
                                         'http://$host:8080//ocs/v2.php/apps/spreed/api/v1/room/${state.searchList![index].token!}/avatar',
@@ -259,8 +287,7 @@ class _HomePageState extends State<HomePage> {
                                           .actorId ==
                                       user.username)
                                   ? Text(
-                                      "Bạn: ${state.searchList![index].lastMessage!
-                                              .message}",
+                                      "Bạn: ${state.searchList![index].lastMessage!.message}",
                                       maxLines: 1,
                                     )
                                   : Text(
