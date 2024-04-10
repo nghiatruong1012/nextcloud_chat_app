@@ -19,6 +19,7 @@ final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  final service = FlutterBackgroundService();
   try {
     await Firebase.initializeApp(
       options: FirebaseOptions(
@@ -30,7 +31,6 @@ Future<void> main() async {
   } on FirebaseException catch (e) {
     print(e.toString());
   }
-  final service = FlutterBackgroundService();
 
   List<dynamic> currentNoti = [];
 

@@ -140,6 +140,30 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       if (response.statusCode == 200) {
         List<dynamic> data = jsonDecode(response.body)["ocs"]["data"];
         List<Chat> listChat = data.map((item) => Chat.fromJson(item)).toList();
+        listChat.forEach((element) {
+          if (element.systemMessage == "message_deleted" ||
+              element.systemMessage == "reaction") {
+            print("message deleted");
+            for (int i = 0; i < state.listChat!.length; i++) {
+              if (state.listChat![i].id == element.parent!.id) {
+                // Thay thế phần tử trong danh sách chat với phần tử mới.
+                state.listChat![i] = Chat(
+                  element.parent!.id,
+                  element.parent!.actorId,
+                  element.parent!.actorDisplayName,
+                  element.parent!.message,
+                  element.parent!.systemMessage,
+                  element.parent!.timestamp,
+                  element.parent!.messageParameters,
+                  element.parent!.reactions,
+                  element.parent!.parent as ParentChat?,
+                );
+                print("chat " + state.listChat![i].toString());
+                break; // Sau khi thay thế, bạn có thể thoát khỏi vòng lặp.
+              }
+            }
+          }
+        });
 
         state.listChat!.addAll(listChat);
         emit(state.copyWith(

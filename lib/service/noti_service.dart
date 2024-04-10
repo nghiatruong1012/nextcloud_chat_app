@@ -20,7 +20,8 @@ class NotiService {
       // body: jsonEncode(params ?? {}),
     );
     if (response.statusCode == 200) {
-      print(jsonDecode(response.body)['ocs']['data']);
+      print(
+          "notification" + jsonDecode(response.body)['ocs']['data'].toString());
       return jsonDecode(response.body)['ocs']['data'];
     } else {
       print("fail get noti");

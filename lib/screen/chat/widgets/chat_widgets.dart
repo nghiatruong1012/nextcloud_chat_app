@@ -45,7 +45,9 @@ Widget MessageWidget(
 Widget SystemMessageWiget(Chat chat) {
   final String systemMess = chat.systemMessage!;
 
-  if (systemMess == 'reaction') {
+  if (systemMess == 'reaction' ||
+      systemMess == 'reaction_revoked' ||
+      systemMess == 'reaction_deleted') {
     return Container();
   } else {
     return Container(
@@ -80,8 +82,22 @@ Widget ChatMessageWidget(
         return ObjectChatWidget(chat, user, context, token, index,
             requestHeaders, type, isFirstMess, isLastMess, pickChat);
       } else {
-        return TextChatWidget(chat, user, context, token, index, requestHeaders,
-            type, isFirstMess, isLastMess, pickChat, secretKey);
+        Chat newChat = Chat(
+            chat.id,
+            chat.actorId,
+            chat.actorDisplayName,
+            (secretKey != null && secretKey.isNotEmpty)
+                ? EncryptionDecryption()
+                    .decryptString(chat.message.toString(), secretKey)
+                : chat.message.toString(),
+            chat.systemMessage,
+            chat.timestamp,
+            chat.messageParameters,
+            chat.reactions,
+            chat.parent);
+
+        return TextChatWidget(newChat, user, context, token, index,
+            requestHeaders, type, isFirstMess, isLastMess, pickChat, secretKey);
       }
     },
   );
@@ -176,305 +192,422 @@ Widget FileChatWidget(
                   height: 30,
                   margin: const EdgeInsets.only(right: 5),
                 ),
-          Container(
-            alignment: (chat.actorId == user.username)
-                ? Alignment.centerRight
-                : Alignment.centerLeft,
-            child: GestureDetector(
-              onTap: () {
-                ChatService().downloadAndOpenFile(
-                    user.username!,
-                    chat.messageParameters['file']['link'],
-                    chat.messageParameters['file']['path'],
-                    chat.messageParameters['file']['name']);
-              },
-              onLongPress: () {
-                bool emojiReactOpen = false;
-                showModalBottomSheet(
-                  context: context,
-                  builder: (context) => Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Row(
-                      //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      //   children: [
-                      //     Row(
-                      //       children: [
-                      //         GestureDetector(
-                      //           onTap: () {
-                      //             ChatService().reactMessage(
-                      //                 token,
-                      //                 chat.id.toString(),
-                      //                 {"reaction": '\u2764\ufe0f'});
-                      //           },
-                      //           child: Container(
-                      //             padding: EdgeInsets.all(8),
-                      //             child: Text(
-                      //               '\u2764\ufe0f',
-                      //               style: TextStyle(fontSize: 24),
-                      //             ),
-                      //           ),
-                      //         ),
-                      //         GestureDetector(
-                      //           child: Container(
-                      //             padding: EdgeInsets.all(8),
-                      //             child: Text(
-                      //               '\ud83d\udc4d',
-                      //               style: TextStyle(fontSize: 24),
-                      //             ),
-                      //           ),
-                      //         ),
-                      //         GestureDetector(
-                      //           child: Container(
-                      //             padding: EdgeInsets.all(8),
-                      //             child: Text(
-                      //               '\ud83d\udc4e',
-                      //               style: TextStyle(
-                      //                 fontSize: 24,
-                      //               ),
-                      //             ),
-                      //           ),
-                      //         ),
-                      //         GestureDetector(
-                      //           child: Container(
-                      //             padding: EdgeInsets.all(8),
-                      //             child: Text(
-                      //               '\ud83d\ude03',
-                      //               style: TextStyle(fontSize: 24),
-                      //             ),
-                      //           ),
-                      //         ),
-                      //         GestureDetector(
-                      //           child: Container(
-                      //             padding: EdgeInsets.all(8),
-                      //             child: Text(
-                      //               '\ud83d\ude22',
-                      //               style: TextStyle(fontSize: 24),
-                      //             ),
-                      //           ),
-                      //         ),
-                      //         GestureDetector(
-                      //           child: Container(
-                      //             padding: EdgeInsets.all(8),
-                      //             child: Text(
-                      //               '\ud83d\ude2f',
-                      //               style: TextStyle(fontSize: 24),
-                      //             ),
-                      //           ),
-                      //         ),
-                      //       ],
-                      //     ),
-                      //     IconButton(
-                      //         alignment: Alignment.centerRight,
-                      //         onPressed: () {
-                      //           _emojiReactOpen = !_emojiReactOpen;
-                      //         },
-                      //         icon: Icon(Icons.more_horiz))
-                      //   ],
-                      // ),
-                      // Offstage(
-                      //   offstage: !_emojiReactOpen,
-                      //   child: SizedBox(
-                      //     height: 300,
-                      //     child: EmojiPicker(
-                      //         textEditingController: messController,
-                      //         config: Config(
-                      //           columns: 7,
-                      //           emojiSizeMax: 32 * (Platform.isIOS ? 1.30 : 1.0),
-                      //         )),
-                      //   ),
-                      // ),
-                      ListTile(
-                        leading: const Icon(Icons.reply),
-                        title: const Text('Trả lời'),
-                        onTap: () {
-                          pickChat(chat);
-                          Navigator.pop(context);
-                        },
-                      ),
-                      // ListTile(
-                      //   leading: Icon(Icons.forward),
-                      //   title: Text('Chuyển tiếp'),
-                      // ),
-                      (!chat.timestamp!.isBefore(DateTime.now()
-                                  .subtract(const Duration(hours: 5))) &&
-                              chat.actorId == user.username)
-                          ? ListTile(
-                              leading: const Icon(Icons.delete),
-                              title: const Text('Delete message'),
-                              onTap: () async {
-                                final newChat = await ChatService()
-                                    .deleteMessage(token, chat.id.toString());
-                                chat = newChat;
-                              },
-                            )
-                          : Container()
-                    ],
-                  ),
-                );
-              },
-              child:
-                  // Stack(
-                  //   children: [
-                  Row(
-                children: [
-                  (chat.actorId == user.username)
-                      ? Container(
-                          margin: const EdgeInsets.only(right: 10),
-                          child: Text(
-                            DateFormat('HH:mm').format(chat.timestamp!),
-                            style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.black.withOpacity(0.7)),
+          Column(
+            crossAxisAlignment: (chat.actorId == user.username)
+                ? CrossAxisAlignment.end
+                : CrossAxisAlignment.start,
+            children: [
+              Container(
+                alignment: (chat.actorId == user.username)
+                    ? Alignment.centerRight
+                    : Alignment.centerLeft,
+                child: GestureDetector(
+                  onTap: () {
+                    ChatService().downloadAndOpenFile(
+                        user.username!,
+                        chat.messageParameters['file']['link'],
+                        chat.messageParameters['file']['path'],
+                        chat.messageParameters['file']['name']);
+                  },
+                  onLongPress: () {
+                    bool emojiReactOpen = false;
+                    showModalBottomSheet(
+                      context: context,
+                      builder: (context) => Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  TextButton(
+                                    // padding: EdgeInsets.all(8),
+
+                                    onPressed: () {
+                                      ChatService().reactMessage(
+                                          token,
+                                          chat.id.toString(),
+                                          {"reaction": '\u2764\ufe0f'});
+                                      Navigator.pop(context);
+                                    },
+                                    child: Text(
+                                      '\u2764\ufe0f',
+                                      style: TextStyle(fontSize: 24),
+                                    ),
+                                  ),
+                                  TextButton(
+                                    // padding: EdgeInsets.all(8),
+
+                                    onPressed: () {
+                                      ChatService().reactMessage(
+                                          token,
+                                          chat.id.toString(),
+                                          {"reaction": '\ud83d\udc4d'});
+                                      Navigator.pop(context);
+                                    },
+                                    child: Text(
+                                      '\ud83d\udc4d',
+                                      style: TextStyle(fontSize: 24),
+                                    ),
+                                  ),
+                                  TextButton(
+                                    // padding: EdgeInsets.all(8),
+
+                                    onPressed: () {
+                                      ChatService().reactMessage(
+                                          token,
+                                          chat.id.toString(),
+                                          {"reaction": '\ud83d\udc4e'});
+                                      Navigator.pop(context);
+                                    },
+                                    child: Text(
+                                      '\ud83d\udc4e',
+                                      style: TextStyle(fontSize: 24),
+                                    ),
+                                  ),
+                                  TextButton(
+                                    // padding: EdgeInsets.all(8),
+
+                                    onPressed: () {
+                                      ChatService().reactMessage(
+                                          token,
+                                          chat.id.toString(),
+                                          {"reaction": '\ud83d\ude06'});
+                                      Navigator.pop(context);
+                                    },
+                                    child: Text(
+                                      '\ud83d\ude06',
+                                      style: TextStyle(fontSize: 24),
+                                    ),
+                                  ),
+                                  TextButton(
+                                    // padding: EdgeInsets.all(8),
+
+                                    onPressed: () {
+                                      ChatService().reactMessage(
+                                          token,
+                                          chat.id.toString(),
+                                          {"reaction": '\ud83d\ude22'});
+                                      Navigator.pop(context);
+                                    },
+                                    child: Text(
+                                      '\ud83d\ude22',
+                                      style: TextStyle(fontSize: 24),
+                                    ),
+                                  ),
+                                  TextButton(
+                                    // padding: EdgeInsets.all(8),
+
+                                    onPressed: () {
+                                      ChatService().reactMessage(
+                                          token,
+                                          chat.id.toString(),
+                                          {"reaction": '\ud83d\ude2f'});
+                                      Navigator.pop(context);
+                                    },
+                                    child: Text(
+                                      '\ud83d\ude2f',
+                                      style: TextStyle(fontSize: 24),
+                                    ),
+                                  ),
+
+                                  // GestureDetector(
+                                  //   child: Container(
+                                  //     padding: EdgeInsets.all(8),
+                                  //     child: Text(
+                                  //       '\ud83d\udc4d',
+                                  //       style: TextStyle(fontSize: 24),
+                                  //     ),
+                                  //   ),
+                                  // ),
+                                  // GestureDetector(
+                                  //   child: Container(
+                                  //     padding: EdgeInsets.all(8),
+                                  //     child: Text(
+                                  //       '\ud83d\udc4e',
+                                  //       style: TextStyle(
+                                  //         fontSize: 24,
+                                  //       ),
+                                  //     ),
+                                  //   ),
+                                  // ),
+                                  // GestureDetector(
+                                  //   child: Container(
+                                  //     padding: EdgeInsets.all(8),
+                                  //     child: Text(
+                                  //       '\ud83d\ude03',
+                                  //       style: TextStyle(fontSize: 24),
+                                  //     ),
+                                  //   ),
+                                  // ),
+                                  // GestureDetector(
+                                  //   child: Container(
+                                  //     padding: EdgeInsets.all(8),
+                                  //     child: Text(
+                                  //       '\ud83d\ude22',
+                                  //       style: TextStyle(fontSize: 24),
+                                  //     ),
+                                  //   ),
+                                  // ),
+                                  // GestureDetector(
+                                  //   child: Container(
+                                  //     padding: EdgeInsets.all(8),
+                                  //     child: Text(
+                                  //       '\ud83d\ude2f',
+                                  //       style: TextStyle(fontSize: 24),
+                                  //     ),
+                                  //   ),
+                                  // ),
+                                ],
+                              ),
+                              // IconButton(
+                              //     alignment: Alignment.centerRight,
+                              //     onPressed: () {
+                              //       _emojiReactOpen = !_emojiReactOpen;
+                              //     },
+                              //     icon: Icon(Icons.more_horiz))
+                            ],
                           ),
-                        )
-                      : Container(),
-                  Container(
-                    constraints: const BoxConstraints(maxWidth: 300),
-                    margin: (index == 0)
-                        ? const EdgeInsets.only(
-                            left: 2, right: 2, top: 2, bottom: 10)
-                        : const EdgeInsets.symmetric(vertical: 2),
-                    // padding: EdgeInsets.symmetric(
-                    //     horizontal: 20, vertical: 10),
-                    decoration: (chat.actorId == user.username)
-                        ? BoxDecoration(
-                            color: Colors.blue.withOpacity(0.2),
-                            borderRadius: BorderRadius.only(
-                              bottomLeft: const Radius.circular(20),
-                              bottomRight: isLastMess
-                                  ? const Radius.circular(20)
-                                  : const Radius.circular(5),
-                              topLeft: const Radius.circular(20),
-                              topRight: isFirstMess
-                                  ? const Radius.circular(20)
-                                  : const Radius.circular(5),
-                            ),
-                          )
-                        : BoxDecoration(
-                            color: Colors.grey.withOpacity(0.2),
-                            borderRadius: BorderRadius.only(
-                              bottomLeft: isLastMess
-                                  ? const Radius.circular(20)
-                                  : const Radius.circular(2),
-                              bottomRight: const Radius.circular(20),
-                              topRight: const Radius.circular(20),
-                              topLeft: isFirstMess
-                                  ? const Radius.circular(20)
-                                  : const Radius.circular(2),
-                            )),
-                    child: (chat.messageParameters['file']
-                                    ['preview-available'] ==
-                                'yes' &&
-                            (chat.messageParameters['file']['mimetype']
-                                .toString()
-                                .contains('image')))
-                        ? Builder(
-                            builder: (context) {
-                              return FullScreenWidget(
-                                disposeLevel: DisposeLevel.High,
-                                child: CachedNetworkImage(
-                                  imageUrl:
-                                      'http://$host:8080/core/preview?x=-1&y=480&a=1&fileId=${chat.messageParameters['file']['id']}',
-                                  placeholder: (context, url) =>
-                                      const CircularProgressIndicator(),
-                                  errorWidget: (context, url, error) {
-                                    return const Icon(Icons.error);
-                                  },
-                                  httpHeaders: requestHeaders,
-                                ),
-                              );
+                          // Offstage(
+                          //   offstage: !_emojiReactOpen,
+                          //   child: SizedBox(
+                          //     height: 300,
+                          //     child: EmojiPicker(
+                          //         textEditingController: messController,
+                          //         config: Config(
+                          //           columns: 7,
+                          //           emojiSizeMax:
+                          //               32 * (Platform.isIOS ? 1.30 : 1.0),
+                          //         )),
+                          //   ),
+                          // ),
+                          ListTile(
+                            leading: const Icon(Icons.reply),
+                            title: const Text('Trả lời'),
+                            onTap: () {
+                              pickChat(chat);
+                              Navigator.pop(context);
                             },
-                          )
-                        : Builder(builder: (context) {
-                            if (chat.messageParameters['file']['mimetype']
-                                .toString()
-                                .contains('audio')) {
-                              return AudioPlayerWidget(
-                                audioUrl:
-                                    'http://$host:8080/remote.php/dav/files/${user.username}/${chat.messageParameters['file']['path']}',
-                                header: requestHeaders,
-                              );
-                            } else {
-                              return ListTile(
-                                leading: SizedBox(
-                                  width: 40,
-                                  height: 40,
-                                  child: Builder(
-                                    builder: (context) {
-                                      String filePath = chat.message.toString();
-                                      List<String> parts = filePath.split('.');
-                                      if (parts.length > 1) {
-                                        switch (parts.last) {
-                                          case 'pdf':
-                                            return Image.asset(
-                                                'assets/pdf.png');
-                                            break;
+                          ),
+                          // ListTile(
+                          //   leading: Icon(Icons.forward),
+                          //   title: Text('Chuyển tiếp'),
+                          // ),
+                          (!chat.timestamp!.isBefore(DateTime.now()
+                                      .subtract(const Duration(hours: 5))) &&
+                                  chat.actorId == user.username)
+                              ? ListTile(
+                                  leading: const Icon(Icons.delete),
+                                  title: const Text('Delete message'),
+                                  onTap: () async {
+                                    final newChat = await ChatService()
+                                        .deleteMessage(
+                                            token, chat.id.toString());
+                                    chat = newChat;
+                                    Navigator.pop(context);
+                                  },
+                                )
+                              : Container()
+                        ],
+                      ),
+                    );
+                  },
+                  child:
+                      // Stack(
+                      //   children: [
+                      Row(
+                    children: [
+                      (chat.actorId == user.username)
+                          ? Container(
+                              margin: const EdgeInsets.only(right: 10),
+                              child: Text(
+                                DateFormat('HH:mm').format(chat.timestamp!),
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.black.withOpacity(0.7)),
+                              ),
+                            )
+                          : Container(),
+                      Container(
+                        constraints: const BoxConstraints(maxWidth: 300),
+                        margin: (index == 0)
+                            ? const EdgeInsets.only(
+                                left: 2, right: 2, top: 2, bottom: 10)
+                            : const EdgeInsets.symmetric(vertical: 2),
+                        // padding: EdgeInsets.symmetric(
+                        //     horizontal: 20, vertical: 10),
+                        decoration: (chat.actorId == user.username)
+                            ? BoxDecoration(
+                                color: Colors.blue.withOpacity(0.2),
+                                borderRadius: BorderRadius.only(
+                                  bottomLeft: const Radius.circular(20),
+                                  bottomRight: isLastMess
+                                      ? const Radius.circular(20)
+                                      : const Radius.circular(5),
+                                  topLeft: const Radius.circular(20),
+                                  topRight: isFirstMess
+                                      ? const Radius.circular(20)
+                                      : const Radius.circular(5),
+                                ),
+                              )
+                            : BoxDecoration(
+                                color: Colors.grey.withOpacity(0.2),
+                                borderRadius: BorderRadius.only(
+                                  bottomLeft: isLastMess
+                                      ? const Radius.circular(20)
+                                      : const Radius.circular(2),
+                                  bottomRight: const Radius.circular(20),
+                                  topRight: const Radius.circular(20),
+                                  topLeft: isFirstMess
+                                      ? const Radius.circular(20)
+                                      : const Radius.circular(2),
+                                )),
+                        child: (chat.messageParameters['file']
+                                        ['preview-available'] ==
+                                    'yes' &&
+                                (chat.messageParameters['file']['mimetype']
+                                    .toString()
+                                    .contains('image')))
+                            ? Builder(
+                                builder: (context) {
+                                  return FullScreenWidget(
+                                    disposeLevel: DisposeLevel.High,
+                                    child: CachedNetworkImage(
+                                      imageUrl:
+                                          'http://$host:8080/core/preview?x=-1&y=480&a=1&fileId=${chat.messageParameters['file']['id']}',
+                                      placeholder: (context, url) =>
+                                          const CircularProgressIndicator(),
+                                      errorWidget: (context, url, error) {
+                                        return const Icon(Icons.error);
+                                      },
+                                      httpHeaders: requestHeaders,
+                                    ),
+                                  );
+                                },
+                              )
+                            : Builder(builder: (context) {
+                                if (chat.messageParameters['file']['mimetype']
+                                    .toString()
+                                    .contains('audio')) {
+                                  return AudioPlayerWidget(
+                                    audioUrl:
+                                        'http://$host:8080/remote.php/dav/files/${user.username}/${chat.messageParameters['file']['path']}',
+                                    header: requestHeaders,
+                                  );
+                                } else {
+                                  return ListTile(
+                                    leading: SizedBox(
+                                      width: 40,
+                                      height: 40,
+                                      child: Builder(
+                                        builder: (context) {
+                                          String filePath =
+                                              chat.message.toString();
+                                          List<String> parts =
+                                              filePath.split('.');
+                                          if (parts.length > 1) {
+                                            switch (parts.last) {
+                                              case 'pdf':
+                                                return Image.asset(
+                                                    'assets/pdf.png');
+                                                break;
 
-                                          case 'docx':
-                                            return Image.asset(
-                                                'assets/doc.png');
-                                            break;
+                                              case 'docx':
+                                                return Image.asset(
+                                                    'assets/doc.png');
+                                                break;
 
-                                          case 'ppt':
-                                            return Image.asset(
-                                                'assets/ppt.png');
-                                            break;
+                                              case 'ppt':
+                                                return Image.asset(
+                                                    'assets/ppt.png');
+                                                break;
 
-                                          case 'txt':
-                                            return Image.asset(
-                                                'assets/txt.png');
-                                            break;
+                                              case 'txt':
+                                                return Image.asset(
+                                                    'assets/txt.png');
+                                                break;
 
-                                          case 'zip':
-                                            return Image.asset(
-                                                'assets/zip.png');
+                                              case 'zip':
+                                                return Image.asset(
+                                                    'assets/zip.png');
 
-                                            break;
-                                          case 'mp4':
-                                            return Image.asset(
-                                                'assets/mp4.png');
+                                                break;
+                                              case 'mp4':
+                                                return Image.asset(
+                                                    'assets/mp4.png');
 
-                                            break;
-                                          default:
+                                                break;
+                                              default:
+                                                return Image.asset(
+                                                    'assets/file.png');
+                                            }
+                                          } else {
                                             return Image.asset(
                                                 'assets/file.png');
-                                        }
-                                      } else {
-                                        return Image.asset('assets/file.png');
-                                        // Không có đuôi file
-                                      }
-                                    },
-                                  ),
-                                ),
-                                title: Text(
-                                  chat.message.toString(),
-                                  style: const TextStyle(
-                                      fontSize: 14,
-                                      decoration: TextDecoration.underline,
-                                      fontWeight: FontWeight.w600),
-                                  maxLines: 2,
-                                ),
-                                subtitle: Text(formatFileSize(
-                                    chat.messageParameters["file"]["size"])),
-                              );
-                            }
-                          }),
+                                            // Không có đuôi file
+                                          }
+                                        },
+                                      ),
+                                    ),
+                                    title: Text(
+                                      chat.message.toString(),
+                                      style: const TextStyle(
+                                          fontSize: 14,
+                                          decoration: TextDecoration.underline,
+                                          fontWeight: FontWeight.w600),
+                                      maxLines: 2,
+                                    ),
+                                    subtitle: Text(formatFileSize(chat
+                                        .messageParameters["file"]["size"])),
+                                  );
+                                }
+                              }),
+                      ),
+                      (chat.actorId != user.username)
+                          ? Container(
+                              margin: const EdgeInsets.only(left: 10),
+                              child: Text(
+                                DateFormat('HH:mm').format(chat.timestamp!),
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.black.withOpacity(0.7)),
+                              ),
+                            )
+                          : Container(),
+                    ],
                   ),
-                  (chat.actorId != user.username)
-                      ? Container(
-                          margin: const EdgeInsets.only(left: 10),
-                          child: Text(
-                            DateFormat('HH:mm').format(chat.timestamp!),
-                            style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.black.withOpacity(0.7)),
-                          ),
-                        )
-                      : Container(),
-                ],
+                ),
               ),
-            ),
+              (chat.reactions!.isNotEmpty)
+                  ? Container(
+                      padding: EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(100),
+                        color: Colors.grey.withOpacity(0.2),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: chat.reactions!.entries.take(5).map((entry) {
+                          String reaction =
+                              entry.key; // Lấy key của cặp khóa và giá trị
+                          int count =
+                              entry.value; // Lấy giá trị tương ứng với key
+                          return Container(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 2, vertical: 3),
+                            // Xây dựng Container dựa trên reaction và count
+                            // Ví dụ:
+                            child: Text('$reaction $count'),
+                            // Hoặc bạn có thể sử dụng các widget khác tùy thuộc vào yêu cầu của bạn
+                          );
+                        }).toList(),
+                      ),
+                    )
+                  : Container(
+                      width: 0,
+                    ),
+            ],
           ),
         ],
       ),
@@ -586,6 +719,160 @@ Widget TextChatWidget(
                     builder: (context) => Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        Row(
+                          // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                TextButton(
+                                  // padding: EdgeInsets.all(8),
+
+                                  onPressed: () {
+                                    ChatService().reactMessage(
+                                        token,
+                                        chat.id.toString(),
+                                        {"reaction": '\u2764\ufe0f'});
+                                    Navigator.pop(context);
+                                  },
+                                  child: Text(
+                                    '\u2764\ufe0f',
+                                    style: TextStyle(fontSize: 24),
+                                  ),
+                                ),
+                                TextButton(
+                                  // padding: EdgeInsets.all(8),
+
+                                  onPressed: () {
+                                    ChatService().reactMessage(
+                                        token,
+                                        chat.id.toString(),
+                                        {"reaction": '\ud83d\udc4d'});
+                                    Navigator.pop(context);
+                                  },
+                                  child: Text(
+                                    '\ud83d\udc4d',
+                                    style: TextStyle(fontSize: 24),
+                                  ),
+                                ),
+                                TextButton(
+                                  // padding: EdgeInsets.all(8),
+
+                                  onPressed: () {
+                                    ChatService().reactMessage(
+                                        token,
+                                        chat.id.toString(),
+                                        {"reaction": '\ud83d\udc4e'});
+                                    Navigator.pop(context);
+                                  },
+                                  child: Text(
+                                    '\ud83d\udc4e',
+                                    style: TextStyle(fontSize: 24),
+                                  ),
+                                ),
+                                TextButton(
+                                  // padding: EdgeInsets.all(8),
+
+                                  onPressed: () {
+                                    ChatService().reactMessage(
+                                        token,
+                                        chat.id.toString(),
+                                        {"reaction": '\ud83d\ude06'});
+                                    Navigator.pop(context);
+                                  },
+                                  child: Text(
+                                    '\ud83d\ude06',
+                                    style: TextStyle(fontSize: 24),
+                                  ),
+                                ),
+                                TextButton(
+                                  // padding: EdgeInsets.all(8),
+
+                                  onPressed: () {
+                                    ChatService().reactMessage(
+                                        token,
+                                        chat.id.toString(),
+                                        {"reaction": '\ud83d\ude22'});
+                                    Navigator.pop(context);
+                                  },
+                                  child: Text(
+                                    '\ud83d\ude22',
+                                    style: TextStyle(fontSize: 24),
+                                  ),
+                                ),
+                                TextButton(
+                                  // padding: EdgeInsets.all(8),
+
+                                  onPressed: () {
+                                    ChatService().reactMessage(
+                                        token,
+                                        chat.id.toString(),
+                                        {"reaction": '\ud83d\ude2f'});
+                                    Navigator.pop(context);
+                                  },
+                                  child: Text(
+                                    '\ud83d\ude2f',
+                                    style: TextStyle(fontSize: 24),
+                                  ),
+                                ),
+
+                                // GestureDetector(
+                                //   child: Container(
+                                //     padding: EdgeInsets.all(8),
+                                //     child: Text(
+                                //       '\ud83d\udc4d',
+                                //       style: TextStyle(fontSize: 24),
+                                //     ),
+                                //   ),
+                                // ),
+                                // GestureDetector(
+                                //   child: Container(
+                                //     padding: EdgeInsets.all(8),
+                                //     child: Text(
+                                //       '\ud83d\udc4e',
+                                //       style: TextStyle(
+                                //         fontSize: 24,
+                                //       ),
+                                //     ),
+                                //   ),
+                                // ),
+                                // GestureDetector(
+                                //   child: Container(
+                                //     padding: EdgeInsets.all(8),
+                                //     child: Text(
+                                //       '\ud83d\ude03',
+                                //       style: TextStyle(fontSize: 24),
+                                //     ),
+                                //   ),
+                                // ),
+                                // GestureDetector(
+                                //   child: Container(
+                                //     padding: EdgeInsets.all(8),
+                                //     child: Text(
+                                //       '\ud83d\ude22',
+                                //       style: TextStyle(fontSize: 24),
+                                //     ),
+                                //   ),
+                                // ),
+                                // GestureDetector(
+                                //   child: Container(
+                                //     padding: EdgeInsets.all(8),
+                                //     child: Text(
+                                //       '\ud83d\ude2f',
+                                //       style: TextStyle(fontSize: 24),
+                                //     ),
+                                //   ),
+                                // ),
+                              ],
+                            ),
+                            // IconButton(
+                            //     alignment: Alignment.centerRight,
+                            //     onPressed: () {
+                            //       _emojiReactOpen = !_emojiReactOpen;
+                            //     },
+                            //     icon: Icon(Icons.more_horiz))
+                          ],
+                        ),
+
                         ListTile(
                           leading: const Icon(Icons.reply),
                           title: const Text('Trả lời'),
@@ -604,6 +891,7 @@ Widget TextChatWidget(
                           onTap: () {
                             Clipboard.setData(
                                 ClipboardData(text: chat.message!));
+                            Navigator.pop(context);
                           },
                         ),
                         // (!chat.timestamp!.isBefore(
@@ -624,6 +912,7 @@ Widget TextChatWidget(
                                   final newChat = await ChatService()
                                       .deleteMessage(token, chat.id.toString());
                                   chat = newChat;
+                                  Navigator.pop(context);
                                 },
                               )
                             : Container()
@@ -702,6 +991,39 @@ Widget TextChatWidget(
                                   chat.message.toString(),
                                   style: const TextStyle(fontSize: 30),
                                 ),
+                                (chat.reactions!.isNotEmpty)
+                                    ? Container(
+                                        margin: EdgeInsets.only(top: 3),
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: 5, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(100),
+                                          color: Colors.grey.withOpacity(0.2),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: chat.reactions!.entries
+                                              .take(5)
+                                              .map((entry) {
+                                            String reaction = entry
+                                                .key; // Lấy key của cặp khóa và giá trị
+                                            int count = entry
+                                                .value; // Lấy giá trị tương ứng với key
+                                            return Container(
+                                              padding: EdgeInsets.symmetric(
+                                                  horizontal: 2, vertical: 3),
+                                              // Xây dựng Container dựa trên reaction và count
+                                              // Ví dụ:
+                                              child: Text('$reaction $count'),
+                                              // Hoặc bạn có thể sử dụng các widget khác tùy thuộc vào yêu cầu của bạn
+                                            );
+                                          }).toList(),
+                                        ),
+                                      )
+                                    : Container(
+                                        width: 0,
+                                      ),
                               ],
                             ),
                           );
@@ -757,7 +1079,44 @@ Widget TextChatWidget(
                                     : Container(
                                         width: 0,
                                       ),
-                                AnyLinkPreview(link: chat.message.toString())
+                                AnyLinkPreview(
+                                  link: chat.message.toString(),
+                                  // backgroundColor: Colors.g,
+                                  boxShadow: [],
+                                ),
+                                (chat.reactions!.isNotEmpty)
+                                    ? Container(
+                                        margin: EdgeInsets.only(top: 3),
+                                        padding: EdgeInsets.symmetric(
+                                            horizontal: 5, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(100),
+                                          color: Colors.grey.withOpacity(0.2),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: chat.reactions!.entries
+                                              .take(5)
+                                              .map((entry) {
+                                            String reaction = entry
+                                                .key; // Lấy key của cặp khóa và giá trị
+                                            int count = entry
+                                                .value; // Lấy giá trị tương ứng với key
+                                            return Container(
+                                              padding: EdgeInsets.symmetric(
+                                                  horizontal: 2, vertical: 3),
+                                              // Xây dựng Container dựa trên reaction và count
+                                              // Ví dụ:
+                                              child: Text('$reaction $count'),
+                                              // Hoặc bạn có thể sử dụng các widget khác tùy thuộc vào yêu cầu của bạn
+                                            );
+                                          }).toList(),
+                                        ),
+                                      )
+                                    : Container(
+                                        width: 0,
+                                      ),
                               ],
                             ),
                           );
@@ -867,6 +1226,38 @@ Widget TextChatWidget(
                                     style: const TextStyle(fontSize: 18),
                                     maxLines: 10,
                                   ),
+                                  (chat.reactions!.isNotEmpty)
+                                      ? Container(
+                                          padding: EdgeInsets.symmetric(
+                                              horizontal: 5, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(100),
+                                            color: Colors.grey.withOpacity(0.2),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: chat.reactions!.entries
+                                                .take(5)
+                                                .map((entry) {
+                                              String reaction = entry
+                                                  .key; // Lấy key của cặp khóa và giá trị
+                                              int count = entry
+                                                  .value; // Lấy giá trị tương ứng với key
+                                              return Container(
+                                                padding: EdgeInsets.symmetric(
+                                                    horizontal: 2, vertical: 3),
+                                                // Xây dựng Container dựa trên reaction và count
+                                                // Ví dụ:
+                                                child: Text('$reaction $count'),
+                                                // Hoặc bạn có thể sử dụng các widget khác tùy thuộc vào yêu cầu của bạn
+                                              );
+                                            }).toList(),
+                                          ),
+                                        )
+                                      : Container(
+                                          width: 0,
+                                        ),
                                 ],
                               ),
                             ),
@@ -1010,6 +1401,160 @@ Widget ObjectChatWidget(
                 builder: (context) => Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    Row(
+                      // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            TextButton(
+                              // padding: EdgeInsets.all(8),
+
+                              onPressed: () {
+                                ChatService().reactMessage(
+                                    token,
+                                    chat.id.toString(),
+                                    {"reaction": '\u2764\ufe0f'});
+                                Navigator.pop(context);
+                              },
+                              child: Text(
+                                '\u2764\ufe0f',
+                                style: TextStyle(fontSize: 24),
+                              ),
+                            ),
+                            TextButton(
+                              // padding: EdgeInsets.all(8),
+
+                              onPressed: () {
+                                ChatService().reactMessage(
+                                    token,
+                                    chat.id.toString(),
+                                    {"reaction": '\ud83d\udc4d'});
+                                Navigator.pop(context);
+                              },
+                              child: Text(
+                                '\ud83d\udc4d',
+                                style: TextStyle(fontSize: 24),
+                              ),
+                            ),
+                            TextButton(
+                              // padding: EdgeInsets.all(8),
+
+                              onPressed: () {
+                                ChatService().reactMessage(
+                                    token,
+                                    chat.id.toString(),
+                                    {"reaction": '\ud83d\udc4e'});
+                                Navigator.pop(context);
+                              },
+                              child: Text(
+                                '\ud83d\udc4e',
+                                style: TextStyle(fontSize: 24),
+                              ),
+                            ),
+                            TextButton(
+                              // padding: EdgeInsets.all(8),
+
+                              onPressed: () {
+                                ChatService().reactMessage(
+                                    token,
+                                    chat.id.toString(),
+                                    {"reaction": '\ud83d\ude06'});
+                                Navigator.pop(context);
+                              },
+                              child: Text(
+                                '\ud83d\ude06',
+                                style: TextStyle(fontSize: 24),
+                              ),
+                            ),
+                            TextButton(
+                              // padding: EdgeInsets.all(8),
+
+                              onPressed: () {
+                                ChatService().reactMessage(
+                                    token,
+                                    chat.id.toString(),
+                                    {"reaction": '\ud83d\ude22'});
+                                Navigator.pop(context);
+                              },
+                              child: Text(
+                                '\ud83d\ude22',
+                                style: TextStyle(fontSize: 24),
+                              ),
+                            ),
+                            TextButton(
+                              // padding: EdgeInsets.all(8),
+
+                              onPressed: () {
+                                ChatService().reactMessage(
+                                    token,
+                                    chat.id.toString(),
+                                    {"reaction": '\ud83d\ude2f'});
+                                Navigator.pop(context);
+                              },
+                              child: Text(
+                                '\ud83d\ude2f',
+                                style: TextStyle(fontSize: 24),
+                              ),
+                            ),
+
+                            // GestureDetector(
+                            //   child: Container(
+                            //     padding: EdgeInsets.all(8),
+                            //     child: Text(
+                            //       '\ud83d\udc4d',
+                            //       style: TextStyle(fontSize: 24),
+                            //     ),
+                            //   ),
+                            // ),
+                            // GestureDetector(
+                            //   child: Container(
+                            //     padding: EdgeInsets.all(8),
+                            //     child: Text(
+                            //       '\ud83d\udc4e',
+                            //       style: TextStyle(
+                            //         fontSize: 24,
+                            //       ),
+                            //     ),
+                            //   ),
+                            // ),
+                            // GestureDetector(
+                            //   child: Container(
+                            //     padding: EdgeInsets.all(8),
+                            //     child: Text(
+                            //       '\ud83d\ude03',
+                            //       style: TextStyle(fontSize: 24),
+                            //     ),
+                            //   ),
+                            // ),
+                            // GestureDetector(
+                            //   child: Container(
+                            //     padding: EdgeInsets.all(8),
+                            //     child: Text(
+                            //       '\ud83d\ude22',
+                            //       style: TextStyle(fontSize: 24),
+                            //     ),
+                            //   ),
+                            // ),
+                            // GestureDetector(
+                            //   child: Container(
+                            //     padding: EdgeInsets.all(8),
+                            //     child: Text(
+                            //       '\ud83d\ude2f',
+                            //       style: TextStyle(fontSize: 24),
+                            //     ),
+                            //   ),
+                            // ),
+                          ],
+                        ),
+                        // IconButton(
+                        //     alignment: Alignment.centerRight,
+                        //     onPressed: () {
+                        //       _emojiReactOpen = !_emojiReactOpen;
+                        //     },
+                        //     icon: Icon(Icons.more_horiz))
+                      ],
+                    ),
+
                     ListTile(
                       leading: const Icon(Icons.reply),
                       title: const Text('Trả lời'),
@@ -1022,10 +1567,11 @@ Widget ObjectChatWidget(
                     //   leading: Icon(Icons.forward),
                     //   title: Text('Chuyển tiếp'),
                     // ),
-                    const ListTile(
-                      leading: Icon(Icons.copy),
-                      title: Text('Sao chép'),
-                    ),
+                    // const ListTile(
+                    //   leading: Icon(Icons.copy),
+                    //   title: Text('Sao chép'),
+
+                    // ),
                   ],
                 ),
               );
