@@ -166,6 +166,8 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         });
 
         state.listChat!.addAll(listChat);
+        ChatService().markAsRead(state.token!, listChat.last.id!);
+
         emit(state.copyWith(
             lastKnownMessageId:
                 response.headers["x-chat-last-given"].toString()));

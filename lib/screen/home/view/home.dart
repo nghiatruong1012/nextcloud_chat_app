@@ -13,6 +13,7 @@ import 'package:nextcloud_chat_app/screen/createConversation/view/create_convers
 import 'package:nextcloud_chat_app/screen/home/bloc/home_bloc.dart';
 import 'package:nextcloud_chat_app/screen/setting/view/setting.dart';
 import 'package:nextcloud_chat_app/service/conversation_service.dart';
+import 'package:nextcloud_chat_app/service/encrypt.dart';
 import 'package:nextcloud_chat_app/service/firebase_service.dart';
 import 'package:nextcloud_chat_app/service/request.dart';
 
@@ -47,6 +48,8 @@ class _HomePageState extends State<HomePage> {
     // print(user);
     // _imageHeader();
     // TODO: implement initState
+    context.read<HomeBloc>().add(LoadConversationEvent());
+
     _timer = Timer.periodic(const Duration(seconds: 15), (timer) {
       context.read<HomeBloc>().add(LoadConversationEvent());
     });
@@ -189,47 +192,117 @@ class _HomePageState extends State<HomePage> {
                               leading: SizedBox(
                                 width: 40,
                                 height: 40,
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(100),
-                                  child: Builder(builder: (context) {
-                                    if (state.searchList![index].type == 1) {
-                                      return CachedNetworkImage(
-                                        imageUrl:
-                                            'http://$host:8080/ocs/v2.php/apps/spreed/api/v1/room/${state.searchList![index].token!}/avatar',
-                                        placeholder: (context, url) =>
-                                            const CircularProgressIndicator(),
-                                        errorWidget: (context, url, error) {
-                                          return Container();
+                                child: Stack(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(100),
+                                      child: Builder(builder: (context) {
+                                        if (state.searchList![index].type ==
+                                            1) {
+                                          return CachedNetworkImage(
+                                            imageUrl:
+                                                'http://$host:8080/ocs/v2.php/apps/spreed/api/v1/room/${state.searchList![index].token!}/avatar',
+                                            placeholder: (context, url) =>
+                                                const CircularProgressIndicator(),
+                                            errorWidget: (context, url, error) {
+                                              return Container();
+                                            },
+                                            httpHeaders: snapshot.data,
+                                          );
+                                        } else if (state
+                                                .searchList![index].type ==
+                                            6) {
+                                          return Container(
+                                              color: const Color(0xFF0082c9),
+                                              child: const Center(
+                                                  child: Text('📝')));
+                                        } else {
+                                          return SvgPicture.network(
+                                            'http://$host:8080//ocs/v2.php/apps/spreed/api/v1/room/${state.searchList![index].token!}/avatar',
+                                            headers: snapshot.data,
+                                          );
+                                        }
+                                      }),
+                                      // FutureBuilder(
+                                      //     future: ConversationService()
+                                      //         .getConversationAvatar(
+                                      //             state.searchList![index].token!,
+                                      //             state.searchList![index].name!,
+                                      //             state.searchList![index]
+                                      //                 .lastMessage!.actorType!),
+                                      //     builder: (context, snapshot) {
+                                      //       if (snapshot.hasData) {
+                                      //         return snapshot.data ?? Container();
+                                      //       } else {
+                                      //         return CircularProgressIndicator();
+                                      //       }
+                                      //     }),
+                                    ),
+                                    Positioned(
+                                      right: 0,
+                                      bottom: 0,
+                                      child: Builder(
+                                        builder: (context) {
+                                          if (state.searchList![index].status ==
+                                              'online') {
+                                            return Container(
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                color: Colors.white,
+                                                // border: Border.all(
+                                                //   color: Colors.white,
+                                                //   width: 0.5,
+                                                // ),
+                                              ),
+                                              child: Icon(
+                                                Icons.circle,
+                                                color: Colors.green,
+                                                size: 14,
+                                              ),
+                                            );
+                                          } else if (state
+                                                  .searchList![index].status ==
+                                              'away') {
+                                            return Container(
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                color: Colors.white,
+                                                // border: Border.all(
+                                                //   color: Colors.white,
+                                                //   width: 0.5,
+                                                // ),
+                                              ),
+                                              child: Icon(
+                                                Icons.nightlight_round_sharp,
+                                                color: Colors.yellow.shade800,
+                                                size: 14,
+                                              ),
+                                            );
+                                          } else if (state
+                                                  .searchList![index].status ==
+                                              'dnd') {
+                                            return Container(
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                color: Colors.white,
+                                                // border: Border.all(
+                                                //   color: Colors.white,
+                                                //   width: 0.5,
+                                                // ),
+                                              ),
+                                              child: Icon(
+                                                Icons.do_disturb_on_sharp,
+                                                color: Colors.red.shade800,
+                                                size: 14,
+                                              ),
+                                            );
+                                          } else {
+                                            return Container();
+                                          }
                                         },
-                                        httpHeaders: snapshot.data,
-                                      );
-                                    } else if (state.searchList![index].type ==
-                                        6) {
-                                      return Container(
-                                          color: const Color(0xFF0082c9),
-                                          child:
-                                              const Center(child: Text('📝')));
-                                    } else {
-                                      return SvgPicture.network(
-                                        'http://$host:8080//ocs/v2.php/apps/spreed/api/v1/room/${state.searchList![index].token!}/avatar',
-                                        headers: snapshot.data,
-                                      );
-                                    }
-                                  }),
-                                  // FutureBuilder(
-                                  //     future: ConversationService()
-                                  //         .getConversationAvatar(
-                                  //             state.searchList![index].token!,
-                                  //             state.searchList![index].name!,
-                                  //             state.searchList![index]
-                                  //                 .lastMessage!.actorType!),
-                                  //     builder: (context, snapshot) {
-                                  //       if (snapshot.hasData) {
-                                  //         return snapshot.data ?? Container();
-                                  //       } else {
-                                  //         return CircularProgressIndicator();
-                                  //       }
-                                  //     }),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                               title: Text(state.searchList![index].displayName
@@ -283,19 +356,77 @@ class _HomePageState extends State<HomePage> {
                                   }
                                 },
                               ),
-                              subtitle: (state.searchList![index].lastMessage!
-                                          .actorId ==
-                                      user.username)
-                                  ? Text(
-                                      "Bạn: ${state.searchList![index].lastMessage!.message}",
-                                      maxLines: 1,
-                                    )
-                                  : Text(
-                                      state.searchList![index].lastMessage!
-                                          .message
-                                          .toString(),
-                                      maxLines: 1,
-                                    ),
+                              subtitle: Builder(
+                                builder: (context) {
+                                  final secretKey = EncryptionDecryption()
+                                      .getKeyString(user.username!,
+                                          state.searchList![index].name!);
+                                  return FutureBuilder(
+                                    future: secretKey,
+                                    builder: (context, snapshot) {
+                                      if (snapshot.hasData) {
+                                        final lastMessage =
+                                            (snapshot.data != '')
+                                                ? EncryptionDecryption()
+                                                    .decryptString(
+                                                        state
+                                                            .searchList![index]
+                                                            .lastMessage!
+                                                            .message!,
+                                                        snapshot.data!)
+                                                : state.searchList![index]
+                                                    .lastMessage!.message!;
+                                        if (state.searchList![index]
+                                                .lastMessage!.actorId ==
+                                            user.username) {
+                                          return Text(
+                                            "Bạn: $lastMessage",
+                                            maxLines: 1,
+                                          );
+                                        } else {
+                                          return Text(
+                                            "$lastMessage",
+                                            maxLines: 1,
+                                            style: (state.searchList![index]
+                                                        .lastMessage!.id! >
+                                                    state.searchList![index]
+                                                        .lastReadMessage!)
+                                                ? TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.black
+                                                        .withAlpha(200))
+                                                : null,
+                                          );
+                                        }
+                                      } else {
+                                        return Container();
+                                      }
+                                    },
+                                  );
+                                },
+                              ),
+                              // (state.searchList![index].lastMessage!
+                              //             .actorId ==
+                              //         user.username)
+                              //     ? Text(
+                              //         "Bạn: ${state.searchList![index].lastMessage!.message}",
+                              //         maxLines: 1,
+                              //       )
+                              //     : Text(
+                              //         state.searchList![index].lastMessage!
+                              //             .message
+                              //             .toString(),
+                              //         maxLines: 1,
+                              //         style: (state.searchList![index]
+                              //                     .lastMessage!.id! >
+                              //                 state.searchList![index]
+                              //                     .lastReadMessage!)
+                              //             ? TextStyle(
+                              //                 fontWeight: FontWeight.bold,
+                              //                 color:
+                              //                     Colors.black.withAlpha(200))
+                              //             : null,
+                              //       ),
                             ),
                           ),
                         );

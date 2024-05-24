@@ -52,6 +52,14 @@ Future<void> main() async {
     initializationSettings,
     // onSelectNotification: onSelectNotification,
   );
+  // // Trigger notification logic immediately
+  // final listNoti = await NotiService().getNoti();
+  // for (var element in listNoti) {
+  //   if (element["object_type"] == 'chat') {
+  //     _showNotification(
+  //         element["notification_id"], element["subject"], element["message"]);
+  //   }
+  // }
 
   await service.configure(
       iosConfiguration: IosConfiguration(),
@@ -89,14 +97,16 @@ void onStart(ServiceInstance service) {
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
   Timer.periodic(const Duration(seconds: 5), (timer) async {
-    final listNoti = await NotiService().getNoti();
+    try {
+      final listNoti = await NotiService().getNoti();
 
-    for (var element in listNoti) {
-      if (element["object_type"] == 'chat') {
-        _showNotification(
-            element["notification_id"], element["subject"], element["message"]);
+      for (var element in listNoti) {
+        if (element["object_type"] == 'chat') {
+          _showNotification(element["notification_id"], element["subject"],
+              element["message"]);
+        }
       }
-    }
+    } catch (e) {}
   });
 }
 

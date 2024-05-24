@@ -344,4 +344,22 @@ class ChatService {
       throw Exception('Failed to upload file${response.statusCode}');
     }
   }
+
+  Future<void> markAsRead(String token, int id) async {
+    Map<String, String> requestHeaders = await HTTPService().authHeader();
+    try {
+      final response = await http.post(
+        Uri(
+          scheme: 'http',
+          host: host,
+          port: 8080,
+          path: '/ocs/v2.php/apps/spreed/api/v1//chat/$token/read',
+        ),
+        headers: requestHeaders,
+        body: jsonEncode({"lastReadMessage": id}),
+      );
+    } catch (e) {
+      print(e);
+    }
+  }
 }

@@ -150,6 +150,7 @@ class _ChatPageState extends State<ChatPage> {
         });
       }
     });
+    ChatService().markAsRead(token, conversations.lastMessage!.id!);
   }
 
   // Future<void> getSecretKey() async {
@@ -291,6 +292,7 @@ class _ChatPageState extends State<ChatPage> {
                                       isLastMess,
                                       PickChatToReply,
                                       snapshot.data,
+                                      conversations.lastReadMessage!,
                                     ),
                                   ),
                                 ],
@@ -714,36 +716,99 @@ class _ChatPageState extends State<ChatPage> {
             width: 40,
             height: 40,
             padding: const EdgeInsets.all(0),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(100),
-              child: Builder(
-                builder: (context) {
-                  if (state.conversations!.type! == 1) {
-                    return FutureBuilder(
-                        future: ConversationService().getConversationAvatar(
-                            token,
-                            state.conversations!.name!,
-                            state.conversations!.lastMessage!.actorType!,
-                            64),
-                        builder: (context, snapshot) {
-                          if (snapshot.hasData) {
-                            return snapshot.data ?? Container();
-                          } else {
-                            return Container();
-                          }
-                        });
-                  } else if (state.conversations!.type! == 6) {
-                    return Container(
-                        color: const Color(0xFF0082c9),
-                        child: const Center(child: Text('📝')));
-                  } else {
-                    return SvgPicture.network(
-                      'http://$host:8080//ocs/v2.php/apps/spreed/api/v1/room/$token/avatar',
-                      headers: requestHeaders,
-                    );
-                  }
-                },
-              ),
+            child: Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(100),
+                  child: Builder(
+                    builder: (context) {
+                      if (state.conversations!.type! == 1) {
+                        return FutureBuilder(
+                            future: ConversationService().getConversationAvatar(
+                                token,
+                                state.conversations!.name!,
+                                state.conversations!.lastMessage!.actorType!,
+                                64),
+                            builder: (context, snapshot) {
+                              if (snapshot.hasData) {
+                                return snapshot.data ?? Container();
+                              } else {
+                                return Container();
+                              }
+                            });
+                      } else if (state.conversations!.type! == 6) {
+                        return Container(
+                            color: const Color(0xFF0082c9),
+                            child: const Center(child: Text('📝')));
+                      } else {
+                        return SvgPicture.network(
+                          'http://$host:8080//ocs/v2.php/apps/spreed/api/v1/room/$token/avatar',
+                          headers: requestHeaders,
+                        );
+                      }
+                    },
+                  ),
+                ),
+                Positioned(
+                  right: 0,
+                  bottom: 0,
+                  child: Builder(
+                    builder: (context) {
+                      if (state.conversations!.status == 'online') {
+                        return Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white,
+                            // border: Border.all(
+                            //   color: Colors.white,
+                            //   width: 0.5,
+                            // ),
+                          ),
+                          child: Icon(
+                            Icons.circle,
+                            color: Colors.green,
+                            size: 14,
+                          ),
+                        );
+                      } else if (state.conversations!.status == 'away') {
+                        return Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white,
+                            // border: Border.all(
+                            //   color: Colors.white,
+                            //   width: 0.5,
+                            // ),
+                          ),
+                          child: Icon(
+                            Icons.nightlight_round_sharp,
+                            color: Colors.yellow.shade800,
+                            size: 14,
+                          ),
+                        );
+                      } else if (state.conversations!.status == 'dnd') {
+                        return Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white,
+                            // border: Border.all(
+                            //   color: Colors.white,
+                            //   width: 0.5,
+                            // ),
+                          ),
+                          child: Icon(
+                            Icons.do_disturb_on_sharp,
+                            color: Colors.red.shade800,
+                            size: 14,
+                          ),
+                        );
+                      } else {
+                        return Container();
+                      }
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(
@@ -762,12 +827,12 @@ class _ChatPageState extends State<ChatPage> {
         ],
       ),
       actions: [
-        IconButton(
-            onPressed: () {},
-            icon: const Icon(
-              Icons.phone,
-              color: Colors.black,
-            )),
+        // IconButton(
+        //     onPressed: () {},
+        //     icon: const Icon(
+        //       Icons.phone,
+        //       color: Colors.black,
+        //     )),
         IconButton(
             onPressed: () {
               // Navigator.push(

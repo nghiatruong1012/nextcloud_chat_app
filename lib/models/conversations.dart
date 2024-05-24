@@ -11,8 +11,10 @@ class Conversations {
   final int? notificationCalls;
   final String? name;
   final String? displayName;
+  final int? lastReadMessage;
   final LastMessage? lastMessage;
   final String? avatarVersion;
+  final String? status;
 
   const Conversations(
     this.id,
@@ -25,8 +27,10 @@ class Conversations {
     this.notificationCalls,
     this.name,
     this.displayName,
+    this.lastReadMessage,
     this.lastMessage,
     this.avatarVersion,
+    this.status,
   );
   factory Conversations.fromJson(Map<String, dynamic> json) {
     return Conversations(
@@ -40,12 +44,14 @@ class Conversations {
       json['notificationCalls'],
       json['name'],
       json['displayName'],
+      json['lastReadMessage'],
       LastMessage.fromJson(json['lastMessage']),
       json['avatarVersion'],
+      json['status'],
     );
   }
-  static const empty = Conversations(
-      null, null, null, null, null, null, null, null, null, null, null, null);
+  static const empty = Conversations(null, null, null, null, null, null, null,
+      null, null, null, null, null, null, null);
 }
 
 class LastMessage {

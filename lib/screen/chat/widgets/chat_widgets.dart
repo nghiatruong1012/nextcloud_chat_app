@@ -14,25 +14,36 @@ import 'package:nextcloud_chat_app/service/request.dart';
 import 'package:nextcloud_chat_app/utils.dart';
 
 Widget MessageWidget(
-  Chat chat,
-  User user,
-  BuildContext context,
-  String token,
-  int index,
-  Map<String, String> requestHeaders,
-  int type,
-  bool isFirstMess,
-  bool isLastMess,
-  void Function(Chat chat) pickChat,
-  String? secretKey,
-) {
+    Chat chat,
+    User user,
+    BuildContext context,
+    String token,
+    int index,
+    Map<String, String> requestHeaders,
+    int type,
+    bool isFirstMess,
+    bool isLastMess,
+    void Function(Chat chat) pickChat,
+    String? secretKey,
+    int lastReadMessage) {
   return Builder(
     builder: (context) {
       if (chat.systemMessage == '') {
         return Column(
           children: [
-            ChatMessageWidget(chat, user, context, token, index, requestHeaders,
-                type, isFirstMess, isLastMess, pickChat, secretKey),
+            ChatMessageWidget(
+                chat,
+                user,
+                context,
+                token,
+                index,
+                requestHeaders,
+                type,
+                isFirstMess,
+                isLastMess,
+                pickChat,
+                secretKey,
+                lastReadMessage),
           ],
         );
       } else {
@@ -70,17 +81,28 @@ Widget ChatMessageWidget(
   bool isLastMess,
   void Function(Chat chat) pickChat,
   String? secretKey,
+  int lastReadMessage,
 ) {
   return Builder(
     builder: (context) {
       if (chat.messageParameters is Map &&
           chat.messageParameters.containsKey('file')) {
         return FileChatWidget(chat, user, context, token, index, requestHeaders,
-            type, isFirstMess, isLastMess, pickChat);
+            type, isFirstMess, isLastMess, pickChat, lastReadMessage);
       } else if (chat.messageParameters is Map &&
           chat.messageParameters.containsKey('object')) {
-        return ObjectChatWidget(chat, user, context, token, index,
-            requestHeaders, type, isFirstMess, isLastMess, pickChat);
+        return ObjectChatWidget(
+            chat,
+            user,
+            context,
+            token,
+            index,
+            requestHeaders,
+            type,
+            isFirstMess,
+            isLastMess,
+            pickChat,
+            lastReadMessage);
       } else {
         Chat newChat = Chat(
             chat.id,
@@ -96,8 +118,19 @@ Widget ChatMessageWidget(
             chat.reactions,
             chat.parent);
 
-        return TextChatWidget(newChat, user, context, token, index,
-            requestHeaders, type, isFirstMess, isLastMess, pickChat, secretKey);
+        return TextChatWidget(
+            newChat,
+            user,
+            context,
+            token,
+            index,
+            requestHeaders,
+            type,
+            isFirstMess,
+            isLastMess,
+            pickChat,
+            secretKey,
+            lastReadMessage);
       }
     },
   );
@@ -114,6 +147,7 @@ Widget FileChatWidget(
   bool isFirstMess,
   bool isLastMess,
   void Function(Chat chat) pickChat,
+  int lastReadMessage,
 ) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
@@ -420,7 +454,7 @@ Widget FileChatWidget(
                     children: [
                       (chat.actorId == user.username)
                           ? Container(
-                              margin: const EdgeInsets.only(right: 10),
+                              margin: const EdgeInsets.only(right: 2),
                               child: Text(
                                 DateFormat('HH:mm').format(chat.timestamp!),
                                 style: TextStyle(
@@ -429,8 +463,19 @@ Widget FileChatWidget(
                               ),
                             )
                           : Container(),
+                      (chat.actorId == user.username)
+                          ? Container(
+                              margin: const EdgeInsets.only(right: 10),
+                              child: Icon(
+                                (chat.id! <= lastReadMessage)
+                                    ? Icons.done_all
+                                    : Icons.done,
+                                size: 16,
+                              ),
+                            )
+                          : Container(),
                       Container(
-                        constraints: const BoxConstraints(maxWidth: 300),
+                        constraints: const BoxConstraints(maxWidth: 280),
                         margin: (index == 0)
                             ? const EdgeInsets.only(
                                 left: 2, right: 2, top: 2, bottom: 10)
@@ -627,6 +672,7 @@ Widget TextChatWidget(
   bool isLastMess,
   void Function(Chat chat) pickChat,
   String? secretKey,
+  int lastReadMessage,
 ) {
   print(isFirstMess);
   return Column(
@@ -924,7 +970,7 @@ Widget TextChatWidget(
                   children: [
                     (chat.actorId == user.username)
                         ? Container(
-                            margin: const EdgeInsets.only(right: 10),
+                            margin: const EdgeInsets.only(right: 2),
                             child: Text(
                               DateFormat('HH:mm').format(chat.timestamp!),
                               style: TextStyle(
@@ -933,11 +979,22 @@ Widget TextChatWidget(
                             ),
                           )
                         : Container(),
+                    (chat.actorId == user.username)
+                        ? Container(
+                            margin: const EdgeInsets.only(right: 10),
+                            child: Icon(
+                              (chat.id! <= lastReadMessage)
+                                  ? Icons.done_all
+                                  : Icons.done,
+                              size: 16,
+                            ),
+                          )
+                        : Container(),
                     Builder(
                       builder: (context) {
                         if (containsOnlyEmojis(chat.message.toString())) {
                           return Container(
-                            constraints: const BoxConstraints(maxWidth: 300),
+                            constraints: const BoxConstraints(maxWidth: 280),
                             margin: (index == 0)
                                 ? const EdgeInsets.only(
                                     left: 2, right: 2, top: 2, bottom: 10)
@@ -1029,7 +1086,7 @@ Widget TextChatWidget(
                           );
                         } else if (isUrl(chat.message.toString())) {
                           return Container(
-                            constraints: const BoxConstraints(maxWidth: 300),
+                            constraints: const BoxConstraints(maxWidth: 280),
                             margin: (index == 0)
                                 ? const EdgeInsets.only(
                                     left: 2, right: 2, top: 2, bottom: 10)
@@ -1126,7 +1183,7 @@ Widget TextChatWidget(
                             //     ? Alignment.centerRight
                             //     : Alignment.centerLeft,
                             child: Container(
-                              constraints: const BoxConstraints(maxWidth: 300),
+                              constraints: const BoxConstraints(maxWidth: 280),
                               margin: (index == 0)
                                   ? const EdgeInsets.only(
                                       left: 2, right: 2, top: 2, bottom: 10)
@@ -1306,16 +1363,18 @@ Widget TextChatWidget(
 }
 
 Widget ObjectChatWidget(
-    Chat chat,
-    User user,
-    BuildContext context,
-    String token,
-    int index,
-    Map<String, String> requestHeaders,
-    int type,
-    bool isFirstMess,
-    bool isLastMess,
-    void Function(Chat chat) pickChat) {
+  Chat chat,
+  User user,
+  BuildContext context,
+  String token,
+  int index,
+  Map<String, String> requestHeaders,
+  int type,
+  bool isFirstMess,
+  bool isLastMess,
+  void Function(Chat chat) pickChat,
+  int lastReadMessage,
+) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
@@ -1589,9 +1648,20 @@ Widget ObjectChatWidget(
                         ),
                       )
                     : Container(),
+                (chat.actorId == user.username)
+                    ? Container(
+                        margin: const EdgeInsets.only(right: 2),
+                        child: Icon(
+                          (chat.id! <= lastReadMessage)
+                              ? Icons.done_all
+                              : Icons.done,
+                          size: 16,
+                        ),
+                      )
+                    : Container(),
                 (containsOnlyEmojis(chat.message.toString()))
                     ? Container(
-                        constraints: const BoxConstraints(maxWidth: 300),
+                        constraints: const BoxConstraints(maxWidth: 280),
                         margin: (index == 0)
                             ? const EdgeInsets.only(
                                 left: 2, right: 2, top: 2, bottom: 10)
@@ -1650,7 +1720,7 @@ Widget ObjectChatWidget(
                         //     ? Alignment.centerRight
                         //     : Alignment.centerLeft,
                         child: Container(
-                          constraints: const BoxConstraints(maxWidth: 300),
+                          constraints: const BoxConstraints(maxWidth: 280),
                           margin: (index == 0)
                               ? const EdgeInsets.only(
                                   left: 2, right: 2, top: 2, bottom: 10)

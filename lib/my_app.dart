@@ -7,6 +7,7 @@ import 'package:nextcloud_chat_app/screen/addParticipants/bloc/add_participants_
 import 'package:nextcloud_chat_app/screen/createConversation/bloc/create_conversation_bloc.dart';
 import 'package:nextcloud_chat_app/screen/home/bloc/home_bloc.dart';
 import 'package:nextcloud_chat_app/screen/home/view/home.dart';
+import 'package:nextcloud_chat_app/screen/login/view/connect_page.dart';
 import 'package:nextcloud_chat_app/screen/login/view/login.dart';
 import 'package:nextcloud_chat_app/screen/splash/view/splash.dart';
 

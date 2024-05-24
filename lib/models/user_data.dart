@@ -24,3 +24,15 @@ class UserData {
 
   static const empty = UserData(null, null, null, null, null, null, null);
 }
+
+class UserStatus {
+  final String? userId;
+  final String? status;
+
+  const UserStatus(this.userId, this.status);
+
+  factory UserStatus.fromJson(Map<String, dynamic> json) {
+    return UserStatus(json["userId"], json["status"]);
+  }
+  static const empty = UserStatus(null, null);
+}

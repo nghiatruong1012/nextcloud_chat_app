@@ -17,7 +17,7 @@ class CreateConversationBloc
     on<ChangedQueryEvent>((event, emit) async {
       final user = await CreateConversationService().getListUser({
         'search': event.query,
-        'itemType': '',
+        'itemType': 'call',
         'itemId': '',
         'sharedTypes[]': '0',
         'sharedTypes[]': '1',
