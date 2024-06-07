@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 class CreateConversationService {
   Future<List<UserConversation>> getListUser(params) async {
     Map<String, String> requestHeaders = await HTTPService().authHeader();
+    print("param: " + params.toString());
     try {
       // print(
       //   Uri(
@@ -30,11 +31,15 @@ class CreateConversationService {
       );
       if (response.statusCode == 200) {
         print('Success');
-        print("user${response.body}");
+        print("user-create${response.body}");
         List<dynamic> data = jsonDecode(response.body)["ocs"]["data"];
         List<UserConversation> listUser =
             data.map((item) => UserConversation.fromJson(item)).toList();
+        for (var element in listUser) {
+          print("useraa: " + element.label.toString());
+        }
         return listUser;
+
         // return Conversations.fromJson(jsonDecode(response.body));
       } else {
         print(response.statusCode.toString());

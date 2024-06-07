@@ -14,6 +14,8 @@ import 'package:nextcloud_chat_app/screen/login/view/login.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:nextcloud_chat_app/service/noti_service.dart';
 
+
+
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
 

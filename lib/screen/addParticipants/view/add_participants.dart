@@ -182,7 +182,8 @@ class _AddParticipantState extends State<AddParticipant> {
                 ),
               ),
               title: TextField(
-                decoration: const InputDecoration.collapsed(hintText: 'Tìm kiếm'),
+                decoration:
+                    const InputDecoration.collapsed(hintText: 'Tìm kiếm'),
                 onChanged: (value) {
                   setState(() {
                     context

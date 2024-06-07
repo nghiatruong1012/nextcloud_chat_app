@@ -1,13 +1,21 @@
 import 'dart:convert';
 
+import 'package:network_info_plus/network_info_plus.dart';
+import 'package:nextcloud_chat_app/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
 // const String host = '192.168.0.178';
-const String host = '192.168.1.22';
-// const String host = '192.168.43.165';
+const String host = '192.168.1.35';
+// String host = NetworkInfo().getWifiIP().toString();
 
 class HTTPService {
+  // Future<String> getHost() async {
+  //   String? host = await NetworkInfo().getWifiIP();
+  //   print("host: " + host.toString());
+  //   return host.toString();
+  // }
+
   // String? cookie;
   Future<Map<String, String>> authHeader() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();

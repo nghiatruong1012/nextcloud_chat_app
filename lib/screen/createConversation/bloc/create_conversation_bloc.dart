@@ -19,9 +19,7 @@ class CreateConversationBloc
         'search': event.query,
         'itemType': 'call',
         'itemId': '',
-        'sharedTypes[]': '0',
-        'sharedTypes[]': '1',
-        'sharedTypes[]': '7',
+        'shareTypes[]': ['0'],
       });
       final List<SelectUser> selectedUser = user
           .map(

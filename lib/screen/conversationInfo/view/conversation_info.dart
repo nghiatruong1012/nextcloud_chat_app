@@ -263,7 +263,7 @@ class _ConversationInfoState extends State<ConversationInfo> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.symmetric(
+                                  padding: EdgeInsets.symmetric(
                                       horizontal: 20, vertical: 10),
                                   child: Text(
                                     e.displayName.toString(),
@@ -278,22 +278,32 @@ class _ConversationInfoState extends State<ConversationInfo> {
                                         e.participantType == 4) {
                                       return ListTile(
                                         leading: const Icon(Icons.edit),
-                                        title: const Text('Promote to moderator'),
+                                        title:
+                                            const Text('Promote to moderator'),
                                         onTap: () {
                                           ParticipantsService()
                                               .promoteModerator(
-                                                  conversations.token!,
-                                                  {"attendeeId": e.actorId});
+                                            conversations.token!,
+                                            {
+                                              "attendeeId":
+                                                  e.attendeeId.toString()
+                                            },
+                                          );
                                         },
                                       );
                                     } else if (e.participantType == 1) {
                                       return ListTile(
                                         leading: const Icon(Icons.edit),
-                                        title: const Text('Demote to moderator'),
+                                        title:
+                                            const Text('Demote to moderator'),
                                         onTap: () {
                                           ParticipantsService().deleteModerator(
-                                              conversations.token!,
-                                              {"attendeeId": e.actorId});
+                                            conversations.token!,
+                                            {
+                                              "attendeeId":
+                                                  e.attendeeId.toString()
+                                            },
+                                          );
                                         },
                                       );
                                     } else {
@@ -301,9 +311,15 @@ class _ConversationInfoState extends State<ConversationInfo> {
                                     }
                                   },
                                 ),
-                                const ListTile(
+                                ListTile(
                                   leading: Icon(Icons.delete),
                                   title: Text('Remove participant'),
+                                  onTap: () {
+                                    ParticipantsService().removeUser(
+                                      conversations.token!,
+                                      {"attendeeId": e.attendeeId.toString()},
+                                    );
+                                  },
                                 ),
                               ],
                             ),
@@ -331,7 +347,8 @@ class _ConversationInfoState extends State<ConversationInfo> {
                                   }
                                 })),
                       ),
-                      title: Text("${e.displayName} (${participantType[e.participantType!]})"),
+                      title: Text(
+                          "${e.displayName} (${participantType[e.participantType!]})"),
                     ))
                 .toList(),
           ),

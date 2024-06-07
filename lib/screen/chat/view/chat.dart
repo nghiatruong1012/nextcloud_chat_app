@@ -720,33 +720,37 @@ class _ChatPageState extends State<ChatPage> {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(100),
-                  child: Builder(
-                    builder: (context) {
-                      if (state.conversations!.type! == 1) {
-                        return FutureBuilder(
-                            future: ConversationService().getConversationAvatar(
-                                token,
-                                state.conversations!.name!,
-                                state.conversations!.lastMessage!.actorType!,
-                                64),
-                            builder: (context, snapshot) {
-                              if (snapshot.hasData) {
-                                return snapshot.data ?? Container();
-                              } else {
-                                return Container();
-                              }
-                            });
-                      } else if (state.conversations!.type! == 6) {
-                        return Container(
-                            color: const Color(0xFF0082c9),
-                            child: const Center(child: Text('📝')));
-                      } else {
-                        return SvgPicture.network(
-                          'http://$host:8080//ocs/v2.php/apps/spreed/api/v1/room/$token/avatar',
-                          headers: requestHeaders,
-                        );
-                      }
-                    },
+                  child: Center(
+                    child: Builder(
+                      builder: (context) {
+                        if (state.conversations!.type! == 1) {
+                          return FutureBuilder(
+                              future: ConversationService()
+                                  .getConversationAvatar(
+                                      token,
+                                      state.conversations!.name!,
+                                      state.conversations!.lastMessage!
+                                          .actorType!,
+                                      64),
+                              builder: (context, snapshot) {
+                                if (snapshot.hasData) {
+                                  return snapshot.data ?? Container();
+                                } else {
+                                  return Container();
+                                }
+                              });
+                        } else if (state.conversations!.type! == 6) {
+                          return Container(
+                              color: const Color(0xFF0082c9),
+                              child: const Center(child: Text('📝')));
+                        } else {
+                          return SvgPicture.network(
+                            'http://$host:8080//ocs/v2.php/apps/spreed/api/v1/room/$token/avatar',
+                            headers: requestHeaders,
+                          );
+                        }
+                      },
+                    ),
                   ),
                 ),
                 Positioned(

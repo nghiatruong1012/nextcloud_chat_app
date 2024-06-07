@@ -27,12 +27,12 @@ class CallPage extends StatefulWidget {
   final String user;
 
   @override
-  State<CallPage> createState() => _CallPageState(token: token, user: user);
+  State<CallPage> createState() => _CallPageState();
 }
 
 class _CallPageState extends State<CallPage> {
-  final String token;
-  final String user;
+  late final String token;
+  late final String user;
   bool inCall = false;
 
   MediaStream? _localStream;
@@ -42,15 +42,20 @@ class _CallPageState extends State<CallPage> {
   late String localSessionId;
   late String remoteSessionId;
   late String sid;
-  List<dynamic> data = [];
-
-  _CallPageState({
-    required this.token,
-    required this.user,
-  });
+  final List<dynamic> data = [];
 
   @override
-  dispose() {
+  void initState() {
+    super.initState();
+    token = widget.token;
+    user = widget.user;
+
+    _initializeRenderers();
+    _initiateCall();
+  }
+
+  @override
+  void dispose() {
     _localRenderer.srcObject = null;
     _remoteRenderer.srcObject = null;
     _localRenderer.dispose();
@@ -58,42 +63,79 @@ class _CallPageState extends State<CallPage> {
     super.dispose();
   }
 
-  @override
-  void initState() {
-    initRenderer();
-    CallService().joinCall({"flags": '7', "silent": false}, token);
-    getSignal();
-    _createPeerConnecion().then((pc) {
-      print("pc: $pc");
-      setState(() {
-        _peerConnection = pc;
-      });
-    });
-
-    // Future.delayed(Duration.zero, () async {
-    //   while (localSessionId == null || remoteSessionId == null) {
-    //     // Đợi 1 giây trước khi kiểm tra lại
-    //     await Future.delayed(Duration(seconds: 1));
-    //   }
-
-    //   // Khi cả hai biến đã có giá trị, gọi hàm joinCall()
-    //   joinCall();
-    // });
-
-    super.initState();
-  }
-
-  initRenderer() async {
+  Future<void> _initializeRenderers() async {
     await _localRenderer.initialize();
     await _remoteRenderer.initialize();
   }
 
-  void joinCall() async {
-    sid = DateTime.now().millisecondsSinceEpoch.toString();
-    print(_peerConnection.toString());
+  Future<void> _initiateCall() async {
+    CallService().joinCall({"flags": '7', "silent": false}, token);
+    _getSignal();
+    final pc = await _createPeerConnection();
+    setState(() {
+      _peerConnection = pc;
+    });
+  }
 
-    RTCSessionDescription description =
-        await _peerConnection!.createOffer(constraints);
+  Future<RTCPeerConnection> _createPeerConnection() async {
+    final configuration = {
+      "iceServers": [
+        {"url": "stun:stun.nextcloud.com:443"},
+      ]
+    };
+    _localStream = await _getUserMedia();
+
+    final pc =
+        await createPeerConnection(configuration, _offerAnswerConstraints);
+    _localStream?.getTracks().forEach((track) {
+      pc.addTrack(track, _localStream!);
+    });
+
+    pc.onIceCandidate = (e) {
+      if (e.candidate != null) {
+        _sendCandidate(e);
+      }
+    };
+
+    pc.onAddStream = (stream) {
+      setState(() {
+        _remoteRenderer.srcObject = stream;
+      });
+    };
+
+    return pc;
+  }
+
+  Future<MediaStream> _getUserMedia() async {
+    final stream = await navigator.mediaDevices.getUserMedia(constraints);
+    setState(() {
+      _localRenderer.srcObject = stream;
+    });
+    return stream;
+  }
+
+  void _sendCandidate(RTCIceCandidate candidate) {
+    data.add({
+      "ev": "message",
+      "fn": jsonEncode({
+        "payload": {
+          "candidate": {
+            "candidate": candidate.candidate,
+            "sdpMid": candidate.sdpMid,
+            "sdpMLineIndex": candidate.sdpMLineIndex.toString(),
+          },
+        },
+        "roomType": "video",
+        "to": remoteSessionId,
+        "type": "candidate",
+      }),
+      "sessionId": localSessionId,
+    });
+  }
+
+  Future<void> joinCall() async {
+    sid = DateTime.now().millisecondsSinceEpoch.toString();
+    final description = await _peerConnection!.createOffer(constraints);
 
     data.add({
       "ev": "message",
@@ -104,18 +146,18 @@ class _CallPageState extends State<CallPage> {
           "type": description.type,
         },
         "roomType": "video",
-        // "sid": sid,
         "to": remoteSessionId,
         "type": description.type,
       }),
       "sessionId": localSessionId,
     });
-    _peerConnection!.setLocalDescription(description);
-    print('join call');
 
-    // Delay before sending data
+    await _peerConnection!.setLocalDescription(description);
+    _sendJoinCallData();
+  }
+
+  void _sendJoinCallData() {
     Future.delayed(const Duration(seconds: 5), () {
-      print("data: $data");
       Clipboard.setData(ClipboardData(
         text: jsonEncode({
           "messages": jsonEncode(data),
@@ -124,41 +166,42 @@ class _CallPageState extends State<CallPage> {
       SignalingService().postSignal(token, {
         "messages": jsonEncode(data),
       });
-      print('send data');
 
-      // Delay before turning on camera and microphone
       Future.delayed(const Duration(seconds: 5), () {
-        SignalingService().postSignal(token, {
-          "messages": jsonEncode([
-            {
-              "ev": "message",
-              "fn": jsonEncode({
-                "to": remoteSessionId,
-                "roomType": "video",
-                "type": "unmute",
-                "payload": {"name": "video"}
-              }),
-              "sessionId": localSessionId,
-            },
-            {
-              "ev": "message",
-              "fn": jsonEncode({
-                "to": remoteSessionId,
-                "roomType": "video",
-                "type": "unmute",
-                "payload": {"name": "audio"}
-              }),
-              "sessionId": localSessionId,
-            }
-          ]),
-        });
-        print('turn on camera');
+        _unmuteMedia();
       });
     });
   }
 
-  getSignal() async {
-    Map<String, String> requestHeaders = await HTTPService().authHeader();
+  void _unmuteMedia() {
+    SignalingService().postSignal(token, {
+      "messages": jsonEncode([
+        {
+          "ev": "message",
+          "fn": jsonEncode({
+            "to": remoteSessionId,
+            "roomType": "video",
+            "type": "unmute",
+            "payload": {"name": "video"}
+          }),
+          "sessionId": localSessionId,
+        },
+        {
+          "ev": "message",
+          "fn": jsonEncode({
+            "to": remoteSessionId,
+            "roomType": "video",
+            "type": "unmute",
+            "payload": {"name": "audio"}
+          }),
+          "sessionId": localSessionId,
+        }
+      ]),
+    });
+  }
+
+  Future<void> _getSignal() async {
+    final requestHeaders = await HTTPService().authHeader();
 
     try {
       final response = await http.get(
@@ -169,159 +212,60 @@ class _CallPageState extends State<CallPage> {
           path: '/ocs/v2.php/apps/spreed/api/v3/signaling/$token',
         ),
         headers: requestHeaders,
-        // body: jsonEncode(params ?? {}),
       );
+
       if (response.statusCode == 200) {
-        print("signaling${jsonDecode(response.body)["ocs"]}");
+        final responseData = jsonDecode(response.body)["ocs"];
+        final dataList = responseData["data"];
+        final dataType = dataList[0]["type"].toString();
 
-        if (jsonDecode(response.body)["ocs"]["data"][0]["type"].toString() ==
-            "usersInRoom") {
-          if (jsonDecode(response.body)["ocs"]["data"][0]["data"][0]
-                      ["inCall"] !=
-                  0 &&
-              jsonDecode(response.body)["ocs"]["data"][0]["data"][1]
-                      ["inCall"] !=
-                  0) {
-            // localSessionId = jsonDecode(response.body)["ocs"]["data"][0]["data"]
-            //     [0]["sessionId"];
-            // remoteSessionId = jsonDecode(response.body)["ocs"]["data"][0]["data"]
-            //     [1]["sessionId"];
-            if (jsonDecode(response.body)["ocs"]["data"][0]["data"][0]
-                    ["userId"] ==
-                user) {
-              localSessionId = jsonDecode(response.body)["ocs"]["data"][0]
-                  ["data"][0]["sessionId"];
-              remoteSessionId = jsonDecode(response.body)["ocs"]["data"][0]
-                  ["data"][1]["sessionId"];
-              if (!inCall) {
-                joinCall();
-                inCall = true;
-              }
-            } else {
-              localSessionId = jsonDecode(response.body)["ocs"]["data"][0]
-                  ["data"][1]["sessionId"];
-              remoteSessionId = jsonDecode(response.body)["ocs"]["data"][0]
-                  ["data"][0]["sessionId"];
-              // joinCall();
-              if (!inCall) {
-                joinCall();
-                inCall = true;
-              }
-            }
-            print("sid$localSessionId");
-            print("sid$remoteSessionId");
-          }
-        } else if (jsonDecode(response.body)["ocs"]["data"][0]["type"]
-                .toString() ==
-            "message") {
-          final sdp = jsonDecode(jsonDecode(response.body)["ocs"]["data"][0]
-              ["data"])["payload"]["sdp"];
-          final candicate = jsonDecode(jsonDecode(response.body)["ocs"]["data"]
-              [1]["data"])["payload"]["candidate"];
-          if (sdp != null) {
-            _peerConnection!.setRemoteDescription(
-                RTCSessionDescription(sdp.toString(), "answer"));
-          }
-          if (candicate != null) {
-            _peerConnection!.addCandidate(RTCIceCandidate(
-                candicate["candidate"],
-                candicate["sdpMid"],
-                candicate["sdpMLineIndex"]));
-          }
-
-          print("sdp: $sdp");
-
-          print("candicate: $candicate");
+        if (dataType == "usersInRoom") {
+          _handleUsersInRoom(dataList[0]["data"]);
+        } else if (dataType == "message") {
+          _handleMessage(dataList);
         }
 
-        print("signaling" + jsonDecode(response.body)["ocs"]["data"]);
-
-        getSignal();
-      } else {
-        print(response.statusCode);
-        if (response.statusCode != 404) {
-          getSignal();
-        }
+        _getSignal();
+      } else if (response.statusCode != 404) {
+        _getSignal();
       }
     } catch (e) {
-      print(e);
-      getSignal();
+      _getSignal();
     }
   }
 
-  _getUserMedia() async {
-    MediaStream stream = await navigator.mediaDevices.getUserMedia(constraints);
+  void _handleUsersInRoom(List<dynamic> data) {
+    if (data[0]["inCall"] != 0 && data[1]["inCall"] != 0) {
+      if (data[0]["userId"] == user) {
+        localSessionId = data[0]["sessionId"];
+        remoteSessionId = data[1]["sessionId"];
+      } else {
+        localSessionId = data[1]["sessionId"];
+        remoteSessionId = data[0]["sessionId"];
+      }
 
-    setState(() {
-      _localRenderer.srcObject = stream;
-    });
-    // _localRenderer.mirror = true;
-    return stream;
+      if (!inCall) {
+        joinCall();
+        setState(() {
+          inCall = true;
+        });
+      }
+    }
   }
 
-  _createPeerConnecion() async {
-    Map<String, dynamic> configuration = {
-      "iceServers": [
-        {"url": "stun:stun.nextcloud.com:443"},
-      ]
-    };
-    _localStream = await _getUserMedia();
+  void _handleMessage(List<dynamic> data) {
+    final sdp = jsonDecode(data[0]["data"])["payload"]["sdp"];
+    final candidate = jsonDecode(data[1]["data"])["payload"]["candidate"];
 
-    RTCPeerConnection pc =
-        await createPeerConnection(configuration, _offerAnswerConstraints);
-    // pc.addStream(_localStream!);
-    _localStream?.getTracks().forEach((track) {
-      pc.addTrack(track, _localStream!);
-    });
-    pc.onIceCandidate = (e) async {
-      if (e.candidate != null) {
-        // Map<String, String> requestHeaders = await HTTPService().authHeader();
-        print("candidate:${e.candidate}");
-        data.add({
-          "ev": "message",
-          "fn": jsonEncode({
-            "payload": {
-              "candidate": {
-                "candidate": e.candidate,
-                "sdpMid": e.sdpMid,
-                "sdpMLineIndex": e.sdpMLineIndex.toString(),
-              },
-            },
-            "roomType": "video",
-            // "sid": sid,
-            "to": remoteSessionId,
-            "type": "candidate",
-          }),
-          "sessionId": localSessionId,
-        });
-        // try {
-        //   final response = await http.post(
-        //     Uri(
-        //       scheme: 'http',
-        //       host: host,
-        //       port: 8080,
-        //       path: '/ocs/v2.php/apps/spreed/api/v3/signaling/${token}',
-        //     ),
-        //     headers: requestHeaders,
-        //     body: jsonEncode({"messages": e.candidate}),
-        //   );
-        //   if (response.statusCode == 200) {
-        //   } else {
-        //     print(response.statusCode);
-        //   }
-        // } catch (e) {
-        //   print(e);
-        // }
-      }
-    };
+    if (sdp != null) {
+      _peerConnection!.setRemoteDescription(
+          RTCSessionDescription(sdp.toString(), "answer"));
+    }
 
-    pc.onAddStream = (stream) {
-      print('addStream: ${stream.id}');
-      setState(() {
-        _remoteRenderer.srcObject = stream;
-      });
-    };
-    return pc;
+    if (candidate != null) {
+      _peerConnection!.addCandidate(RTCIceCandidate(candidate["candidate"],
+          candidate["sdpMid"], candidate["sdpMLineIndex"]));
+    }
   }
 
   @override
@@ -331,116 +275,89 @@ class _CallPageState extends State<CallPage> {
       floatingActionButton: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          // FloatingActionButton(
-          //   onPressed: () {
-          //     joinCall();
-          //   },
-          //   heroTag: 'join_call',
-          //   child: Icon(Icons.call),
-          //   backgroundColor: Colors.green,
-          // ),
-          // FloatingActionButton(
-          //   heroTag: 'data',
-          //   onPressed: () {
-          //     print("data: " + data.toString());
-          //     Clipboard.setData(ClipboardData(
-          //         text: jsonEncode({
-          //       "messages": jsonEncode(data),
-          //     })));
-          //     SignalingService().postSignal(token, {
-          //       "messages": jsonEncode(data),
-          //     });
-          //   },
-          //   child: Icon(Icons.call_made_outlined),
-          //   backgroundColor: Colors.yellow,
-          // ),
           FloatingActionButton(
             heroTag: 'camera',
-            onPressed: () {
-              SignalingService().postSignal(token, {
-                "messages": jsonEncode([
-                  {
-                    "ev": "message",
-                    "fn": jsonEncode({
-                      "to": remoteSessionId,
-                      "roomType": "video",
-                      "type": "unmute",
-                      "payload": {"name": "video"}
-                    }),
-                    "sessionId": localSessionId,
-                  },
-                  // {
-                  //   "ev": "message",
-                  //   "fn": jsonEncode({
-                  //     "to": remoteSessionId,
-                  //     "roomType": "video",
-                  //     "type": "unmute",
-                  //     "payload": {"name": "audio"}
-                  //   }),
-                  //   "sessionId": localSessionId,
-                  // }
-                ]),
-              });
-            },
+            onPressed: _unmuteVideo,
             child: const Icon(Icons.camera),
           ),
           FloatingActionButton(
             heroTag: 'end',
-            onPressed: () {
-              CallService().leaveCall({"all": true}, token);
-              dispose();
-              Navigator.pop(context);
-            },
+            onPressed: _endCall,
             backgroundColor: Colors.red,
             child: const Icon(Icons.call_end),
           ),
           FloatingActionButton(
             heroTag: 'mic',
-            onPressed: () {
-              SignalingService().postSignal(token, {
-                "messages": jsonEncode([
-                  {
-                    "ev": "message",
-                    "fn": jsonEncode({
-                      "to": remoteSessionId,
-                      "roomType": "video",
-                      "type": "unmute",
-                      "payload": {"name": "audio"}
-                    }),
-                    "sessionId": localSessionId,
-                  }
-                ]),
-              });
-            },
+            onPressed: _unmuteAudio,
             child: const Icon(Icons.mic),
           ),
         ],
       ),
       body: SafeArea(
-        child: Container(
-          child: Stack(
-            alignment: Alignment.topRight,
-            children: [
-              Flexible(
-                child: Container(
-                    key: const Key("remote"),
-                    margin: const EdgeInsets.fromLTRB(5.0, 5.0, 5.0, 5.0),
-                    decoration: const BoxDecoration(color: Colors.black),
-                    child: RTCVideoView(_remoteRenderer)),
+        child: Stack(
+          alignment: Alignment.topRight,
+          children: [
+            Flexible(
+              child: Container(
+                key: const Key("remote"),
+                margin: const EdgeInsets.all(5.0),
+                decoration: const BoxDecoration(color: Colors.black),
+                child: RTCVideoView(_remoteRenderer),
               ),
-              Flexible(
-                child: Container(
-                    key: const Key("local"),
-                    width: 150,
-                    height: 300,
-                    margin: const EdgeInsets.fromLTRB(5.0, 5.0, 5.0, 5.0),
-                    decoration: const BoxDecoration(color: Colors.black),
-                    child: RTCVideoView(_localRenderer)),
+            ),
+            Flexible(
+              child: Container(
+                key: const Key("local"),
+                width: 150,
+                height: 300,
+                margin: const EdgeInsets.all(5.0),
+                decoration: const BoxDecoration(color: Colors.black),
+                child: RTCVideoView(_localRenderer),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
+  }
+
+  void _unmuteVideo() {
+    SignalingService().postSignal(token, {
+      "messages": jsonEncode([
+        {
+          "ev": "message",
+          "fn": jsonEncode({
+            "to": remoteSessionId,
+            "roomType": "video",
+            "type": "unmute",
+            "payload": {"name": "video"}
+          }),
+          "sessionId": localSessionId,
+        }
+      ]),
+    });
+  }
+
+  void _unmuteAudio() {
+    SignalingService().postSignal(token, {
+      "messages": jsonEncode([
+        {
+          "ev": "message",
+          "fn": jsonEncode({
+            "to": remoteSessionId,
+            "roomType": "video",
+            "type": "unmute",
+            "payload": {"name": "audio"}
+          }),
+          "sessionId": localSessionId,
+        }
+      ]),
+    });
+  }
+
+  void _endCall() {
+    CallService().leaveCall({"all": true}, token);
+    dispose();
+    Navigator.pop(context);
   }
 }

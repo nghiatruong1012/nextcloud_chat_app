@@ -235,7 +235,7 @@ class ChatService {
 
   Future<void> downloadAndOpenFile(
       String user, String fileUrl, String filePath, String fileName) async {
-    String baseUrl = 'http://localhost:8080';
+    String baseUrl = 'http://${host}:8080';
     if (fileUrl.startsWith(baseUrl)) {
       // Cut the base URL from the original URL
       fileUrl.substring(baseUrl.length);

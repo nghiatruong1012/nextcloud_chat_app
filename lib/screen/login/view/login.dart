@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:nextcloud_chat_app/repositories/authentication_repository.dart';
 import 'package:nextcloud_chat_app/screen/login/bloc/login_bloc.dart';
+import 'package:nextcloud_chat_app/service/request.dart';
 import 'package:nextcloud_chat_app/utils.dart';
 
 class LoginPage extends StatefulWidget {
@@ -97,7 +98,7 @@ class _LoginWebViewState extends State<LoginWebView> {
       builder: (context, state) {
         return InAppWebView(
           initialUrlRequest: URLRequest(
-              url: Uri.parse("$localhost/index.php/login/flow"),
+              url: Uri.parse("$host/index.php/login/flow"),
               headers: {
                 "OCS-APIREQUEST": "true",
                 // "Accept-Language": "en-US",

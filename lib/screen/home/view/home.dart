@@ -196,33 +196,36 @@ class _HomePageState extends State<HomePage> {
                                   children: [
                                     ClipRRect(
                                       borderRadius: BorderRadius.circular(100),
-                                      child: Builder(builder: (context) {
-                                        if (state.searchList![index].type ==
-                                            1) {
-                                          return CachedNetworkImage(
-                                            imageUrl:
-                                                'http://$host:8080/ocs/v2.php/apps/spreed/api/v1/room/${state.searchList![index].token!}/avatar',
-                                            placeholder: (context, url) =>
-                                                const CircularProgressIndicator(),
-                                            errorWidget: (context, url, error) {
-                                              return Container();
-                                            },
-                                            httpHeaders: snapshot.data,
-                                          );
-                                        } else if (state
-                                                .searchList![index].type ==
-                                            6) {
-                                          return Container(
-                                              color: const Color(0xFF0082c9),
-                                              child: const Center(
-                                                  child: Text('📝')));
-                                        } else {
-                                          return SvgPicture.network(
-                                            'http://$host:8080//ocs/v2.php/apps/spreed/api/v1/room/${state.searchList![index].token!}/avatar',
-                                            headers: snapshot.data,
-                                          );
-                                        }
-                                      }),
+                                      child: Center(
+                                        child: Builder(builder: (context) {
+                                          if (state.searchList![index].type ==
+                                              1) {
+                                            return CachedNetworkImage(
+                                              imageUrl:
+                                                  'http://$host:8080/ocs/v2.php/apps/spreed/api/v1/room/${state.searchList![index].token!}/avatar',
+                                              placeholder: (context, url) =>
+                                                  const CircularProgressIndicator(),
+                                              errorWidget:
+                                                  (context, url, error) {
+                                                return Container();
+                                              },
+                                              httpHeaders: snapshot.data,
+                                            );
+                                          } else if (state
+                                                  .searchList![index].type ==
+                                              6) {
+                                            return Container(
+                                                color: const Color(0xFF0082c9),
+                                                child: const Center(
+                                                    child: Text('📝')));
+                                          } else {
+                                            return SvgPicture.network(
+                                              'http://$host:8080//ocs/v2.php/apps/spreed/api/v1/room/${state.searchList![index].token!}/avatar',
+                                              headers: snapshot.data,
+                                            );
+                                          }
+                                        }),
+                                      ),
                                       // FutureBuilder(
                                       //     future: ConversationService()
                                       //         .getConversationAvatar(
